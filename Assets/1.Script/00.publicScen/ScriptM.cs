@@ -67,7 +67,7 @@ public static class ScriptM
     }
 
     /// <summary>
-    /// 등록된 서비스 조회를 시도하여 성공 시 true와 인스턴스를 반환하고, 실패 시 에러 로그와 함께 false를 반환
+    /// 등록된 서비스 조회를 시도하여 성공 시 true와 인스턴스를 반환하고, 실패 시 에러 로그와 함께 false를 반환 if(!ScriptM.TryGet<T>(out T 변수명)) {retern;} 식으로 사용
     /// </summary>
     public static bool TryGet<T>(out T service) where T : class
     {

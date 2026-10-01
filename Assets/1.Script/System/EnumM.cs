@@ -8,3 +8,17 @@ public enum UseSpace
     }
 
 
+public enum PlayMode
+{
+    Single,//싱글 모드
+    multi // 멀티 모드
+}
+
+public enum SceneNumber
+{
+    GameStart,
+    Lobby,
+    Battle =10,
+    multiBattle =20,
+
+}

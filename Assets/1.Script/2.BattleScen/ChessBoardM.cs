@@ -15,14 +15,19 @@ public class ChessBoardM : MonoBehaviour
     public bool IsFlipped { get; set; } = false;
 
 
+    private void Awake()
+    {
+        ScriptM.Register<ChessBoardM>(this, UseSpace.Local);
+    }
 
-   /// <summary>
-   /// 논리적 그리드 좌표를 받아와서 실제 클라이언트 화면에 월드 좌표로 바꿔서 보여준다.
-   /// 멀티시에는 흑백을 시점 반전으로 보요줄 예정
-   /// </summary>
-   /// <param name="x">열 0~7 = a~h</param>
-   /// <param name="y">행 0~7 = 1~8</param>
-   /// <returns>v3에 사용될 원드좌표</returns>
+
+    /// <summary>
+    /// 논리적 그리드 좌표를 받아와서 실제 클라이언트 화면에 월드 좌표로 바꿔서 보여준다.
+    /// 멀티시에는 흑백을 시점 반전으로 보요줄 예정
+    /// </summary>
+    /// <param name="x">열 0~7 = a~h</param>
+    /// <param name="y">행 0~7 = 1~8</param>
+    /// <returns>v3에 사용될 원드좌표</returns>
     public Vector3 GetWorldPosition(int x,int y)
     {
         // 내가 흑일 경우 시점이 180도 돌아가서 계산

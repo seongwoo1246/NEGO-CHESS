@@ -1,14 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using Fusion;
+using System.Collections.Generic;
 using UnityEngine;
+using Debug = DebugM<ChessPieceM>;
+
 
 public class ChessPieceM : MonoBehaviour
 {
-    [Header("참조 스크립트")]
-    [SerializeField] private ChessBoardM boardManager; // 좌표 변환기 참조
+
+    [Header("멀티용으로 사용되는 것")]
+    [SerializeField] private NetworkRunner runner; // 멀티용
+
+
+    /// <summary>
+    /// 현재 게임모드에 맞는 Spawner를 넣어줌
+    /// </summary>
+    private IPieceSpawner pieceSpawner;
+
 
     // 체스판 위에 존재하는 모든 기물 오브젝트를 논리 좌표(x, y)로 추적하기 위한 2차원 배열
     // (x: 0~7, y: 0~7) 위치에 존재하는 기물 GameObject를 저장합니다.
     private GameObject[,] pieceGrid = new GameObject[8, 8];
+
+    private void Awake()
+    {
+        ScriptM.Register<ChessPieceM>(this, UseSpace.Local);
+    }
+
+
+    // 게임 시작시 싱글/멀티 여부에 따라 주입
+    public void Initialize(IPieceSpawner spawner)
+    {
+        this .pieceSpawner = spawner;
+    }
 
     /// <summary>
     /// 원하는 위치(x, y)에 원하는 기물 프리팹을 생성합니다.
@@ -20,23 +43,31 @@ public class ChessPieceM : MonoBehaviour
     /// <returns>생성된 기물의 GameObject</returns>
     public GameObject SpawnPiece(GameObject piecePrefab, int x, int y)
     {
+
+        if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
+        {
+            Debug.LogError("ChessPieceM 서비스를 찾을 수 없습니다.");
+            return null;
+        }
+
         // 1. 이미 해당 위치에 기물이 있다면 기존 기물 제거 (또는 예외 처리)
         if (pieceGrid[x, y] != null)
         {
             DestroyPiece(x, y);
         }
+     
 
         // 2. 입력받은 논리 좌표(x, y)를 기반으로 월드 좌표 산출
-        Vector3 spawnWorldPos = boardManager.GetWorldPosition(x, y);
+        Vector3 spawnWorldPos = boardM.GetWorldPosition(x, y);
 
         // 3. 기물 인스턴스화
         // (주의: 추후 퓨전 멀티플레이 적용 시에는 Runner.Spawn()으로 대체됩니다)
-        GameObject newPiece = Instantiate(piecePrefab, spawnWorldPos, Quaternion.identity);
-
+        GameObject newPiece = pieceSpawner.Spawn(piecePrefab, spawnWorldPos, Quaternion.identity);
         // 4. 2차원 배열에 기물 등록 (데이터 매핑)
         pieceGrid[x, y] = newPiece;
-
         return newPiece;
+
+
     }
 
     /// <summary>
@@ -48,6 +79,11 @@ public class ChessPieceM : MonoBehaviour
     /// <param name="toY">도착 Y (0~7)</param>
     public void MovePiece(int fromX, int fromY, int toX, int toY)
     {
+        if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
+        {
+            Debug.LogError("ChessPieceM 서비스를 찾을 수 없습니다.");
+            return;
+        }
         // 1. 출발지에 기물이 존재하는지 검증
         GameObject pieceToMove = pieceGrid[fromX, fromY];
         if (pieceToMove == null)
@@ -63,7 +99,7 @@ public class ChessPieceM : MonoBehaviour
         }
 
         // 3. 목적지의 월드 좌표 계산
-        Vector3 targetWorldPos = boardManager.GetWorldPosition(toX, toY);
+        Vector3 targetWorldPos = boardM.GetWorldPosition(toX, toY);
 
         // 4. 실제로 기물의 Transform 위치 이동 (직부여 또는 연출용 트윈 적용)
         pieceToMove.transform.position = targetWorldPos;
@@ -80,7 +116,8 @@ public class ChessPieceM : MonoBehaviour
     {
         if (pieceGrid[x, y] != null)
         {
-            Destroy(pieceGrid[x, y]);
+            // 풀로 반환하거나 Despawn처리
+            pieceSpawner.Despawn(pieceGrid[x, y]);
             pieceGrid[x, y] = null;
         }
     }
