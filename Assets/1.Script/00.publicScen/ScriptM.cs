@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 using Debug = DebugM;
 
 // 서비스 로케스터 구조
@@ -35,6 +36,21 @@ public static class ScriptM
             Debug.LogWarningWithTag("ServiceLocator", $"이미 등록된 서비스");
         }
 
+        //전역이거나 멀티에 사용될 시 계속 들고 다니기
+        if (lifetime == UseSpace.Network_Global)
+        {
+            if (service is Component component)
+            {
+                // 최상위(Root) 오브젝트로 만든 뒤 DDOL 적용
+                component.transform.SetParent(null);
+                UnityEngine.Object.DontDestroyOnLoad(component.gameObject);
+            }
+            else if (service is GameObject go)
+            {
+                go.transform.SetParent(null);
+                UnityEngine.Object.DontDestroyOnLoad(go);
+            }
+        }
         _services[type] = new ServiceEntry()
         {
             Instance = service,
@@ -104,7 +120,7 @@ public static class ScriptM
     /// </summary>
     private static readonly Dictionary<Type, Action<IGameMessage>> _handlers = new();
 
-    // 구독 (사용방법 : 
+    // 구독  
     public static void Subscribe<T>(Action<T> handler) where T : IGameMessage
     {
         Type type = typeof(T);
