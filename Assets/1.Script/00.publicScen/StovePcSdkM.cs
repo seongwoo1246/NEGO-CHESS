@@ -107,6 +107,7 @@ public class StovePCSDKManager : MonoBehaviour
     {
         if (IsInitialized)
         {
+            ScriptM.Reset();
             Base_UnInitialize();
             IsInitialized = false;
             Debug.Log("[StovePCSDK3] Uninitialized.");
