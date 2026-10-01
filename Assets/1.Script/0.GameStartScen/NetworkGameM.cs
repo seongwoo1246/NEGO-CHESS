@@ -1,5 +1,7 @@
 ﻿using Fusion;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
+using Debug = DebugM<NetworkGameM>;
 
 public class NetworkGameM : NetworkBehaviour
 {
@@ -13,7 +15,70 @@ public class NetworkGameM : NetworkBehaviour
     // 현재 턴 플레이어의 이번 턴 남은 초읽기 시간 (5초)
     [Networked] public float CurrentBonusTime { get; set; } = 5f;
     // 현재 턴 유저 구분 (true: 백, false: 흑)
-    [Networked] public bool IsWhiteTurn { get; set; } = true;
+    [Networked] public bool IsWhiteTurn { get; set; } = false;
+
+    // 클라이언트가 진영 버튼(White/Black)을 눌렀을 때 서버로 요청하는 RPC
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    public void RPC_RequestSelectColor(PlayerRef requestPlayer , PieceColor color)
+    {
+        //1. 이미 누군가 선택한 진영인지 검사
+        if(color == PieceColor.white&& WhitePlayer ==PlayerRef.None)
+        {
+            if(BlackPlayer == requestPlayer)
+            {
+                BlackPlayer = PlayerRef.None;
+            }
+            WhitePlayer = requestPlayer;
+            Debug.Log($"{requestPlayer}님이 백을 선택했습니다.");
+        }
+        else if (color == PieceColor.black&& BlackPlayer == PlayerRef.None)
+        {
+            if (color == PieceColor.white && WhitePlayer == PlayerRef.None)
+            {
+                if (WhitePlayer == requestPlayer)
+                {
+                    WhitePlayer = PlayerRef.None;
+                }
+                BlackPlayer = requestPlayer;
+                Debug.Log($"{requestPlayer}님이 흑을 선택했습니다.");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("이미 선택한 진영입니다.");
+        }
+    }
+
+    // 양쪽 모두 진영을 정했는지 확인 함수
+    public bool IsBothPlayerReady()
+    {
+        return WhitePlayer !=PlayerRef.None && BlackPlayer !=PlayerRef.None;
+    }
+
+    // 진영 선택을 미처 안 한 경우 랜덤으로 배치해 주는 함수 (게임 시작 시 호출)
+    public void AutoAssignRemainingSides(PlayerRef player1, PlayerRef player2)
+    {
+        if (!Object.HasStateAuthority) return;
+
+        // 아무도 안 골랐을 때
+        if (WhitePlayer == PlayerRef.None && BlackPlayer == PlayerRef.None)
+        {
+            bool randomBool = Random.value > 0.5f;
+            WhitePlayer = randomBool ? player1 : player2;
+            BlackPlayer = randomBool ? player2 : player1;
+        }
+        // 한 명만 백을 골랐을 때
+        else if (WhitePlayer != PlayerRef.None && BlackPlayer == PlayerRef.None)
+        {
+            BlackPlayer = (WhitePlayer == player1) ? player2 : player1;
+        }
+        // 한 명만 흑을 골랐을 때
+        else if (BlackPlayer != PlayerRef.None && WhitePlayer == PlayerRef.None)
+        {
+            WhitePlayer = (BlackPlayer == player1) ? player2 : player1;
+        }
+    }
+
 
 
 
@@ -36,15 +101,15 @@ public class NetworkGameM : NetworkBehaviour
 
         if (IsWhiteTurn)
         {
-            UpdatePlayerTime(ref WhiteMainTime, dt);
+            WhiteMainTime = UpdatePlayerTime( WhiteMainTime, dt);
         }
         else
         {
-            UpdatePlayerTime(ref BlackMainTime, dt);
+            BlackMainTime =  UpdatePlayerTime( BlackMainTime, dt);
         }
     }
 
-    private void UpdatePlayerTime(ref float mainTime, float dt)
+    private float UpdatePlayerTime( float mainTime, float dt)
     {
         if (mainTime > 0f)
         {
@@ -64,6 +129,8 @@ public class NetworkGameM : NetworkBehaviour
                 OnTimeOut();
             }
         }
+
+        return mainTime;
     }
 
     // 턴이 교체될 때 호출
@@ -79,8 +146,9 @@ public class NetworkGameM : NetworkBehaviour
 
     private void OnTimeOut()
     {
-      
-        // 게임 종료 로직 실행
+        //시간이 다 떨어지면 게임 패배 처리를 하지 않고 턴을 넘겨버린다.
+        SwitchTurn();
+       
     }
 
 }

@@ -23,6 +23,13 @@ public enum SceneNumber
 
 }
 
+public enum PieceColor
+{
+    none,
+    white,
+    black
+}
+
 public enum GameState
 {
     WaitingForPlayers, // 플레이어 대기 중
