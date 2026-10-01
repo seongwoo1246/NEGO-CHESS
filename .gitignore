@@ -109,3 +109,4 @@ InitTestScene*.unity*
 
 #제외해서 올릴 파일들
 /Assets/no/
+/Assets/Plugins/
