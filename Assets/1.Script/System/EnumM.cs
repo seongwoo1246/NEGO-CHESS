@@ -35,7 +35,7 @@ public enum GameState
     WaitingForPlayers, // 플레이어 대기 중
     GameStart,          // 게임 시작 준비
     Playing,            // 게임 진행 중
-    Checkmate,          // 체크메이트 종료
+    GameEnd,            // 게임 종료시
+    Resign,             // 상대방 기권
     Stalemate,          // 무승부
-    TimeOut             // 시간 초과 종료
 }
