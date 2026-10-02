@@ -2,7 +2,6 @@
 using Fusion.Sockets;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
@@ -23,7 +22,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
     private void Awake()
     {
         //네크워크 관련된 항목이 아닌 서비스 가입 만을 위한 것이여서 Spawned가 아닌 Awake로 한다.
-        ScriptM.Register<ReconnectionM>(this, UseSpace.Network_Global);
+        ScriptM.Register<ReconnectionM>(this, UseSpace.Network);
     }
     private void OnDestroy()
     {
@@ -39,13 +38,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
         _runner.AddCallbacks(this);
     }
 
-    // 서버와의 연결이 끊어졌을 때 포톤 퓨전이 자동 호출
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
-    {
-        Debug.LogWarning($" 서버 연결 끊김: {reason}");
-  
-    }
-
+ 
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
         Debug.LogWarning($" 연결이 끊어졌습니다. 사유: {shutdownReason}");
@@ -57,57 +50,68 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
                shutdownReason == ShutdownReason.DisconnectedByPluginLogic ||
                 shutdownReason == ShutdownReason.Error)
             {
-
+                //UniTaskVoid를 여기서 호출 (오브젝트 파괴시 진행중이던 비동기 작업을 취소하게 하기 위한 안전장치
+                ReconnectAsync(null,this.GetCancellationTokenOnDestroy()).Forget();
             }
         }
         
     }
-    // 재접속 코루틴
-    private async UniTaskVoid ReconnectAsync(CancellationToken cancellationToken = default)
+
+    // 하나로 통합된 재접속 메서드
+    public async UniTaskVoid ReconnectAsync(string targetSessionName = null, CancellationToken cancellationToken = default)
     {
+        if (_isReconnecting) return;
         _isReconnecting = true;
 
         try
         {
-            // 1. 기존 러너 셧다운 및 정리 (Shutdown 작업 완료까지 await)
+            // 지정된 세션 이름이 있으면 그것을 쓰고, 없으면 기존 메모리의 lastSessionName 사용
+            string sessionToJoin = !string.IsNullOrEmpty(targetSessionName)
+                ? targetSessionName
+                : _lastSessionName;
+
+            if (string.IsNullOrEmpty(sessionToJoin))
+            {
+                Debug.LogWarning("[Network] 재접속할 세션 정보가 없습니다.");
+                return;
+            }
+
+            // 1. 기존 러너 정리
             if (_runner != null && _runner.IsRunning)
             {
                 await _runner.Shutdown();
             }
 
-            // Shutdown 후 1초 대기 (TimeSpan 활용)
             await UniTask.Delay(TimeSpan.FromSeconds(1.0f), cancellationToken: cancellationToken);
 
-            Debug.Log($"[Network] 세션 '{_lastSessionName}'에 재접속 시도 중...");
+            Debug.Log($"[Network] 세션 '{sessionToJoin}'에 재접속 시도 중...");
 
-            // 2. 새 NetworkRunner 생성 및 재연결 요청
+            // 2. 새 러너 생성 및 재연결
             GameObject runnerObj = new GameObject("NetworkRunner_Reconnecting");
             _runner = runnerObj.AddComponent<NetworkRunner>();
             _runner.AddCallbacks(this);
 
-            // Fusion의 StartGame(Task<StartGameResult>)을 UniTask로 바로 await
             var result = await _runner.StartGame(new StartGameArgs()
             {
                 GameMode = _lastGameMode,
-                SessionName = _lastSessionName,
+                SessionName = sessionToJoin,
                 ConnectionToken = SystemInfo.deviceUniqueIdentifier != null ?
                     System.Text.Encoding.UTF8.GetBytes(SystemInfo.deviceUniqueIdentifier) : null,
-                EnableClientSessionCreation = false // 기존 세션에 참여만 시도
+                EnableClientSessionCreation = false
             });
 
             if (result.Ok)
             {
                 Debug.Log("[Network] 재접속 성공!");
+                _lastSessionName = sessionToJoin; // 세션 정보 갱신
             }
             else
             {
                 Debug.LogError($"[Network] 재접속 실패: {result.ShutdownReason}");
-                // TODO: 재접속 실패 시 로비 씬 이동 등 후속 처리
             }
         }
         catch (OperationCanceledException)
         {
-            // CancellationToken으로 취소되었을 때 처리
             Debug.Log("[Network] 재접속 작업이 취소되었습니다.");
         }
         catch (Exception ex)
@@ -116,59 +120,26 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
         }
         finally
         {
-            // 성공/실패/예외 발생 여부와 상관없이 항상 재접속 플래그 해제
             _isReconnecting = false;
         }
     }
 
-    public async void ReconnectToLastSession()
-    {
-        // 1. 저장된 세션 이름 확인
-        string lastSession = PlayerPrefs.GetString("LastSessionName", "");
-
-        if (string.IsNullOrEmpty(lastSession))
-        {
-            Debug.LogWarning("[Network] 이전 세션 정보가 없습니다.");
-            return;
-        }
-
-        // 2. 기존 Runner가 동작 중이라면 정리(Shutdown)
-        if (_runner != null)
-        {
-            await _runner.Shutdown();
-            Destroy(_runner);
-        }
-
-        // 3. 새로운 Runner 생성 후 동일한 세션 & 동일한 AuthToken으로 재접속
-        _runner = gameObject.AddComponent<NetworkRunner>();
-
-        byte[] token = Encoding.UTF8.GetBytes(SystemInfo.deviceUniqueIdentifier);
-
-        Debug.Log($"[Network] 이전 세션({lastSession})으로 재접속을 시도합니다...");
-
-        var result = await _runner.StartGame(new StartGameArgs()
-        {
-            GameMode = GameMode.Shared, // 기존 설정했던 GameMode와 동일하게
-            SessionName = lastSession,
-            ConnectionToken = token, // 기존과 동일한 토큰 전달
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        });
-
-        if (result.Ok)
-        {
-            Debug.Log("[Network] 재접속 성공!");
-        }
-        else
-        {
-            Debug.LogError($"[Network] 재접속 실패: {result.ShutdownReason}");
-        }
-    }
 
 
 
     #region 사용하지 않는 인터페이스 구현
 
     // --- 사용하지 않는 INetworkRunnerCallbacks 기본 인터페이스 구현부 ---
+
+
+    // 서버와의 연결이 끊어졌을 때 포톤 퓨전이 자동 호출
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
+    {
+        Debug.LogWarning($" 서버 연결 끊김: {reason}");
+
+    }
+
+
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
     public void OnInput(NetworkRunner runner, NetworkInput input) { }

@@ -4,11 +4,48 @@ using UnityEngine;
 using Debug = DebugM<ChessPieceM>;
 
 
+[System.Serializable]
+public struct MoveData
+{
+    public Vector2Int From;          // 출발 위치 (x, y)
+    public Vector2Int To;            // 도착 위치 (x, y)
+    public GameObject MovedPiece;    // 이동한 기물
+    public GameObject CapturedPiece; // 잡힌 기물 (없으면 null)
+
+    // 특수 이동 복구용 (필요시 추가)
+    public bool IsPromotion; // 프로모션
+    public bool IsEnPassant; // 앙상블
+    public bool IsCastling; // 캐슬링
+
+    /// <summary>
+    /// 기보를 저장하기 위해 움직임 데이터 구조체
+    /// </summary>
+    /// <param name="from">출발칸</param>
+    /// <param name="to">도착칸</param>
+    /// <param name="movedPiece">움직인 말</param>
+    /// <param name="capturedPiece">잡힌 말</param>
+    public MoveData(Vector2Int from, Vector2Int to, GameObject movedPiece, GameObject capturedPiece = null)
+    {
+        From = from;
+        To = to;
+        MovedPiece = movedPiece;
+        CapturedPiece = capturedPiece;
+        IsPromotion = false;
+        IsEnPassant = false;
+        IsCastling = false;
+    }
+}
+
+
+
+
 public class ChessPieceM : MonoBehaviour
 {
 
     [Header("멀티용으로 사용되는 것")]
     [SerializeField] private NetworkRunner runner; // 멀티용
+
+    private List<MoveData> MoveHistory = new List<MoveData>();
 
 
     /// <summary>
@@ -92,10 +129,12 @@ public class ChessPieceM : MonoBehaviour
             return;
         }
 
+        GameObject capturedPiece = pieceGrid[toX, toY];
         // 2. 도착지에 이미 상대 기물이 존재한다면 포획(잡기) 처리
-        if (pieceGrid[toX, toY] != null)
+        if (capturedPiece != null)
         {
-            DestroyPiece(toX, toY);
+            // Undo 기능을 고려한다면 완전 Destroy보다는 SetActive(false) 처리가 용이합니다.
+            capturedPiece.SetActive(false);
         }
 
         // 3. 목적지의 월드 좌표 계산
@@ -107,6 +146,14 @@ public class ChessPieceM : MonoBehaviour
         // 5. 논리 배열 데이터 업데이트 (출발지는 비우고, 목적지로 등록)
         pieceGrid[toX, toY] = pieceToMove;
         pieceGrid[fromX, fromY] = null;
+
+        MoveData move = new MoveData(
+           new Vector2Int(fromX, fromY),
+           new Vector2Int(toX, toY),
+           pieceToMove,
+           capturedPiece
+       );
+        MoveHistory.Add(move);
     }
 
     /// <summary>
@@ -128,5 +175,36 @@ public class ChessPieceM : MonoBehaviour
     public GameObject GetPieceAt(int x, int y)
     {
         return pieceGrid[x, y];
+    }
+
+    /// <summary>
+    /// 한 수 무르기
+    /// </summary>
+    public void UndoLastMove()
+    {
+        if (MoveHistory.Count == 0) return;
+
+        // 가장 마지막 기보 가져오기 및 리스트에서 제거
+        int lastIndex = MoveHistory.Count - 1;
+        MoveData lastMove = MoveHistory[lastIndex];
+        MoveHistory.RemoveAt(lastIndex);
+
+        // 1. 이동한 기물 제자리로 원복
+        pieceGrid[lastMove.From.x, lastMove.From.y] = lastMove.MovedPiece;
+        if (ScriptM.TryGet<ChessBoardM>(out var boardM))
+        {
+            lastMove.MovedPiece.transform.position = boardM.GetWorldPosition(lastMove.From.x, lastMove.From.y);
+        }
+
+        // 2. 잡혔던 기물이 있다면 다시 복원
+        if (lastMove.CapturedPiece != null)
+        {
+            pieceGrid[lastMove.To.x, lastMove.To.y] = lastMove.CapturedPiece;
+            lastMove.CapturedPiece.SetActive(true);
+        }
+        else
+        {
+            pieceGrid[lastMove.To.x, lastMove.To.y] = null;
+        }
     }
 }

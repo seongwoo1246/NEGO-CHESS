@@ -28,7 +28,7 @@ public static class ScriptM
     /// </summary>
     /// <param name="service"> 등록할 서비스</param>
     /// <param name="lifetime">멀티/전역 혹은 로컬</param>
-    public static void Register<T>(T service, UseSpace lifetime = UseSpace.Network_Global) where T : class
+    public static void Register<T>(T service, UseSpace lifetime = UseSpace.Global) where T : class
     {
         var type = typeof(T);
         if (_services.ContainsKey(type))
@@ -36,8 +36,8 @@ public static class ScriptM
             Debug.LogWarningWithTag("ServiceLocator", $"이미 등록된 서비스");
         }
 
-        //전역이거나 멀티에 사용될 시 계속 들고 다니기
-        if (lifetime == UseSpace.Network_Global)
+        //전역 사용될 시 계속 들고 다니기
+        if (lifetime == UseSpace.Global)
         {
             if (service is Component component)
             {
@@ -90,7 +90,7 @@ public static class ScriptM
         List<Type> toRemove = new();
         foreach (var pair in _services)
         {
-            if (pair.Value.Lifetime == UseSpace.Local)
+            if (pair.Value.Lifetime == UseSpace.Local|| pair.Value.Lifetime == UseSpace.Network)
             {
                 toRemove.Add(pair.Key);
             }

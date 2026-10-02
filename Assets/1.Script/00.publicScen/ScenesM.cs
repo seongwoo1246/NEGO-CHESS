@@ -1,5 +1,4 @@
 ﻿using Fusion;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Debug = DebugM<ScenesM>;
@@ -11,7 +10,7 @@ public class ScenesM : MonoBehaviour
 
     private void Awake()
     {
-        ScriptM.Register<ScenesM>(this, UseSpace.Network_Global);
+        ScriptM.Register<ScenesM>(this, UseSpace.Global);
     }
 
     private void OnDestroy()

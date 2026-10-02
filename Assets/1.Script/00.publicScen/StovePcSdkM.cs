@@ -27,7 +27,7 @@ public class StovePCSDKManager : MonoBehaviour
 
     private void Awake()
     {
-        ScriptM.Register<StovePCSDKManager>(this, UseSpace.Network_Global);
+        ScriptM.Register<StovePCSDKManager>(this, UseSpace.Global);
     }
 
     private void OnDestroy()

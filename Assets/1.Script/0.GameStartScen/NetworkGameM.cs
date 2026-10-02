@@ -1,4 +1,5 @@
-﻿using Fusion;
+﻿using Cysharp.Threading.Tasks;
+using Fusion;
 using UnityEngine;
 using Debug = DebugM<NetworkGameM>;
 
@@ -21,14 +22,14 @@ public class NetworkGameM : NetworkBehaviour
     public GameState currentState { get; set; } = GameState.WaitingForPlayers;
 
     //승리한 플레이어 =None이면 무승부로 처리
-    [Networked] public PlayerRef Winner {  get; set; } = PlayerRef.None;
+    [Networked] public PlayerRef Winner { get; set; } = PlayerRef.None;
 
 
-    
+
     private void Awake()
     {
         //네크워크 관련된 항목이 아닌 서비스 가입 만을 위한 것이여서 Spawned가 아닌 Awake로 한다.
-        ScriptM.Register<NetworkGameM>(this, UseSpace.Network_Global);
+        ScriptM.Register<NetworkGameM>(this, UseSpace.Network);
     }
 
     private void OnDestroy()
@@ -56,11 +57,11 @@ public class NetworkGameM : NetworkBehaviour
 
         if (IsWhiteTurn)
         {
-            WhiteMainTime = UpdatePlayerTime( WhiteMainTime, dt);
+            WhiteMainTime = UpdatePlayerTime(WhiteMainTime, dt);
         }
         else
         {
-            BlackMainTime =  UpdatePlayerTime( BlackMainTime, dt);
+            BlackMainTime = UpdatePlayerTime(BlackMainTime, dt);
         }
     }
 
@@ -126,7 +127,7 @@ public class NetworkGameM : NetworkBehaviour
         }
     }
 
-    private float UpdatePlayerTime( float mainTime, float dt)
+    private float UpdatePlayerTime(float mainTime, float dt)
     {
         if (mainTime > 0f)
         {
@@ -165,7 +166,7 @@ public class NetworkGameM : NetworkBehaviour
     {
         //시간이 다 떨어지면 게임 패배 처리를 하지 않고 턴을 넘겨버린다.
         SwitchTurn();
-       
+
     }
 
     /// <summary>
@@ -230,11 +231,11 @@ public class NetworkGameM : NetworkBehaviour
 
         string massage;
 
-        if(isDraw)
+        if (isDraw)
         {
             massage = "무승부";
         }
-        else if(isLocalPlayerWinner)
+        else if (isLocalPlayerWinner)
         {
             massage = "승리했습니다. 축하합니다.";
         }
@@ -245,8 +246,6 @@ public class NetworkGameM : NetworkBehaviour
 
         // TODO : Ui 매니저를 통해 결과 팝업창 띄우기
     }
-
-   
 
 }
 
