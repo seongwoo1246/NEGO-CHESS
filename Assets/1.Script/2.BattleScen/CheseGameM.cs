@@ -15,6 +15,7 @@ public class CheseGameM : MonoBehaviour
     /// </summary>
     private IPieceSpawner pieceSpawner;
 
+   
 
     // 체스판 위에 존재하는 모든 기물 오브젝트를 논리 좌표(x, y)로 추적하기 위한 2차원 배열
     // (x: 0~7, y: 0~7) 위치에 존재하는 기물 GameObject를 저장합니다.

@@ -14,7 +14,7 @@ public struct MoveData
 
     // 특수 이동 복구용 (필요시 추가)
     public bool IsPromotion; // 프로모션
-    public bool IsEnPassant; // 앙상블
+    public bool IsEnPassant; // 앙파상
     public bool IsCastling; // 캐슬링
 
     /// <summary>
@@ -62,6 +62,25 @@ public abstract class ChessPieceM : MonoBehaviour
 {
     [Header("piece Info")]
     public PieceData data; // 기물의 기본 데이터 
+
+    public bool isWhite;
+
+    // 0~7 보드 범위 검사
+    protected bool IsValidIndex(int x, int y)
+    {
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
+    }
+
+    /// <summary>
+    /// 같은 팀 기물인지 체크
+    /// </summary>
+    protected bool IsSameTeam(GameObject targetObj)
+    {
+        if (targetObj == null) return false;
+
+        ChessPieceM targetPiece = targetObj.GetComponent<ChessPieceM>();
+        return targetPiece != null && targetPiece.isWhite == this.isWhite;
+    }
 
     public abstract List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board);
 
