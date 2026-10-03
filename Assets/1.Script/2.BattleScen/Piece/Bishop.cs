@@ -1,6 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Bishop : MonoBehaviour
+public class Bishop : ChessPieceM
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

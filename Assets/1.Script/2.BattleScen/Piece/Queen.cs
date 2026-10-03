@@ -1,6 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Queen : MonoBehaviour
+public class Queen : ChessPieceM
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

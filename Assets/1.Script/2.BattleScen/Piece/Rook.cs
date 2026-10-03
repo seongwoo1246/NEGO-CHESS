@@ -1,6 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Rook : MonoBehaviour
+public class Rook : ChessPieceM
 {
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

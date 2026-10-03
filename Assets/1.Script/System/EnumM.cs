@@ -40,3 +40,13 @@ public enum GameState
     Resign,             // 상대방 기권
     Stalemate,          // 무승부
 }
+
+public enum pieceType
+{
+    Pawn,
+    Knight,
+    Bishop,
+    Rook,
+    Queen,
+    King
+}

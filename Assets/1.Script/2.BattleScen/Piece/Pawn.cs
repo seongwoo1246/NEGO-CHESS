@@ -1,16 +1,19 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
-public class Pawn : MonoBehaviour
+public class Pawn : ChessPieceM
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+
+    // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
+    private void Reset()
     {
-        
+        data = new PieceData(pieceType.Pawn, PieceColor.white, 1,"pawn");
     }
 
-    // Update is called once per frame
-    void Update()
+    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board)
     {
-        
+        throw new System.NotImplementedException();
     }
+
+   
 }
