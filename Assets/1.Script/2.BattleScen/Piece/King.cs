@@ -11,7 +11,7 @@ public class King : ChessPieceM
         data = new PieceData(pieceType.King, PieceColor.white, 0, "King");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board)
+    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
     {
         List<Vector2Int> possibleMoves = new List<Vector2Int>();
 
@@ -31,10 +31,10 @@ public class King : ChessPieceM
 
             if (IsValidIndex(targetX, targetY))
             {
-                GameObject targetObj = board[targetX, targetY];
+                
 
                 // 빈 칸이거나 적 기물이면 이동 가능
-                if (targetObj == null || !IsSameTeam(targetObj))
+                if (board[targetX, targetY] == null || !IsSameTeam(board[targetX, targetY]))
                 {
                     // TODO: 이동하려는 칸이 적의 공격 범위(체크 상태)인지 검사 필요
                     possibleMoves.Add(new Vector2Int(targetX, targetY));

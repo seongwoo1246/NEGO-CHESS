@@ -9,8 +9,8 @@ public struct MoveData
 {
     public Vector2Int From;          // 출발 위치 (x, y)
     public Vector2Int To;            // 도착 위치 (x, y)
-    public GameObject MovedPiece;    // 이동한 기물
-    public GameObject CapturedPiece; // 잡힌 기물 (없으면 null)
+    public ChessPieceM MovedPiece;    // 이동한 기물
+    public ChessPieceM CapturedPiece; // 잡힌 기물 (없으면 null)
 
     // 특수 이동 복구용 (필요시 추가)
     public bool IsPromotion; // 프로모션
@@ -24,7 +24,7 @@ public struct MoveData
     /// <param name="to">도착칸</param>
     /// <param name="movedPiece">움직인 말</param>
     /// <param name="capturedPiece">잡힌 말</param>
-    public MoveData(Vector2Int from, Vector2Int to, GameObject movedPiece, GameObject capturedPiece = null)
+    public MoveData(Vector2Int from, Vector2Int to, ChessPieceM movedPiece, ChessPieceM capturedPiece = null)
     {
         From = from;
         To = to;
@@ -74,15 +74,15 @@ public abstract class ChessPieceM : MonoBehaviour
     /// <summary>
     /// 같은 팀 기물인지 체크
     /// </summary>
-    protected bool IsSameTeam(GameObject targetObj)
+    protected bool IsSameTeam(ChessPieceM targetObj)
     {
         if (targetObj == null) return false;
 
-        ChessPieceM targetPiece = targetObj.GetComponent<ChessPieceM>();
-        return targetPiece != null && targetPiece.isWhite == this.isWhite;
+        
+        return targetObj != null && targetObj.isWhite == this.isWhite;
     }
 
-    public abstract List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board);
+    public abstract List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board);
 
    
 

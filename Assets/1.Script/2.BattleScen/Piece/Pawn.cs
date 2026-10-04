@@ -14,7 +14,7 @@ public class Pawn : ChessPieceM
         data = new PieceData(pieceType.Pawn, PieceColor.white, 1,"pawn");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board)
+    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
     {
         List<Vector2Int> possibleMoves = new List<Vector2Int>();
 
@@ -44,9 +44,9 @@ public class Pawn : ChessPieceM
 
             if (IsValidIndex(targetX, targetY))
             {
-                GameObject targetObj = board[targetX, targetY];
+                
                 // 대각선에 적 기물이 있는 경우
-                if (targetObj != null && !IsSameTeam(targetObj))
+                if (board[targetX, targetY] != null && !IsSameTeam(board[targetX, targetY]))
                 {
                     possibleMoves.Add(new Vector2Int(targetX, targetY));
                 }
@@ -56,10 +56,10 @@ public class Pawn : ChessPieceM
             int sideY = currentPos.y; // 바로 옆 칸
             if (IsValidIndex(targetX, sideY))
             {
-                GameObject sideObj = board[targetX, sideY];
-                if (sideObj != null && !IsSameTeam(sideObj))
+                
+                if (board[targetX, targetY] != null && !IsSameTeam(board[targetX, targetY]))
                 {
-                    Pawn enemyPawn = sideObj.GetComponent<Pawn>();
+                    Pawn enemyPawn = board[targetX, targetY].GetComponent<Pawn>();
                     // 바로 옆 적 폰이 직전 턴에 2칸 전진한 경우
                     if (enemyPawn != null && enemyPawn.movedTwoSquaresLastTurn)
                     {

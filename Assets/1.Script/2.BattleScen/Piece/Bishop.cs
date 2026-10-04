@@ -9,7 +9,7 @@ public class Bishop : ChessPieceM
         data = new PieceData(pieceType.Bishop, PieceColor.white, 5, "Bishop");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board)
+    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
     {
         List<Vector2Int> possibleMoves = new List<Vector2Int>();
 
@@ -30,17 +30,17 @@ public class Bishop : ChessPieceM
             // 보드 경계를 벗어나지 않을 때까지 대각선 탐색
             while (IsValidIndex(nextX, nextY))
             {
-                GameObject targetObj = board[nextX, nextY];
+                 
 
                 // 1. 빈 칸인 경우 -> 이동 목록에 추가하고 계속 탐색
-                if (targetObj == null)
+                if (board[nextX, nextY] == null)
                 {
                     possibleMoves.Add(new Vector2Int(nextX, nextY));
                 }
                 else
                 {
                     // 2. 적 기물인 경우 -> 잡기 목록에 추가하고 해당 방향 탐색 종료
-                    if (!IsSameTeam(targetObj))
+                    if (!IsSameTeam(board[nextX, nextY]))
                     {
                         possibleMoves.Add(new Vector2Int(nextX, nextY));
                     }

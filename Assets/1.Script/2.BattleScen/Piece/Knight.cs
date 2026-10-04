@@ -9,7 +9,7 @@ public class Knight : ChessPieceM
         data = new PieceData(pieceType.Knight, PieceColor.white, 5, "Knight");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board)
+    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
     {
         List<Vector2Int> possibleMoves = new List<Vector2Int>();
 
@@ -30,10 +30,10 @@ public class Knight : ChessPieceM
             // 1. 체스판 범위를 벗어나는지 검사
             if (IsValidIndex(targetX, targetY))
             {
-                GameObject targetObj = board[targetX, targetY];
+               
 
                 // 2. 빈 칸이거나 적 기물이 있는 경우 이동 가능
-                if (targetObj == null || !IsSameTeam(targetObj))
+                if (board[targetX, targetY] == null || !IsSameTeam(board[targetX, targetY]))
                 {
                     possibleMoves.Add(new Vector2Int(targetX, targetY));
                 }
