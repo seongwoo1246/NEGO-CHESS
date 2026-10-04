@@ -3,6 +3,8 @@ using UnityEngine;
 
 public class King : ChessPieceM
 {
+    public bool hasMoved = false; // 캐슬링 조건용 (한 번이라도 움직였는지)
+
     // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
     private void Reset()
     {
@@ -11,6 +13,37 @@ public class King : ChessPieceM
 
     public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board)
     {
-        throw new System.NotImplementedException();
+        List<Vector2Int> possibleMoves = new List<Vector2Int>();
+
+        // 상, 하, 좌, 우, 대각선 8방향 (1칸씩)
+        Vector2Int[] directions = new Vector2Int[]
+        {
+            new Vector2Int(0, 1),  new Vector2Int(0, -1),
+            new Vector2Int(-1, 0), new Vector2Int(1, 0),
+            new Vector2Int(1, 1),  new Vector2Int(1, -1),
+            new Vector2Int(-1, 1), new Vector2Int(-1, -1)
+        };
+
+        foreach (Vector2Int dir in directions)
+        {
+            int targetX = currentPos.x + dir.x;
+            int targetY = currentPos.y + dir.y;
+
+            if (IsValidIndex(targetX, targetY))
+            {
+                GameObject targetObj = board[targetX, targetY];
+
+                // 빈 칸이거나 적 기물이면 이동 가능
+                if (targetObj == null || !IsSameTeam(targetObj))
+                {
+                    // TODO: 이동하려는 칸이 적의 공격 범위(체크 상태)인지 검사 필요
+                    possibleMoves.Add(new Vector2Int(targetX, targetY));
+                }
+            }
+        }
+
+        // TODO: 캐슬링(Castling) 조건 검사 및 좌표 추가
+
+        return possibleMoves;
     }
 }

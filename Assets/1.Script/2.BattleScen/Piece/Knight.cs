@@ -11,6 +11,35 @@ public class Knight : ChessPieceM
 
     public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, GameObject[,] board)
     {
-        throw new System.NotImplementedException();
+        List<Vector2Int> possibleMoves = new List<Vector2Int>();
+
+        // 나이트가 이동할 수 있는 L자 상대 좌표 8개
+        Vector2Int[] knightMoves = new Vector2Int[]
+        {
+            new Vector2Int(-1, 2),  new Vector2Int(1, 2),   // 위쪽 L자
+            new Vector2Int(-1, -2), new Vector2Int(1, -2),  // 아래쪽 L자
+            new Vector2Int(2, 1),   new Vector2Int(2, -1),  // 오른쪽 L자
+            new Vector2Int(-2, 1),  new Vector2Int(-2, -1)  // 왼쪽 L자
+        };
+
+        foreach (Vector2Int move in knightMoves)
+        {
+            int targetX = currentPos.x + move.x;
+            int targetY = currentPos.y + move.y;
+
+            // 1. 체스판 범위를 벗어나는지 검사
+            if (IsValidIndex(targetX, targetY))
+            {
+                GameObject targetObj = board[targetX, targetY];
+
+                // 2. 빈 칸이거나 적 기물이 있는 경우 이동 가능
+                if (targetObj == null || !IsSameTeam(targetObj))
+                {
+                    possibleMoves.Add(new Vector2Int(targetX, targetY));
+                }
+            }
+        }
+
+        return possibleMoves;
     }
 }
