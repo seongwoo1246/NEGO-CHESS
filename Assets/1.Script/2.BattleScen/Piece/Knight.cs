@@ -9,10 +9,8 @@ public class Knight : ChessPieceM
         data = new PieceData(pieceType.Knight, PieceColor.white, 5, "Knight");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
+    public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
     {
-        List<Vector2Int> possibleMoves = new List<Vector2Int>();
-
         // 나이트가 이동할 수 있는 L자 상대 좌표 8개
         Vector2Int[] knightMoves = new Vector2Int[]
         {
@@ -24,8 +22,8 @@ public class Knight : ChessPieceM
 
         foreach (Vector2Int move in knightMoves)
         {
-            int targetX = currentPos.x + move.x;
-            int targetY = currentPos.y + move.y;
+            int targetX = CurrentPos.x + move.x;
+            int targetY = CurrentPos.y + move.y;
 
             // 1. 체스판 범위를 벗어나는지 검사
             if (IsValidIndex(targetX, targetY))
@@ -39,7 +37,5 @@ public class Knight : ChessPieceM
                 }
             }
         }
-
-        return possibleMoves;
     }
 }

@@ -11,9 +11,8 @@ public class King : ChessPieceM
         data = new PieceData(pieceType.King, PieceColor.white, 0, "King");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
+    public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
     {
-        List<Vector2Int> possibleMoves = new List<Vector2Int>();
 
         // 상, 하, 좌, 우, 대각선 8방향 (1칸씩)
         Vector2Int[] directions = new Vector2Int[]
@@ -26,8 +25,8 @@ public class King : ChessPieceM
 
         foreach (Vector2Int dir in directions)
         {
-            int targetX = currentPos.x + dir.x;
-            int targetY = currentPos.y + dir.y;
+            int targetX = CurrentPos.x + dir.x;
+            int targetY = CurrentPos.y + dir.y;
 
             if (IsValidIndex(targetX, targetY))
             {
@@ -44,6 +43,5 @@ public class King : ChessPieceM
 
         // TODO: 캐슬링(Castling) 조건 검사 및 좌표 추가
 
-        return possibleMoves;
     }
 }

@@ -9,10 +9,8 @@ public class Bishop : ChessPieceM
         data = new PieceData(pieceType.Bishop, PieceColor.white, 5, "Bishop");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
+    public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
     {
-        List<Vector2Int> possibleMoves = new List<Vector2Int>();
-
         // 대각선 4방향 정의
         Vector2Int[] directions = new Vector2Int[]
         {
@@ -24,8 +22,8 @@ public class Bishop : ChessPieceM
 
         foreach (Vector2Int dir in directions)
         {
-            int nextX = currentPos.x + dir.x;
-            int nextY = currentPos.y + dir.y;
+            int nextX = CurrentPos.x + dir.x;
+            int nextY = CurrentPos.y + dir.y;
 
             // 보드 경계를 벗어나지 않을 때까지 대각선 탐색
             while (IsValidIndex(nextX, nextY))
@@ -53,8 +51,6 @@ public class Bishop : ChessPieceM
                 nextY += dir.y;
             }
         }
-
-        return possibleMoves;
     }
 }
 

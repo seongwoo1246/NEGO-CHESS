@@ -4,18 +4,15 @@ using UnityEngine;
 
 public class CheseGameM : MonoBehaviour
 {
-    [Header("멀티용으로 사용되는 것")]
-    [SerializeField] private NetworkRunner runner; // 멀티용
-
-    private List<MoveData> MoveHistory = new List<MoveData>();
-
 
     /// <summary>
     /// 현재 게임모드에 맞는 Spawner를 넣어줌
     /// </summary>
     private IPieceSpawner pieceSpawner;
 
-   
+    // 왕의 위치를 찾기 위해 미리 변수 캐싱하기
+    private ChessPieceM whiteKing;
+    private ChessPieceM blackKing;
 
     // 체스판 위에 존재하는 모든 기물 오브젝트를 논리 좌표(x, y)로 추적하기 위한 2차원 배열
     // (x: 0~7, y: 0~7) 위치에 존재하는 기물 GameObject를 저장합니다.
@@ -24,7 +21,11 @@ public class CheseGameM : MonoBehaviour
     public PieceColor currentTurn = PieceColor.white;
 
     private Vector2Int? selectedPos = null; // 현재 선택된 기물의 좌표
+
     private List<Vector2Int> currentPossibleMoves = new List<Vector2Int>(); // 현재 이동 가능한 칸 표시
+    private List<Vector2Int> attackMoves = new List<Vector2Int>(); // 공격이 가능한 부분 표시
+    private List<MoveData> MoveHistory = new List<MoveData>(); //기보를 저장하기 위해서 있는 리스트
+    private List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
 
     private void Awake()
     {
@@ -46,9 +47,6 @@ public class CheseGameM : MonoBehaviour
 
     private bool IsMyPiece(ChessPieceM pieceObj)
     {
-        if (pieceObj == null) return false;
-
-        
         if (pieceObj == null) return false;
 
         // 기물의 팀과 현재 턴의 팀이 같으면 내 기물(선택 가능한 기물)로 판정
@@ -92,17 +90,15 @@ public class CheseGameM : MonoBehaviour
         ChessPieceM pieceObj = pieceGrid[x, y];
         if (pieceObj == null) return;
 
-        selectedPos = new Vector2Int(x, y);
-
         // 기물에서 이동 가능 경로 받아오기
-        currentPossibleMoves = pieceObj.GetPossibleMoves(selectedPos.Value, pieceGrid);
+        currentPossibleMoves = pieceObj.GetPossibleMoves( pieceGrid);
 
         // TODO: currentPossibleMoves 위치에 타일 하이라이트 이펙트 켜주기
     }
 
     private void DeselectPiece()
     {
-        selectedPos = null;
+       
         currentPossibleMoves.Clear();
         // TODO: 타일 하이라이트 이펙트 모두 끄기
     }
@@ -140,6 +136,12 @@ public class CheseGameM : MonoBehaviour
 
         // 4. 생성된 오브젝트에서 ChessPieceM 컴포넌트 추출
         ChessPieceM newPiece = newPieceObj.GetComponent<ChessPieceM>();
+
+        // 4.5 기물의 위치를 스스로 저장하게 한다.
+        if(newPiece != null)
+        {
+            newPiece.CurrentPos = new Vector2Int(x, y);
+        }
 
         // 5. 2차원 배열에 기물 등록 및 반환
         pieceGrid[x, y] = newPiece; 
@@ -194,7 +196,18 @@ public class CheseGameM : MonoBehaviour
            pieceToMove,
            capturedPiece
        );
+
+        // movedata가 생성 후  기물의 currentpos 갱신
+        pieceToMove.CurrentPos = move.To; 
+
         MoveHistory.Add(move);
+    }
+
+    // 킹 스폰 시점에 미리 할당해둠
+    public void OnSpawnKing(ChessPieceM king, bool isWhite)
+    {
+        if (isWhite) whiteKing = king;
+        else blackKing = king;
     }
 
     /// <summary>
@@ -253,7 +266,7 @@ public class CheseGameM : MonoBehaviour
     public bool IsKingInCheck(bool isWhiteTarget, ChessPieceM[,] grid)
     {
         // 1. target 팀의 킹 위치 찾기
-        Vector2Int kingPos = FindKingPosition(isWhiteTarget, grid);
+        Vector2Int kingPos = FindKingPosition(isWhiteTarget);
 
         // 2. 상대방(적)의 모든 기물이 이동/공격할 수 있는 좌표들을 모음
         List<Vector2Int> enemyAttackMoves = GetAllEnemyAttackMoves(!isWhiteTarget, grid);
@@ -263,53 +276,30 @@ public class CheseGameM : MonoBehaviour
     }
 
     // 1. target 팀의 킹 위치 찾기
-    private Vector2Int FindKingPosition(bool isWhiteTarget, ChessPieceM[,] grid)
+    private Vector2Int FindKingPosition(bool isWhiteTarget)
     {
-        for (int x = 0; x < 8; x++)
+        ChessPieceM targetKing = isWhiteTarget ? whiteKing : blackKing;
+
+        if (targetKing != null)
         {
-            for (int y = 0; y < 8; y++)
-            {
-                
-                if (grid[x, y] != null)
-                {
-                    
-                   
-                    // 팀이 일치하고, 해당 기물이 King 클래스(또는 킹 타입)인지 확인
-                    if (grid[x, y] != null && grid[x, y].isWhite == isWhiteTarget && grid[x, y] is King)
-                    {
-                        return new Vector2Int(x, y);
-                    }
-                }
-            }
+            return targetKing.CurrentPos; // 즉시 위치 반환
         }
 
-        // 킹을 찾지 못한 예외 상황 처리 (기본값)
         return new Vector2Int(-1, -1);
     }
 
     // 2. 적 팀의 모든 기물이 이동/공격할 수 있는 좌표들을 모음
     private List<Vector2Int> GetAllEnemyAttackMoves(bool isWhiteEnemy, ChessPieceM[,] grid)
     {
-        List<Vector2Int> attackMoves = new List<Vector2Int>();
+        attackMoves.Clear(); // 매번 new 하지 않고 기존 리스트 재활용
 
-        for (int x = 0; x < 8; x++)
+        for (int i = 0; i < activePieces.Count; i++)
         {
-            for (int y = 0; y < 8; y++)
+            var piece = activePieces[i];
+            if (piece != null && piece.isWhite == isWhiteEnemy)
             {
-                
-                if (grid[x, y] != null)
-                {
-                    
-                    // 적 팀의 기물인 경우
-                    if (grid[x, y] != null && grid[x, y].isWhite == isWhiteEnemy)
-                    {
-                        // 해당 기물의 이동 가능 경로 받아오기
-                        List<Vector2Int> moves = grid[x, y].GetPossibleMoves(new Vector2Int(x, y), grid);
-
-                        // 수집된 모든 공격 경로에 추가
-                        attackMoves.AddRange(moves);
-                    }
-                }
+                // 리스트 생성 없이, attackMoves에 직접 경로를 추가하도록 인자로 전달
+                piece.GetPossibleMoves(grid, attackMoves);
             }
         }
 

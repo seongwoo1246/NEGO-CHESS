@@ -10,30 +10,21 @@ public class Rook : ChessPieceM
     {
         data = new PieceData(pieceType.Rook, PieceColor.white, 5, "Rook");
     }
-
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
+    
+    public override void  GetPossibleMoves(ChessPieceM[,] board,List<Vector2Int> possibleMoves)
     {
-        List<Vector2Int> possibleMoves = new List<Vector2Int>();
+        
 
-        // 상(0, 1), 하(0, -1), 좌(-1, 0), 우(1, 0) 4개 방향
-        Vector2Int[] directions = new Vector2Int[]
-        {
-            new Vector2Int(0, 1),   // 위
-            new Vector2Int(0, -1),  // 아래
-            new Vector2Int(-1, 0),  // 왼쪽
-            new Vector2Int(1, 0)    // 오른쪽
-        };
+        Vector2Int[] directions = { Vector2Int.up, Vector2Int.down, Vector2Int.left, Vector2Int.right };
 
         foreach (Vector2Int dir in directions)
         {
-            int nextX = currentPos.x + dir.x;
-            int nextY = currentPos.y + dir.y;
+            int nextX = CurrentPos.x + dir.x;
+            int nextY = CurrentPos.y + dir.y;
 
             // 판 범위를 벗어나지 않을 때까지 직선 탐색
             while (IsValidIndex(nextX, nextY))
             {
-                
-
                 // 1. 빈 칸인 경우 -> 이동 가능 추가 후 다음 칸 계속 탐색
                 if (board[nextX, nextY] == null)
                 {
@@ -56,6 +47,6 @@ public class Rook : ChessPieceM
             }
         }
 
-        return possibleMoves;
+       
     }
 }

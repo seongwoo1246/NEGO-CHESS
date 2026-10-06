@@ -1,5 +1,5 @@
 ﻿using UnityEngine;
-//
+//카메라에 장착해야 하는 스크립트 게임 오브젝트들이 화면 비율이 바뀌어도 게임오브젝트가 잘 보이게 하기 위함
 
 [RequireComponent(typeof(Camera))]
 public class ScreenController : MonoBehaviour
@@ -36,6 +36,19 @@ public class ScreenController : MonoBehaviour
             }
         }
     }
+
+
+
+    // 유니티 화면 변경시 유니티 내부의 이벤트를 호출해서 변경
+    private void OnRectTransformDimensionsChange()
+    {
+        // 해상도/창 크기가 변경될 때 카메라 Orthographic Size 재계산
+        AdjustCameraSize();
+    }
+
+
+
+
 
     // 에디터 환경에서 해상도 변경 시 실시간 반영
 #if UNITY_EDITOR

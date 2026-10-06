@@ -64,7 +64,7 @@ public abstract class ChessPieceM : MonoBehaviour
     public PieceData data; // 기물의 기본 데이터 
 
     public bool isWhite;
-
+    public Vector2Int CurrentPos {  get;  set; }
     // 0~7 보드 범위 검사
     protected bool IsValidIndex(int x, int y)
     {
@@ -82,9 +82,9 @@ public abstract class ChessPieceM : MonoBehaviour
         return targetObj != null && targetObj.isWhite == this.isWhite;
     }
 
-    public abstract List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board);
 
-   
+    public abstract void GetPossibleMoves(ChessPieceM[,] grid, List<Vector2Int> outputMoves);
+  
 
     private void Awake()
     {

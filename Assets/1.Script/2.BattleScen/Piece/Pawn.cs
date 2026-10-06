@@ -14,24 +14,22 @@ public class Pawn : ChessPieceM
         data = new PieceData(pieceType.Pawn, PieceColor.white, 1,"pawn");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
+    public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
     {
-        List<Vector2Int> possibleMoves = new List<Vector2Int>();
-
         // 백(White)은 Y+ 방향(위), 흑(Black)은 Y- 방향(아래)으로 전진
         int direction = isWhite ? 1 : -1;
 
         // 1. 앞으로 1칸 이동
-        int forwardY = currentPos.y + direction;
-        if (IsValidIndex(currentPos.x, forwardY) && board[currentPos.x, forwardY] == null)
+        int forwardY = CurrentPos.y + direction;
+        if (IsValidIndex(CurrentPos.x, forwardY) && board[CurrentPos.x, forwardY] == null)
         {
-            possibleMoves.Add(new Vector2Int(currentPos.x, forwardY));
+            possibleMoves.Add(new Vector2Int(CurrentPos.x, forwardY));
 
             // 2. 첫 이동 시 앞으로 2칸 이동 (1칸 앞도 비어있어야 함)
-            int doubleForwardY = currentPos.y + (direction * 2);
-            if (isFirstMove && IsValidIndex(currentPos.x, doubleForwardY) && board[currentPos.x, doubleForwardY] == null)
+            int doubleForwardY = CurrentPos.y + (direction * 2);
+            if (isFirstMove && IsValidIndex(CurrentPos.x, doubleForwardY) && board[CurrentPos.x, doubleForwardY] == null)
             {
-                possibleMoves.Add(new Vector2Int(currentPos.x, doubleForwardY));
+                possibleMoves.Add(new Vector2Int(CurrentPos.x, doubleForwardY));
             }
         }
 
@@ -39,8 +37,8 @@ public class Pawn : ChessPieceM
         int[] sideX = { -1, 1 };
         foreach (int dx in sideX)
         {
-            int targetX = currentPos.x + dx;
-            int targetY = currentPos.y + direction;
+            int targetX = CurrentPos.x + dx;
+            int targetY = CurrentPos.y + direction;
 
             if (IsValidIndex(targetX, targetY))
             {
@@ -53,7 +51,7 @@ public class Pawn : ChessPieceM
             }
 
             // 4. 앙파상(En Passant) 검사
-            int sideY = currentPos.y; // 바로 옆 칸
+            int sideY = CurrentPos.y; // 바로 옆 칸
             if (IsValidIndex(targetX, sideY))
             {
                 
@@ -68,8 +66,6 @@ public class Pawn : ChessPieceM
                 }
             }
         }
-
-        return possibleMoves;
     }
 
     // 프로모션 조건 체크

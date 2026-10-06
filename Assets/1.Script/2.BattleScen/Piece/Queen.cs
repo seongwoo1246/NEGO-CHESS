@@ -9,9 +9,9 @@ public class Queen : ChessPieceM
         data = new PieceData(pieceType.Queen, PieceColor.white, 10, "Queen");
     }
 
-    public override List<Vector2Int> GetPossibleMoves(Vector2Int currentPos, ChessPieceM[,] board)
+    public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
     {
-        List<Vector2Int> possibleMoves = new List<Vector2Int>();
+        
 
         // 룩(4방향) + 비숍(4방향) = 총 8개 방향
         Vector2Int[] directions = new Vector2Int[]
@@ -31,8 +31,8 @@ public class Queen : ChessPieceM
 
         foreach (Vector2Int dir in directions)
         {
-            int nextX = currentPos.x + dir.x;
-            int nextY = currentPos.y + dir.y;
+            int nextX = CurrentPos.x + dir.x;
+            int nextY = CurrentPos.y + dir.y;
 
             // 보드 경계를 벗어나지 않을 때까지 직선 및 대각선 탐색
             while (IsValidIndex(nextX, nextY))
@@ -61,6 +61,6 @@ public class Queen : ChessPieceM
             }
         }
 
-        return possibleMoves;
+       
     }
 }

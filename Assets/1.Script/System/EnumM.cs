@@ -50,3 +50,11 @@ public enum pieceType
     Queen,
     King
 }
+
+// 화면 모드 종류 정의 (UI 드롭다운 인덱스와 매핑하기 용이)
+public enum WindowMode
+{
+    ExclusiveFullScreen, // 전용 전체 화면
+    FullScreenWindow,    // 테두리 없는 창 모드 (전체 화면 창)
+    Windowed             // 창 모드
+}
