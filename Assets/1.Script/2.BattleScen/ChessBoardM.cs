@@ -144,7 +144,11 @@ public class ChessBoardM : MonoBehaviour
         var piece = pieceObj.GetComponent<ChessPieceM>();
         if (piece != null)
         {
-            currentPossibleMoves = piece.GetPossibleMoves( gameM.pieceGrid);
+            // 1. 기존 이동 경로 리스트 초기화
+            currentPossibleMoves.Clear();
+
+            // 2. 리스트를 인자로 전달하여 내부에서 채우도록 호출
+            piece.GetPossibleMoves(gameM.pieceGrid, currentPossibleMoves);
         }
 
         // TODO: currentPossibleMoves 위치에 타일 하이라이트 켜기

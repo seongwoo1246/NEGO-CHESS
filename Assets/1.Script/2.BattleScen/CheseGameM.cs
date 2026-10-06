@@ -90,9 +90,14 @@ public class CheseGameM : MonoBehaviour
         ChessPieceM pieceObj = pieceGrid[x, y];
         if (pieceObj == null) return;
 
-        // 기물에서 이동 가능 경로 받아오기
-        currentPossibleMoves = pieceObj.GetPossibleMoves( pieceGrid);
 
+        // 1. 이전 기물이 남겨둔 하이라이트/이동 경로 좌표를 깨끗이 비움
+        currentPossibleMoves.Clear();
+
+        // 2. 현재 새로 선택한 pieceObj의 이동 가능 경로만 리스트에 쏙 채워 넣음
+        pieceObj.GetPossibleMoves(pieceGrid, currentPossibleMoves);
+
+        // 3. 새로 채워진 currentPossibleMoves 좌표에 하이라이트 켜기
         // TODO: currentPossibleMoves 위치에 타일 하이라이트 이펙트 켜주기
     }
 
@@ -141,7 +146,13 @@ public class CheseGameM : MonoBehaviour
         if(newPiece != null)
         {
             newPiece.CurrentPos = new Vector2Int(x, y);
+            if (newPiece is King)
+            {
+                OnSpawnKing(newPiece, newPiece.isWhite);
+            }
         }
+
+        activePieces.Add(newPiece);
 
         // 5. 2차원 배열에 기물 등록 및 반환
         pieceGrid[x, y] = newPiece; 
@@ -176,7 +187,7 @@ public class CheseGameM : MonoBehaviour
         // 2. 도착지에 이미 상대 기물이 존재한다면 포획(잡기) 처리
         if (capturedPiece != null)
         {
-            // Undo 기능을 고려한다면 완전 Destroy보다는 SetActive(false) 처리가 용이합니다.
+            DestroyPiece(toX,toY);
             capturedPiece.gameObject.SetActive(false);
         }
 
@@ -217,10 +228,14 @@ public class CheseGameM : MonoBehaviour
     {
         if (pieceGrid[x, y] != null)
         {
-            // 풀로 반환하거나 Despawn처리
-            pieceSpawner.Despawn(pieceGrid[x, y].gameObject);
             pieceGrid[x, y] = null;
         }
+        if (activePieces.Contains(pieceGrid[x, y]))
+        {
+            activePieces.Remove(pieceGrid[x, y]);
+        }
+     
+        pieceSpawner.Despawn(pieceGrid[x, y].gameObject);
     }
 
     /// <summary>
