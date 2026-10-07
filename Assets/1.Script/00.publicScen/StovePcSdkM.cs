@@ -1,10 +1,10 @@
 ﻿using System;
 using UnityEngine;
 // 스토브 PCSDK3 네임스페이스 및 Base static 연동
-using Stove.PCSDK;
 using static Stove.PCSDK.Base;
+using Debug = DebugM<StovePcSdkM>;
 
-public class StovePCSDKManager : MonoBehaviour
+public class StovePcSdkM : MonoBehaviour
 {
 
     [Header("STOVE Configurations")]
@@ -18,21 +18,22 @@ public class StovePCSDKManager : MonoBehaviour
     /// 초기화 완료 여부 플래그 , SDK 초기화가 완료되었는지 체크하여 Update의 Base_RunCallback()이나 중복 초기화를 막는 데 사용됨
     /// </summary>
     public bool IsInitialized { get; private set; } = false;
+    public bool IsLoggedIn { get; private set; } = false;
 
     // [초기화 결과 이벤트 (델리게이트)]
     // SDK 초기화 성공/실패 시 외부(UI, 매니저 등)로 알림을 보내주는 C# 이벤트
     // 예: OnInitializeSuccess += ShowMainMenu; 처럼 구독해서 사용함.
     public event Action OnInitializeSuccess;
     public event Action<string> OnInitializeFailed;
-
+    public event Action<StovePCUser> OnLoginSuccess; // 유저 정보 반환 이벤트
     private void Awake()
     {
-        ScriptM.Register<StovePCSDKManager>(this, UseSpace.Global);
+        ScriptM.Register<StovePcSdkM>(this, UseSpace.Global);
     }
 
     private void OnDestroy()
     {
-        ScriptM.Unregister<StovePCSDKManager>();
+        ScriptM.Unregister<StovePcSdkM>();
     }
 
     private void Start()
@@ -45,6 +46,7 @@ public class StovePCSDKManager : MonoBehaviour
         // 매 프레임 수신 이벤트 처리
         if (IsInitialized)
         {
+            
             Base_RunCallback();
         }
     }
@@ -89,6 +91,8 @@ public class StovePCSDKManager : MonoBehaviour
                     IsInitialized = true;
                     Debug.Log("[StovePCSDK3] 초기화 성공!");
                     OnInitializeSuccess?.Invoke();
+                   // 초기화 성공 후 유저 정보(로그인) 요청
+                    RequestUserInfo();
                 }
                 else
                 {
@@ -98,6 +102,33 @@ public class StovePCSDKManager : MonoBehaviour
                 }
             });
         });
+    }
+
+    // ★ 유저 정보 조회 (스토브 로그인 확정)
+    private void RequestUserInfo()
+    {
+
+        // 유저 정보를 담을 구조체 변수 생성
+        StovePCUser user = new StovePCUser();
+
+        // ref 키워드로 전달하여 Base_GetUser 호출
+        Result result = Base_GetUser(ref user);
+
+        // 반환된 Result 구조체의 성공 여부 확인
+        if (result.IsSuccessful())
+        {
+            IsLoggedIn = true;
+
+            // StovePCUser 내부 필드 접근 (nickname, gameUserId)
+            Debug.Log($" 로그인 성공! 유저 닉네임: {user.nickname}, GameUserId: {user.gameUserId}");
+
+            // 이벤트로 유저 정보 전달
+            OnLoginSuccess?.Invoke(user);
+        }
+        else
+        {
+            Debug.LogError($" 유저 정보 조회 실패 - Code: {result.resultCode}");
+        }
     }
 
     /// <summary>
