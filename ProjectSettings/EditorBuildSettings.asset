@@ -8,6 +8,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/0.Scenes/GameStart.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
+  - enabled: 1
+    path: Assets/0.Scenes/Battle.unity
+    guid: 2118c1d175d26be4cb1c18216a1c2eff
+  - enabled: 1
+    path: Assets/0.Scenes/Lobby.unity
+    guid: efb3e6ffdc351d740bcc2ef0c28eb297
+  - enabled: 1
+    path: Assets/0.Scenes/MultiBattle.unity
+    guid: 3391b01a06640db4389fc4b799b9171e
+  - enabled: 1
+    path: Assets/0.Scenes/MultiLobby.unity
+    guid: 7add550f277b95844a8213a206a83648
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

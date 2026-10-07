@@ -19,8 +19,9 @@ public enum SceneNumber
 {
     GameStart,
     Lobby,
-    Battle =10,
-    multiBattle =20,
+    MultiLobby,
+    Battle,
+    MultiBattle,
 
 }
 

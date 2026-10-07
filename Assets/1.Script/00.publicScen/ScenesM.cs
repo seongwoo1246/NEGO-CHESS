@@ -36,13 +36,14 @@ public class ScenesM : MonoBehaviour
         string sceneName = scene.ToString();
         ScriptM.ClearSceneLocalServices();
         //멀티로 이동 할때는 runner를 통해서 이동을 한다.
-        if (scene == SceneNumber.multiBattle)
+        if (scene == SceneNumber.MultiLobby)
         {
-            // Build Settings에서 sceneName("multiBattle")에 해당하는 전체 Path("Assets/Scenes/multiBattle.unity")를 자동으로 찾아옴
+            // Build Settings에서 sceneName("MultiLobby")에 해당하는 전체 Path("Assets/Scenes/MultiLobby.unity")를 자동으로 찾아옴
             string scenePath = SceneUtility.GetScenePathByBuildIndex(SceneUtility.GetBuildIndexByScenePath(sceneName));
 
             if (!string.IsNullOrEmpty(scenePath))
             {
+                SetRunner(runner);
                 runner.LoadScene(SceneRef.FromPath(scenePath));
             }
             else
