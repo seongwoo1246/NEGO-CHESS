@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
+using UnityEngine.UI;
 using Debug = DebugM<SoundM>;
 
 
@@ -25,9 +27,19 @@ using Debug = DebugM<SoundM>;
         [SerializeField] private List<SoundData> bgmList;
         [SerializeField] private List<SoundData> sfxList;
 
-        //빠른 검색을 위한 딕셔너리
-        private Dictionary<string, AudioClip> bgmDict = new Dictionary<string, AudioClip>();
+        [Header("오디오 믹스")]
+        [SerializeField] AudioMixer audioMixer;
+
+        private const string MASTER_KEY = "MasterVolume";
+        private const string BGMIn_KEY = "FadeIn";
+        private const string BGMOut_KEY = "FadeOut";
+        private const string SFX_KEY = "SFX";
+
+    //빠른 검색을 위한 딕셔너리
+    private Dictionary<string, AudioClip> bgmDict = new Dictionary<string, AudioClip>();
         private Dictionary<string, AudioClip> sfxDict = new Dictionary<string, AudioClip>();
+
+    
 
         private void Awake()
         {
@@ -41,11 +53,12 @@ using Debug = DebugM<SoundM>;
         {
             InittializeDictionary();
 
-            SetBGMVolume(PlayerPrefs.GetFloat("BGMSound", 0.5f));
-            SetSFXVolume(PlayerPrefs.GetFloat("SFXSound", 0.5f));
+        SetMasterVolume(PlayerPrefs.GetFloat("MasterSound", 0.5f));
+        SetBGMVolume(PlayerPrefs.GetFloat("BGMSound", 0.5f));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXSound", 0.5f));
 
 
-        }
+    }
 
 
         /// <summary>
@@ -69,6 +82,7 @@ using Debug = DebugM<SoundM>;
             }
         }
 
+    
 
         /// <summary>
         /// 이름으로 BGM 재생하기
@@ -111,50 +125,46 @@ using Debug = DebugM<SoundM>;
             FadeOutSource.Stop();
         }
 
+    /// <summary>
+    /// Master 슬라이더 (0.0001 ~ 1.0) 조작 시 호출
+    /// </summary>
+    public void SetMasterVolume(float linearVolume)
+    {
+        linearVolume = Mathf.Clamp(linearVolume, 0.0001f, 1.0f);
 
-        public void SetBGMVolume(float volume)
-        {
-            volume = Mathf.Clamp01(volume);
-            if (FadeOutSource != null)
-            {
+        // 0~1 선형 값을 데시벨(-80dB ~ 0dB)로 변환
+        float dB = Mathf.Log10(linearVolume) * 20f;
 
+        audioMixer.SetFloat(MASTER_KEY, dB);
+        PlayerPrefs.SetFloat("MasterSound", linearVolume);
+    }
 
-                FadeInSource.volume = volume;
-                FadeOutSource.volume = volume;
-            }
+    public void SetBGMVolume(float linearVolume)
+    {
+        linearVolume = Mathf.Clamp(linearVolume, 0.0001f, 1.0f);
+        float dB = Mathf.Log10(linearVolume) * 20f;
 
+        audioMixer.SetFloat(BGMIn_KEY, dB);
+        audioMixer.SetFloat(BGMOut_KEY, dB);
+        PlayerPrefs.SetFloat("BGMSound", linearVolume);
+    }
 
+    public void SetSFXVolume(float linearVolume)
+    {
+        linearVolume = Mathf.Clamp(linearVolume, 0.0001f, 1.0f);
+        float dB = Mathf.Log10(linearVolume) * 20f;
 
-            PlayerPrefs.SetFloat("BGMSound", volume);
+        audioMixer.SetFloat(SFX_KEY, dB);
+        PlayerPrefs.SetFloat("SFXSound", linearVolume);
+    }
 
-        }
-
-        public void SetSFXVolume(float volume)
-        {
-
-            volume = Mathf.Clamp01(volume);
-
-            if (sfxSource != null)
-            {
-
-
-                sfxSource.volume = volume;
-            }
-
-            PlayerPrefs.SetFloat("SFXSound", volume);
-
-        }
-
-
-
-
-        /// <summary>
-        /// 노래를 교환 할 때 일어나는 함수 다음 노래로 페이드 인아웃을 통한 노래 교체
-        /// </summary>
-        /// <param name="newSound">바꿔줄 노래</param>
-        /// <param name="fadeTime">페이드 하는 시간</param>
-        /// <returns></returns>
-        public async UniTask FadeSound(string newSound, float fadeTime)
+    /// <summary>
+    /// 노래를 교환 할 때 일어나는 함수 다음 노래로 페이드 인아웃을 통한 노래 교체
+    /// </summary>
+    /// <param name="newSound">바꿔줄 노래</param>
+    /// <param name="fadeTime">페이드 하는 시간</param>
+    /// <returns></returns>
+    public async UniTask FadeSound(string newSound, float fadeTime)
         {
             if (FadeOutSource.clip.name == newSound)
             {
