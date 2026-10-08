@@ -1,9 +1,26 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using Debug = DebugM<DisplayM>;
 
 public class DisplayM : MonoBehaviour
 {
+    [Header("화면 열기")]
+    [SerializeField] GameObject DisPlay;
+    [SerializeField] GameObject Sound;
+    [SerializeField] GameObject Setting;
 
+    [SerializeField] Button ResetBtn;
+
+    private void Awake()
+    {
+        ScriptM.Register<DisplayM>(this, UseSpace.Local);
+
+        if(ResetBtn != null)
+        {
+            ResetBtn.onClick.RemoveAllListeners();
+            ResetBtn.onClick.AddListener(() => ChangeResolution(1920, 1080, WindowMode.Windowed));
+        }
+    }
 
     private void Start()
     {
@@ -22,6 +39,15 @@ public class DisplayM : MonoBehaviour
             ChangeResolution(Screen.currentResolution.width, Screen.currentResolution.height, WindowMode.FullScreenWindow);
         }
     }
+
+    public void OpenDisplay()
+    {
+        Sound.SetActive(false);
+        DisPlay.SetActive(true);
+        Setting.SetActive(false);
+    }
+
+    
 
     /// <summary>
     /// 해상도 및 화면 모드를 변경하는 함수
@@ -58,7 +84,46 @@ public class DisplayM : MonoBehaviour
         Debug.Log($"화면 설정 변경 완료: {width}x{height} / 모드: {unityMode}");
     }
 
+    // 해상도 Dropdown(OnValueChanged)에 연결할 함수
+    public void OnResolutionDropdownChanged(int index)
+    {
+        int width = 1920;
+        int height = 1080;
 
+        switch (index)
+        {
+            case 0: width = 1920; height = 1080; break;
+            case 1: width = 1366; height = 768; break;
+            case 2: width = 2560; height = 1440; break;
+            case 3: width = 3840; height = 2160; break;
+        }
+
+        // 현재 설정된 화면 모드(PlayerPrefs 저장값 등)를 가져와 적용
+        WindowMode currentMode = (WindowMode)PlayerPrefs.GetInt("WindowMode", (int)WindowMode.Windowed);
+
+        // 기존에 만드신 함수 호출
+        ChangeResolution(width, height, currentMode);
+    }
+
+    // 화면 모드 Dropdown(OnValueChanged)에 연결할 함수
+    public void OnWindowModeDropdownChanged(int index)
+    {
+        WindowMode mode = WindowMode.Windowed;
+
+        switch (index)
+        {
+            case 0: mode = WindowMode.FullScreenWindow; break; 
+            case 1: mode = WindowMode.Windowed; break;
+            case 2: mode = WindowMode.ExclusiveFullScreen; break;
+        }
+
+        // 현재 설정된 해상도 크기를 가져와 적용
+        int currentWidth = PlayerPrefs.GetInt("ScreenWidth", 1920);
+        int currentHeight = PlayerPrefs.GetInt("ScreenHeight", 1080);
+
+        // 기존에 만드신 함수 호출
+        ChangeResolution(currentWidth, currentHeight, mode);
+    }
 }
 
 

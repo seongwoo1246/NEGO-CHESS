@@ -6,7 +6,7 @@ public class ScreenController : MonoBehaviour
 {
 
     [Header("기준이 되는 디자인 해상도 (예: 16:9 렌더링)")]
-    public float targetWidth = 8f;   // 화면 가로에 채우고 싶은 월드 단위 크기 (예: 체스판 8칸)
+    public float targetWidth = 10f;   // 화면 가로에 채우고 싶은 월드 단위 크기 
     public float targetAspect = 16f / 9f; // 개발 기준 화면 비율
 
     private Camera cam;

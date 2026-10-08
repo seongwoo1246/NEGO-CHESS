@@ -18,7 +18,7 @@ using Debug = DebugM<SoundM>;
 
     public class SoundM : MonoBehaviour
     {
-        [Header("Audio Sources")]
+        [Header("오디오 소스")]
         [SerializeField] public AudioSource FadeOutSource;
         [SerializeField] public AudioSource FadeInSource;
         [SerializeField] public AudioSource sfxSource;
@@ -30,13 +30,24 @@ using Debug = DebugM<SoundM>;
         [Header("오디오 믹스")]
         [SerializeField] AudioMixer audioMixer;
 
+        [Header("사운드 열기")]
+        [SerializeField] GameObject DisPlay;
+        [SerializeField] GameObject Sound;
+        [SerializeField] GameObject Setting;
+
+        //전역 수신 가능한 이벤트 정의
+        public static event Action<float> OnMasterVolumeChanged;
+        public static event Action<float> OnBGMVolumeChanged;
+        public static event Action<float> OnSFXVolumeChanged;
+
+
         private const string MASTER_KEY = "MasterVolume";
         private const string BGMIn_KEY = "FadeIn";
         private const string BGMOut_KEY = "FadeOut";
         private const string SFX_KEY = "SFX";
 
-    //빠른 검색을 위한 딕셔너리
-    private Dictionary<string, AudioClip> bgmDict = new Dictionary<string, AudioClip>();
+        //빠른 검색을 위한 딕셔너리
+        private Dictionary<string, AudioClip> bgmDict = new Dictionary<string, AudioClip>();
         private Dictionary<string, AudioClip> sfxDict = new Dictionary<string, AudioClip>();
 
     
@@ -50,7 +61,7 @@ using Debug = DebugM<SoundM>;
 
 
     private void Start()
-        {
+    {
             InittializeDictionary();
 
         SetMasterVolume(PlayerPrefs.GetFloat("MasterSound", 0.5f));
@@ -60,6 +71,12 @@ using Debug = DebugM<SoundM>;
 
     }
 
+    public void OpenSound()
+    {
+        Sound.SetActive(true);
+        DisPlay.SetActive(false);
+        Setting.SetActive(false);
+    }
 
         /// <summary>
         /// 시작할 때 리스트를 딕셔너리로 바꿔주는 작업
