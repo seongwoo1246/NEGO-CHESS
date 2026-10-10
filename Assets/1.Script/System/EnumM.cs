@@ -59,3 +59,10 @@ public enum WindowMode
     FullScreenWindow,    // 테두리 없는 창 모드 (전체 화면 창)
     Windowed             // 창 모드
 }
+
+public enum VolumeType
+{
+    Master, 
+    BGM, 
+    SFX 
+}

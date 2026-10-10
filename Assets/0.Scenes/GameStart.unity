@@ -943,13 +943,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundM
   FadeOutSource: {fileID: 566168958}
   FadeInSource: {fileID: 566168957}
-  sfxSource: {fileID: 566168956}
+  SfxSource: {fileID: 566168956}
   bgmList: []
   sfxList: []
   audioMixer: {fileID: 24100000, guid: 85399b436f099014897f60a9e30ff56e, type: 2}
   DisPlay: {fileID: 1472129043}
   Sound: {fileID: 282845319}
   Setting: {fileID: 921910659}
+  ResetBtn: {fileID: 4324299292639355613}
+  MasterMute: {fileID: 4324299292639355612}
+  BGMMute: {fileID: 4324299292639355611}
+  SFXMute: {fileID: 4324299292639355610}
 --- !u!4 &566168960
 Transform:
   m_ObjectHideFlags: 0
@@ -2882,6 +2886,50 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+--- !u!114 &4324299292639355610 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 476022005681360445, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 4324299292639355609}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
+--- !u!114 &4324299292639355611 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4029023523215784173, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 4324299292639355609}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
+--- !u!114 &4324299292639355612 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4393753017728223674, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 4324299292639355609}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9085046f02f69544eb97fd06b6048fe2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Toggle
+--- !u!114 &4324299292639355613 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4175352729791182016, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 4324299292639355609}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

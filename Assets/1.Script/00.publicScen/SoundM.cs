@@ -21,7 +21,7 @@ using Debug = DebugM<SoundM>;
         [Header("오디오 소스")]
         [SerializeField] public AudioSource FadeOutSource;
         [SerializeField] public AudioSource FadeInSource;
-        [SerializeField] public AudioSource sfxSource;
+        [SerializeField] public AudioSource SfxSource;
 
         [Header("오디오 소스 리스트")]
         [SerializeField] private List<SoundData> bgmList;
@@ -30,15 +30,9 @@ using Debug = DebugM<SoundM>;
         [Header("오디오 믹스")]
         [SerializeField] AudioMixer audioMixer;
 
-        [Header("사운드 열기")]
-        [SerializeField] GameObject DisPlay;
-        [SerializeField] GameObject Sound;
-        [SerializeField] GameObject Setting;
-
-        //전역 수신 가능한 이벤트 정의
-        public static event Action<float> OnMasterVolumeChanged;
-        public static event Action<float> OnBGMVolumeChanged;
-        public static event Action<float> OnSFXVolumeChanged;
+        //빠른 검색을 위한 딕셔너리
+        private Dictionary<string, AudioClip> bgmDict = new Dictionary<string, AudioClip>();
+        private Dictionary<string, AudioClip> sfxDict = new Dictionary<string, AudioClip>();
 
 
         private const string MASTER_KEY = "MasterVolume";
@@ -46,11 +40,14 @@ using Debug = DebugM<SoundM>;
         private const string BGMOut_KEY = "FadeOut";
         private const string SFX_KEY = "SFX";
 
-        //빠른 검색을 위한 딕셔너리
-        private Dictionary<string, AudioClip> bgmDict = new Dictionary<string, AudioClip>();
-        private Dictionary<string, AudioClip> sfxDict = new Dictionary<string, AudioClip>();
 
-    
+        private bool isMasterMuted = false;
+        private float lastMasterVolume = 1f;
+        private bool isBGMMuted = false;
+        private float lastBGMVolume = 1f;
+        private bool isSFXMuted = false;
+        private float lastSFXVolume = 1f;
+
 
         private void Awake()
         {
@@ -62,21 +59,66 @@ using Debug = DebugM<SoundM>;
 
     private void Start()
     {
-            InittializeDictionary();
+        InittializeDictionary();
+        SetMasterVolume(PlayerPrefs.GetFloat("MasterSound", lastMasterVolume));
+        SetBGMVolume(PlayerPrefs.GetFloat("BGMSound", lastMasterVolume));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXSound", lastMasterVolume));
+        
+    }
 
+
+   
+
+    public void ResetSound()
+    {
         SetMasterVolume(PlayerPrefs.GetFloat("MasterSound", 0.5f));
         SetBGMVolume(PlayerPrefs.GetFloat("BGMSound", 0.5f));
         SetSFXVolume(PlayerPrefs.GetFloat("SFXSound", 0.5f));
-
-
     }
 
-    public void OpenSound()
+    public void SoundMute(VolumeType type)
     {
-        Sound.SetActive(true);
-        DisPlay.SetActive(false);
-        Setting.SetActive(false);
+        switch(type)
+        {
+            case VolumeType.Master:
+                isMasterMuted = !isMasterMuted; 
+                if(isMasterMuted)
+                {
+                    audioMixer.SetFloat(MASTER_KEY, -80f);
+                }
+                else
+                {
+                    SetMasterVolume(lastMasterVolume);
+                }
+
+                    break;
+            case VolumeType.BGM:
+                isBGMMuted = !isBGMMuted;
+                if(isBGMMuted)
+                {
+                    audioMixer.SetFloat(BGMIn_KEY, -80f);
+                    audioMixer.SetFloat(BGMOut_KEY, -80f);
+                }
+                else
+                {
+                    SetBGMVolume(lastBGMVolume);
+                }
+                    break;
+            case VolumeType.SFX:
+                isSFXMuted = !isSFXMuted;
+                if(isSFXMuted)
+                {
+                    audioMixer.SetFloat(SFX_KEY, -80f);
+                }
+                else
+                {
+                    SetSFXVolume(lastSFXVolume);
+                }
+                break;
+        }
     }
+
+  
 
         /// <summary>
         /// 시작할 때 리스트를 딕셔너리로 바꿔주는 작업
@@ -128,7 +170,7 @@ using Debug = DebugM<SoundM>;
         {
             if (sfxDict.TryGetValue(soundName, out AudioClip sfx))
             {
-                sfxSource.PlayOneShot(sfx);
+                SfxSource.PlayOneShot(sfx);
 
             }
             else
@@ -153,6 +195,7 @@ using Debug = DebugM<SoundM>;
         float dB = Mathf.Log10(linearVolume) * 20f;
 
         audioMixer.SetFloat(MASTER_KEY, dB);
+        lastMasterVolume = linearVolume;
         PlayerPrefs.SetFloat("MasterSound", linearVolume);
     }
 
@@ -163,6 +206,7 @@ using Debug = DebugM<SoundM>;
 
         audioMixer.SetFloat(BGMIn_KEY, dB);
         audioMixer.SetFloat(BGMOut_KEY, dB);
+        lastBGMVolume = linearVolume;
         PlayerPrefs.SetFloat("BGMSound", linearVolume);
     }
 
@@ -172,6 +216,7 @@ using Debug = DebugM<SoundM>;
         float dB = Mathf.Log10(linearVolume) * 20f;
 
         audioMixer.SetFloat(SFX_KEY, dB);
+        lastSFXVolume = linearVolume;
         PlayerPrefs.SetFloat("SFXSound", linearVolume);
     }
 
