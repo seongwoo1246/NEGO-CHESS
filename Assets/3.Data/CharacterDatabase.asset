@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0b274003139b47a4693cdd83416b83aa, type: 3}
+  m_Name: CharacterDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::characterData
+  characterList:
+  - characterId: 0
+    sprites:
+    - {fileID: -2609879190663527008, guid: 5b81198af7bfa1245aec5842eefaf7e5, type: 3}
+    - {fileID: 8209526088026477782, guid: 5a151f3b28b32a046b617504c2aaf9aa, type: 3}
+    - {fileID: 5975351212992452140, guid: 99a61fd4ab8d7dd42aaba39e1f9b995a, type: 3}
+    - {fileID: -7475954394319961426, guid: 8d7cefe3070fb844eb7cb803b924a425, type: 3}
+    - {fileID: 6882321832591764360, guid: 5e4275054f6389d499f6fb6a3ac046f0, type: 3}
+  - characterId: 1
+    sprites:
+    - {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+    - {fileID: -3101861735314784408, guid: 6b32054d12e9cd24d8ec6f26582d0b6d, type: 3}
+    - {fileID: -3797050772981226451, guid: face25b59d17b3848aeedf07e3645d2a, type: 3}
+    - {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+    - {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  - characterId: 2
+    sprites:
+    - {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+    - {fileID: 7008932837814595854, guid: 0131683d94a00464ab2077a8cb506bf6, type: 3}
+    - {fileID: -8228373630913213390, guid: 6a9c494610ff91b49a2fee79af3176fe, type: 3}
+    - {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+    - {fileID: -974523336881832889, guid: a51a7f12c12d58e449c83d91f1735ca2, type: 3}
+  - characterId: 3
+    sprites:
+    - {fileID: -7423326069368793949, guid: cc043871606caa04ebd44cc87df74760, type: 3}
+    - {fileID: -780981633461337548, guid: 7e3ddafa0f223e749ad2a5160e27d319, type: 3}

@@ -1,9 +1,12 @@
-﻿using Fusion;
+﻿
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class StartSceneM : MonoBehaviour
 {
+    [SerializeField] characterData characterData;
 
     [Header("게임 관련 버튼")]
     [SerializeField] private Button GameStartBtn;
@@ -11,9 +14,24 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] private Button GameExitBtn;
     [SerializeField] private Button SingleBtn;
     [SerializeField] private Button MultiBtn;
+
     [Header("설정창")]
     [SerializeField] private GameObject Setting;
     [SerializeField] private GameObject Panel;
+
+    [Header("캐릭터 설정")]
+    [SerializeField] private bool isFristCahr;
+    [SerializeField] private GameObject Player;
+    [SerializeField] public TMP_InputField PlayerName;
+    [SerializeField] public TMP_InputField PlayerMonth;
+    [SerializeField] public TMP_InputField PlayerDay;
+    [SerializeField] public Button genderChangeBtn;
+    [SerializeField] public Button completeBtn;
+    [SerializeField] private TextMeshProUGUI Texts;
+
+    
+
+
     private void Awake()
     {
         ScriptM.Register<StartSceneM>(this, UseSpace.Local);
@@ -42,7 +60,13 @@ public class StartSceneM : MonoBehaviour
         if(SingleBtn  != null)
         {
             SingleBtn.onClick.RemoveAllListeners();
-            SingleBtn.onClick.AddListener(EnterSingleMode);
+            SingleBtn.onClick.AddListener(openChar);
+        }
+
+        if(completeBtn != null)
+        {
+            completeBtn.onClick.RemoveAllListeners();
+            completeBtn.onClick.AddListener(EnterSingleMode);
         }
 
         if(MultiBtn != null)
@@ -82,9 +106,17 @@ public class StartSceneM : MonoBehaviour
             GameExitBtn.gameObject.SetActive(true);
             SingleBtn.gameObject.SetActive(false);
             MultiBtn.gameObject.SetActive(false);
+            InputData();
             scenesM.LoadScene(SceneNumber.Lobby);
         }
     }
+
+    private void openChar()
+    {
+        Player.SetActive(true);
+    }
+
+
     private void EnterMultiMode()
     {
         if(ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
@@ -98,8 +130,56 @@ public class StartSceneM : MonoBehaviour
         }
     }
 
+    private void InputData()
+    {
+        if(isFristCahr == true)
+        {
+            singlePlayer.playerName = PlayerName.text;
 
+            if (int.TryParse(PlayerMonth.text, out singlePlayer.birthMonth))
+            {
 
+            }
+            else
+            {
+                Texts.text = "예) 12월 = 12 식으로 적어주세요.";
+            }
 
+            if (int.TryParse(PlayerDay.text, out singlePlayer.birthDay))
+            {
 
+            }
+            else
+            {
+                Texts.text = "예) 12일 = 12 식으로 적어주세요.";
+            }
+
+            isFristCahr = false;
+        }
+
+      
+    }
+
+    private void ChangeGender()
+    {
+        if(singlePlayer.isGirl == true)
+        {
+            singlePlayer.gender = "여";
+            
+        }
+    }
+
+    public List<Sprite> GetSpritesByCharacterId(int targetId)
+    {
+        // ID가 일치하는 항목을 리스트에서 한 줄로 쏙 찾아옵니다!
+        CharacterEntry foundEntry = characterData.characterList.Find(entry => entry.characterId == targetId);
+
+        if (foundEntry.sprites != null)
+        {
+            return foundEntry.sprites; // 찾았으면 스프라이트 리스트 반환
+        }
+
+        Debug.LogWarning("해당 ID의 캐릭터를 찾을 수 없습니다: " + targetId);
+        return null;
+    }
 }
