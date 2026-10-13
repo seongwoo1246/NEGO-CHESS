@@ -3670,7 +3670,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  closeButton: {fileID: 1228149034}
+  isOpen: 0
 --- !u!224 &673974964
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5138,7 +5138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  closeButton: {fileID: 1572028313}
+  isOpen: 0
 --- !u!224 &835034456
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6653,7 +6653,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  closeButton: {fileID: 0}
+  isOpen: 0
 --- !u!1 &1064268062
 GameObject:
   m_ObjectHideFlags: 0
@@ -10503,7 +10503,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  closeButton: {fileID: 886249479}
+  isOpen: 0
 --- !u!224 &1643193992
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11758,7 +11758,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  closeButton: {fileID: 1287461157}
+  isOpen: 0
 --- !u!1 &1783419041
 GameObject:
   m_ObjectHideFlags: 0
