@@ -8,13 +8,6 @@ public enum UseSpace
     Network  //멀티 통신에 필요한 것
 }
 
-
-public enum PlayMode
-{
-    Single,//싱글 모드
-    multi // 멀티 모드
-}
-
 public enum SceneNumber
 {
     GameStart,
@@ -65,4 +58,13 @@ public enum VolumeType
     Master, 
     BGM, 
     SFX 
+}
+
+public enum CharacterSprite
+{
+    Nomal,
+    Check,
+    Anger,
+    Move,
+    Smile
 }

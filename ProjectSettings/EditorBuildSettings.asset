@@ -20,6 +20,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/0.Scenes/MultiLobby.unity
     guid: 7add550f277b95844a8213a206a83648
+  - enabled: 1
+    path: Assets/0.Scenes/Battle single.unity
+    guid: 74fbc09d061e29c489899491b47d5556
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0

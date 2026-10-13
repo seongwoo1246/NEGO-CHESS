@@ -2952,7 +2952,7 @@ GameObject:
   - component: {fileID: 1384793290}
   - component: {fileID: 1384793289}
   m_Layer: 5
-  m_Name: InputField (TMP) (1)
+  m_Name: month
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3879,7 +3879,7 @@ GameObject:
   - component: {fileID: 1689164967}
   - component: {fileID: 1689164966}
   m_Layer: 5
-  m_Name: InputField (TMP) (2)
+  m_Name: day
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4262,7 +4262,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 28c8514487568b742a7ac080c5d86515, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StartSceneM
-  characterData: {fileID: 0}
+  characterData: {fileID: 11400000, guid: adb3736bb3878f241850f6a2b9e6570b, type: 2}
   GameStartBtn: {fileID: 1987911591}
   GameSettingBtn: {fileID: 1578626139}
   GameExitBtn: {fileID: 26960061}
@@ -4271,13 +4271,14 @@ MonoBehaviour:
   Setting: {fileID: 1915243753}
   Panel: {fileID: 135365801}
   isFristCahr: 0
-  Player: {fileID: 0}
-  PlayerName: {fileID: 0}
-  PlayerMonth: {fileID: 0}
-  PlayerDay: {fileID: 0}
-  genderChangeBtn: {fileID: 0}
-  completeBtn: {fileID: 0}
-  Texts: {fileID: 0}
+  Player: {fileID: 1988915572}
+  PlayerName: {fileID: 2021460328}
+  PlayerMonth: {fileID: 1384793289}
+  PlayerDay: {fileID: 1689164966}
+  genderChangeBtn: {fileID: 569301928}
+  completeBtn: {fileID: 1197065108}
+  Texts: {fileID: 573410146}
+  Icon: {fileID: 0}
 --- !u!4 &1770468990
 Transform:
   m_ObjectHideFlags: 0
@@ -4575,7 +4576,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1988915573
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4745,7 +4746,7 @@ GameObject:
   - component: {fileID: 2021460329}
   - component: {fileID: 2021460328}
   m_Layer: 5
-  m_Name: InputField (TMP)
+  m_Name: playerName
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5495,7 +5496,8 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 9184013864038313965, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

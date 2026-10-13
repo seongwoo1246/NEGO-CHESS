@@ -22,6 +22,14 @@ public class KeySettingM : MonoBehaviour
     [SerializeField] private TextMeshProUGUI readyT;
     [SerializeField] private TextMeshProUGUI gameStartT;
 
+    // 초기화를 위해 처음 글자를 저장 하는 역할
+    private string defaultTurnoverText;
+    private string defaultNegotiationText;
+    private string defaultGiveUpText;
+    private string defaultOpenMenuText;
+    private string defaultReadyText;
+    private string defaultGameStartText;
+
     [Header("입력 열기")]
     [SerializeField] GameObject DisPlay;
     [SerializeField] GameObject Sound;
@@ -36,7 +44,13 @@ public class KeySettingM : MonoBehaviour
     {
         ScriptM.Register<KeySettingM>(this, UseSpace.Local);
 
-       
+        if (turnoverT != null) defaultTurnoverText = turnoverT.text;
+        if (negotiationT != null) defaultNegotiationText = negotiationT.text;
+        if (giveUpT != null) defaultGiveUpText = giveUpT.text;
+        if (openMenuT != null) defaultOpenMenuText = openMenuT.text;
+        if (readyT != null) defaultReadyText = readyT.text;
+        if (gameStartT != null) defaultGameStartText = gameStartT.text;
+
         // 게임 시작 시 기존에 저장된 키 세팅이 있다면 불러오기
         LoadKeyBindings();
     }
@@ -169,17 +183,27 @@ public class KeySettingM : MonoBehaviour
     /// </summary>
     public void ResetToDefault()
     {
+
         if (inputActions == null) return;
 
-        // 1. 메모리상의 모든 오버라이드 제거
+        // 1. 메모리에 남아있는 키 변경 오버라이드 제거
         inputActions.RemoveAllBindingOverrides();
 
-        // 2. PlayerPrefs 저장값 삭제
+        // 2. 저장된 파일/레지스트리 삭제
         PlayerPrefs.DeleteKey(BINDING_SAVE_KEY);
         PlayerPrefs.Save();
 
-        Debug.Log("[KeySettingM] 키 바인딩 기본값 초기화 완료");
+        // 3. UI 텍스트 초기화 (작성하신 코드)
+        if (turnoverT != null) turnoverT.text = defaultTurnoverText;
+        if (negotiationT != null) negotiationT.text = defaultNegotiationText;
+        if (giveUpT != null) giveUpT.text = defaultGiveUpText;
+        if (openMenuT != null) openMenuT.text = defaultOpenMenuText;
+        if (readyT != null) readyT.text = defaultReadyText;
+        if (gameStartT != null) gameStartT.text = defaultGameStartText;
+
     }
+
+    
 
     #region 키 변경 함수 모음
 

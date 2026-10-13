@@ -20,7 +20,7 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] private GameObject Panel;
 
     [Header("캐릭터 설정")]
-    [SerializeField] private bool isFristCahr;
+    [SerializeField] private bool isFristCahr = true;
     [SerializeField] private GameObject Player;
     [SerializeField] public TMP_InputField PlayerName;
     [SerializeField] public TMP_InputField PlayerMonth;
@@ -28,6 +28,7 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] public Button genderChangeBtn;
     [SerializeField] public Button completeBtn;
     [SerializeField] private TextMeshProUGUI Texts;
+    [SerializeField] public Image Icon;
 
     
 
@@ -39,7 +40,9 @@ public class StartSceneM : MonoBehaviour
 
     private void Start()
     {
-        if(GameStartBtn != null)
+        characterData.InitializeDictionary();
+
+        if (GameStartBtn != null)
         {
             GameStartBtn.onClick.RemoveAllListeners();
             GameStartBtn.onClick.AddListener(SelectMode);
@@ -73,6 +76,12 @@ public class StartSceneM : MonoBehaviour
         {
             MultiBtn.onClick.RemoveAllListeners();
             MultiBtn.onClick.AddListener(EnterMultiMode);
+        }
+
+        if(genderChangeBtn != null)
+        {
+            genderChangeBtn.onClick.RemoveAllListeners();
+            genderChangeBtn.onClick.AddListener(ChangeGender);
         }
     }
 
@@ -162,24 +171,23 @@ public class StartSceneM : MonoBehaviour
 
     private void ChangeGender()
     {
-        if(singlePlayer.isGirl == true)
+        singlePlayer.isGirl = !singlePlayer.isGirl;
+
+        if (singlePlayer.isGirl == true)
         {
             singlePlayer.gender = "여";
-            
+           List<Sprite> sprites = characterData.GetSprites(3);
+            singlePlayer.icon = sprites[0];
+            Icon.sprite = singlePlayer.icon;
         }
-    }
-
-    public List<Sprite> GetSpritesByCharacterId(int targetId)
-    {
-        // ID가 일치하는 항목을 리스트에서 한 줄로 쏙 찾아옵니다!
-        CharacterEntry foundEntry = characterData.characterList.Find(entry => entry.characterId == targetId);
-
-        if (foundEntry.sprites != null)
+        else
         {
-            return foundEntry.sprites; // 찾았으면 스프라이트 리스트 반환
+            singlePlayer.gender = "남";
+            List<Sprite> sprites = characterData.GetSprites(3);
+            singlePlayer.icon = sprites[1];
+            Icon.sprite = singlePlayer.icon;
         }
-
-        Debug.LogWarning("해당 ID의 캐릭터를 찾을 수 없습니다: " + targetId);
-        return null;
     }
+
+   
 }

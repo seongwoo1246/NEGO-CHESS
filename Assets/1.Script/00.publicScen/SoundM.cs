@@ -67,13 +67,43 @@ using Debug = DebugM<SoundM>;
     }
 
 
-   
 
-    public void ResetSound()
+
+    public void ResetAllSoundSettings()
     {
-        SetMasterVolume(PlayerPrefs.GetFloat("MasterSound", 0.5f));
-        SetBGMVolume(PlayerPrefs.GetFloat("BGMSound", 0.5f));
-        SetSFXVolume(PlayerPrefs.GetFloat("SFXSound", 0.5f));
+        // 1. 각 볼륨의 기본값 정의
+        float defaultMaster = 0.5f;
+        float defaultBGM = 0.5f;
+        float defaultSFX = 0.5f;
+
+        // 2. PlayerPrefs에 기본값 저장
+        PlayerPrefs.SetFloat("MasterSound", defaultMaster);
+        PlayerPrefs.SetFloat("BGMSound", defaultBGM);
+        PlayerPrefs.SetFloat("SFXSound", defaultSFX);
+        PlayerPrefs.Save();
+
+        // 3. 사운드 매니저의 적용 함수 호출 (오디오 믹서 반영)
+        SetMasterVolume(defaultMaster);
+        SetBGMVolume(defaultBGM);
+        SetSFXVolume(defaultSFX);
+
+        // 4. 씬에 존재하는 모든 슬라이더 UI를 찾아 타입별로 값 갱신 (무한 루프 방지 함수 사용)
+        VolumeSlider[] sliders = FindObjectsByType<VolumeSlider>(FindObjectsSortMode.None);
+        foreach (var s in sliders)
+        {
+            if (s.type == VolumeType.Master)
+            {
+                s.SetSliderValueWithoutNotify(defaultMaster);
+            }
+            else if (s.type == VolumeType.BGM)
+            {
+                s.SetSliderValueWithoutNotify(defaultBGM);
+            }
+            else if (s.type == VolumeType.SFX)
+            {
+                s.SetSliderValueWithoutNotify(defaultSFX);
+            }
+        }
     }
 
     public void SoundMute(VolumeType type)
@@ -197,6 +227,7 @@ using Debug = DebugM<SoundM>;
         audioMixer.SetFloat(MASTER_KEY, dB);
         lastMasterVolume = linearVolume;
         PlayerPrefs.SetFloat("MasterSound", linearVolume);
+        Debug.Log($"마스터사운드가 변경되었습니다.{linearVolume}");
     }
 
     public void SetBGMVolume(float linearVolume)
@@ -208,6 +239,7 @@ using Debug = DebugM<SoundM>;
         audioMixer.SetFloat(BGMOut_KEY, dB);
         lastBGMVolume = linearVolume;
         PlayerPrefs.SetFloat("BGMSound", linearVolume);
+        Debug.Log($"BGM사운드가 변경되었습니다.{linearVolume}");
     }
 
     public void SetSFXVolume(float linearVolume)
@@ -218,6 +250,7 @@ using Debug = DebugM<SoundM>;
         audioMixer.SetFloat(SFX_KEY, dB);
         lastSFXVolume = linearVolume;
         PlayerPrefs.SetFloat("SFXSound", linearVolume);
+        Debug.Log($"SFX사운드가 변경되었습니다.{linearVolume}");
     }
 
     /// <summary>

@@ -5,6 +5,7 @@ public class Setting : MonoBehaviour
 {
     [Header("버튼 및 토글")]
     [SerializeField] Button ResetBtn;
+    [SerializeField] Button SoundBtn;
     [SerializeField] Toggle MasterMute;
     [SerializeField] Toggle BGMMute;
     [SerializeField] Toggle SFXMute;
@@ -39,7 +40,13 @@ public class Setting : MonoBehaviour
             if (ResetBtn != null)
             {
                 ResetBtn.onClick.RemoveAllListeners();
-                ResetBtn.onClick.AddListener(service.ResetSound);
+                ResetBtn.onClick.AddListener(service.ResetAllSoundSettings);
+            }
+
+            if(SoundBtn != null)
+            {
+                SoundBtn.onClick.RemoveAllListeners();
+                SoundBtn.onClick.AddListener(OpenSound);
             }
         }  
     }

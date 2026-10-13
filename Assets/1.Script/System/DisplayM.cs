@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using Debug = DebugM<DisplayM>;
 
 public class DisplayM : MonoBehaviour
@@ -11,6 +12,8 @@ public class DisplayM : MonoBehaviour
 
     [SerializeField] Button ResetBtn;
 
+    [SerializeField] TMP_Dropdown display;
+    [SerializeField] TMP_Dropdown Window;
     private void Awake()
     {
         ScriptM.Register<DisplayM>(this, UseSpace.Local);
@@ -18,7 +21,24 @@ public class DisplayM : MonoBehaviour
         if(ResetBtn != null)
         {
             ResetBtn.onClick.RemoveAllListeners();
-            ResetBtn.onClick.AddListener(() => ChangeResolution(1920, 1080, WindowMode.Windowed));
+            ResetBtn.onClick.AddListener(() => {
+                // 1. 해상도 및 모드 초기화 실행
+                ChangeResolution(1920, 1080, WindowMode.ExclusiveFullScreen);
+
+                // 2. 드롭다운 UI 값도 0번(기본값)으로 변경 및 새로고침
+                if (display != null)
+                {
+                    display.value = 0;
+                    display.RefreshShownValue();
+                }
+
+                if (Window != null)
+                {
+                    Window.value = 0; 
+                    Window.RefreshShownValue();
+                }
+            });
+
         }
     }
 
@@ -71,6 +91,8 @@ public class DisplayM : MonoBehaviour
                 unityMode = FullScreenMode.Windowed;
                 break;
         }
+
+       
 
         // 유니티 공식 해상도 및 화면 모드 변경 함수
         Screen.SetResolution(width, height, unityMode);
