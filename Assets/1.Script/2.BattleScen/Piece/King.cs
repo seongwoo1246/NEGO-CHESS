@@ -8,7 +8,7 @@ public class King : ChessPieceM
     // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
     private void Reset()
     {
-        data = new PieceData(pieceType.King, PieceColor.white, 0, "King");
+        data = new PieceData(pieceType.King, PieceColor.white, 0,1, "King");
     }
 
     public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)

@@ -11,7 +11,7 @@ public class Pawn : ChessPieceM
     // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
     private void Reset()
     {
-        data = new PieceData(pieceType.Pawn, PieceColor.white, 1,"pawn");
+        data = new PieceData(pieceType.Pawn, PieceColor.white, 1,8,"pawn");
     }
 
     public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)

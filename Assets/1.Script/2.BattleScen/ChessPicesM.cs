@@ -42,14 +42,16 @@ public struct PieceData
     public pieceType Type; //기물 종류(Enum)
     public PieceColor Color; // 팀 분류
     public int cost; // 기물의 코스트
+    public int maxPiece; // 최대 기물 수
     public string pieceName; // 기물 이름
     public Sprite icon; // UI용 아이콘
 
-    public PieceData(pieceType type, PieceColor team, int cost, string name = "")
+    public PieceData(pieceType type, PieceColor team, int cost,int maxPiece, string name = "")
     {
         Type = type;
         Color = team;
         this.cost = cost;
+        this.maxPiece = maxPiece;
         pieceName = string.IsNullOrEmpty(name) ? type.ToString() : name;
         icon = null;
     }

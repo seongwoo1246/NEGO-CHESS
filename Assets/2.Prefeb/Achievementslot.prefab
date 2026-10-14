@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4722412636662197258}
+  - component: {fileID: 4158940794555762654}
   m_Layer: 5
   m_Name: Achievementslot
   m_TagString: Untagged
@@ -40,6 +41,26 @@ RectTransform:
   m_AnchoredPosition: {x: 912.332, y: -125.89819}
   m_SizeDelta: {x: 1824.664, y: 251.7963}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &4158940794555762654
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1513579975486484570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56dd237c081efcd48b86fcf898c01661, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementSlot
+  seo: {fileID: 0}
+  seoText: {fileID: 0}
+  reon: {fileID: 0}
+  reonText: {fileID: 0}
+  cloe: {fileID: 0}
+  cloeText: {fileID: 0}
+  hpbar: {fileID: 0}
+  hpbarText: {fileID: 0}
 --- !u!1 &2129894758989499948
 GameObject:
   m_ObjectHideFlags: 0

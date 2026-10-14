@@ -14,6 +14,7 @@ public enum SceneNumber
     Lobby,
     MultiLobby,
     Battle,
+    BattleSingle,
     MultiBattle,
 
 }
@@ -67,4 +68,12 @@ public enum CharacterSprite
     Anger,
     Move,
     Smile
+}
+
+public enum EditMode
+{
+    None,
+    Name,
+    Gender,
+    Message
 }

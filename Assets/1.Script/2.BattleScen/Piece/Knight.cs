@@ -6,7 +6,7 @@ public class Knight : ChessPieceM
     // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
     private void Reset()
     {
-        data = new PieceData(pieceType.Knight, PieceColor.white, 5, "Knight");
+        data = new PieceData(pieceType.Knight, PieceColor.white, 5,2, "Knight");
     }
 
     public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)

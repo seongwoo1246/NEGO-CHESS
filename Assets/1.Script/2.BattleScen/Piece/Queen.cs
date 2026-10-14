@@ -6,7 +6,7 @@ public class Queen : ChessPieceM
     // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
     private void Reset()
     {
-        data = new PieceData(pieceType.Queen, PieceColor.white, 10, "Queen");
+        data = new PieceData(pieceType.Queen, PieceColor.white, 10,1, "Queen");
     }
 
     public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
