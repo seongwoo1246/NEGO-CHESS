@@ -9,7 +9,6 @@ public class LobbySceneM : MonoBehaviour
     [SerializeField] Button ReinforceBtn;
     [SerializeField] Button AchievementBtn;
     [SerializeField] Button CharacterBtn;
-    [SerializeField] Button SettingBtn;
     [SerializeField] Button SaveBtn;
     [SerializeField] Button LoadBtn;
     [Header("판넬들")]
@@ -18,6 +17,37 @@ public class LobbySceneM : MonoBehaviour
     [SerializeField] GameObject ReinforcePanel;
     [SerializeField] GameObject AchievementPanel;
     [SerializeField] GameObject CharacterPanel;
+   
+
+
+
+    public void ActiveSelfBattle()
+    {
+        BattlePanel.SetActive(!BattlePanel.activeSelf);
+
+    }
+    public void ActiveSelfPractice()
+    {
+        PracticePanel.SetActive(!PracticePanel.activeSelf);
+
+    }
+    public void ActiveSelfReinforce()
+    {
+        ReinforcePanel.SetActive(!ReinforcePanel.activeSelf);
+
+    }
+    public void ActiveSelfAchievement()
+    {
+        AchievementPanel.SetActive(!AchievementPanel.activeSelf);
+
+    }
+    public void ActiveSelfCharacter()
+    {
+        CharacterPanel.SetActive(!CharacterPanel.activeSelf);
+
+    }
+   
+
 
 
 }
