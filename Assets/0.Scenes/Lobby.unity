@@ -1251,6 +1251,7 @@ GameObject:
   - component: {fileID: 152479070}
   - component: {fileID: 152479073}
   - component: {fileID: 152479072}
+  - component: {fileID: 152479074}
   - component: {fileID: 152479071}
   m_Layer: 5
   m_Name: heal
@@ -1363,6 +1364,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 152479069}
   m_CullTransparentMesh: 1
+--- !u!114 &152479074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 152479069}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 10
+    price: 1000
+    pulse: 2
+  upgradeBtn: {fileID: 152479071}
 --- !u!1 &154179252
 GameObject:
   m_ObjectHideFlags: 0
@@ -2474,6 +2492,7 @@ GameObject:
   - component: {fileID: 350561945}
   - component: {fileID: 350561948}
   - component: {fileID: 350561947}
+  - component: {fileID: 350561949}
   - component: {fileID: 350561946}
   m_Layer: 5
   m_Name: Queen
@@ -2586,6 +2605,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 350561944}
   m_CullTransparentMesh: 1
+--- !u!114 &350561949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 350561944}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 6
+    price: 2000
+    pulse: 1
+  upgradeBtn: {fileID: 350561946}
 --- !u!1 &370297237
 GameObject:
   m_ObjectHideFlags: 0
@@ -2597,6 +2633,7 @@ GameObject:
   - component: {fileID: 370297238}
   - component: {fileID: 370297241}
   - component: {fileID: 370297240}
+  - component: {fileID: 370297242}
   - component: {fileID: 370297239}
   m_Layer: 5
   m_Name: Knight
@@ -2709,6 +2746,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 370297237}
   m_CullTransparentMesh: 1
+--- !u!114 &370297242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 370297237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 5
+    price: 1500
+    pulse: 1
+  upgradeBtn: {fileID: 370297239}
 --- !u!224 &397495025 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6700418078124861606, guid: 2782f16139b1e8747b092462c1dc8e0a, type: 3}
@@ -3592,6 +3646,7 @@ GameObject:
   - component: {fileID: 555017776}
   - component: {fileID: 555017779}
   - component: {fileID: 555017778}
+  - component: {fileID: 555017780}
   - component: {fileID: 555017777}
   m_Layer: 5
   m_Name: Rook
@@ -3704,6 +3759,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 555017775}
   m_CullTransparentMesh: 1
+--- !u!114 &555017780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 555017775}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 5
+    price: 1500
+    pulse: 1
+  upgradeBtn: {fileID: 555017777}
 --- !u!1 &575623242
 GameObject:
   m_ObjectHideFlags: 0
@@ -6256,7 +6328,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 886249480}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 876598983}
+        m_TargetAssemblyTypeName: LobbySceneM, Assembly-CSharp
+        m_MethodName: ActiveSelfReinforce
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &886249480
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6541,6 +6625,7 @@ GameObject:
   - component: {fileID: 920874916}
   - component: {fileID: 920874919}
   - component: {fileID: 920874918}
+  - component: {fileID: 920874920}
   - component: {fileID: 920874917}
   m_Layer: 5
   m_Name: maxHp
@@ -6653,6 +6738,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 920874915}
   m_CullTransparentMesh: 1
+--- !u!114 &920874920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 920874915}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 10
+    price: 1000
+    pulse: 10
+  upgradeBtn: {fileID: 920874917}
 --- !u!1 &959829909
 GameObject:
   m_ObjectHideFlags: 0
@@ -6664,6 +6766,7 @@ GameObject:
   - component: {fileID: 959829910}
   - component: {fileID: 959829913}
   - component: {fileID: 959829912}
+  - component: {fileID: 959829914}
   - component: {fileID: 959829911}
   m_Layer: 5
   m_Name: Pawn
@@ -6776,6 +6879,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 959829909}
   m_CullTransparentMesh: 1
+--- !u!114 &959829914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 959829909}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 7
+    price: 1000
+    pulse: 1
+  upgradeBtn: {fileID: 959829911}
 --- !u!1 &970312882
 GameObject:
   m_ObjectHideFlags: 0
@@ -7885,6 +8005,7 @@ GameObject:
   - component: {fileID: 1136131943}
   - component: {fileID: 1136131946}
   - component: {fileID: 1136131945}
+  - component: {fileID: 1136131947}
   - component: {fileID: 1136131944}
   m_Layer: 5
   m_Name: costUp
@@ -7997,6 +8118,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1136131942}
   m_CullTransparentMesh: 1
+--- !u!114 &1136131947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1136131942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 100
+    price: 500
+    pulse: 1
+  upgradeBtn: {fileID: 1136131944}
 --- !u!1 &1138552068
 GameObject:
   m_ObjectHideFlags: 0
@@ -9285,7 +9423,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1287461158}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 876598983}
+        m_TargetAssemblyTypeName: LobbySceneM, Assembly-CSharp
+        m_MethodName: ActiveSelfBattle
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1287461158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10336,6 +10486,7 @@ GameObject:
   - component: {fileID: 1491890100}
   - component: {fileID: 1491890103}
   - component: {fileID: 1491890102}
+  - component: {fileID: 1491890104}
   - component: {fileID: 1491890101}
   m_Layer: 5
   m_Name: negoUp
@@ -10448,6 +10599,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1491890099}
   m_CullTransparentMesh: 1
+--- !u!114 &1491890104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1491890099}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 10
+    price: 1000
+    pulse: 2
+  upgradeBtn: {fileID: 1491890101}
 --- !u!1 &1545374647
 GameObject:
   m_ObjectHideFlags: 0
@@ -10647,7 +10815,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1572028314}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 876598983}
+        m_TargetAssemblyTypeName: LobbySceneM, Assembly-CSharp
+        m_MethodName: ActiveSelfAchievement
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1572028314
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11445,6 +11625,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1643193992}
   - component: {fileID: 1643193991}
+  - component: {fileID: 1643193993}
   - component: {fileID: 1643193990}
   - component: {fileID: 1643193989}
   - component: {fileID: 1643193988}
@@ -11565,6 +11746,55 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1643193993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1643193987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0e0e0ecedc006314f8786bb0af872a58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceM
+  currentGold: 0
+  MaxHp:
+    maxLevel: 10
+    price: 1000
+    pulse: 10
+  UseHp:
+    maxLevel: 10
+    price: 1000
+    pulse: 2
+  MaxCost:
+    maxLevel: 100
+    price: 500
+    pulse: 1
+  NegoUp:
+    maxLevel: 10
+    price: 1000
+    pulse: 2
+  MaxPawnUp:
+    maxLevel: 7
+    price: 1000
+    pulse: 1
+  MaxBishopUp:
+    maxLevel: 5
+    price: 1500
+    pulse: 1
+  MaxKnightUp:
+    maxLevel: 5
+    price: 1500
+    pulse: 1
+  MaxRookUp:
+    maxLevel: 5
+    price: 1500
+    pulse: 1
+  MaxQueenUp:
+    maxLevel: 6
+    price: 2000
+    pulse: 1
 --- !u!1 &1655300510
 GameObject:
   m_ObjectHideFlags: 0
@@ -12484,6 +12714,7 @@ GameObject:
   - component: {fileID: 1695910578}
   - component: {fileID: 1695910581}
   - component: {fileID: 1695910580}
+  - component: {fileID: 1695910582}
   - component: {fileID: 1695910579}
   m_Layer: 5
   m_Name: Bishop
@@ -12596,6 +12827,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1695910577}
   m_CullTransparentMesh: 1
+--- !u!114 &1695910582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1695910577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2267d9f5ad368564fb2fc3a5cdfca8e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
+  targetStat:
+    maxLevel: 5
+    price: 1500
+    pulse: 1
+  upgradeBtn: {fileID: 1695910579}
 --- !u!1 &1726982877
 GameObject:
   m_ObjectHideFlags: 0
