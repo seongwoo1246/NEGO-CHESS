@@ -1,14 +1,12 @@
-﻿using Fusion;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
+using Debug = DebugM<CheseGameM>;
 
 public class CheseGameM : MonoBehaviour
 {
 
-    /// <summary>
-    /// 현재 게임모드에 맞는 Spawner를 넣어줌
-    /// </summary>
-    private IPieceSpawner pieceSpawner;
+   private SinglePoolSpawner spawner;
 
     // 왕의 위치를 찾기 위해 미리 변수 캐싱하기
     private ChessPieceM whiteKing;
@@ -30,18 +28,16 @@ public class CheseGameM : MonoBehaviour
     private void Awake()
     {
         ScriptM.Register<CheseGameM>(this, UseSpace.Local);
+        if (ScriptM.TryGet<SinglePoolSpawner>(out SinglePoolSpawner service))
+        { 
+            spawner = service;
+        }
+
     }
 
     private void OnDestroy()
     {
         ScriptM.Unregister<CheseGameM>();
-    }
-
-
-    // 게임 시작시 싱글/멀티 여부에 따라 주입
-    public void Initialize(IPieceSpawner spawner)
-    {
-        this.pieceSpawner = spawner;
     }
 
 
@@ -56,6 +52,7 @@ public class CheseGameM : MonoBehaviour
     // 보드의 특정 칸을 클릭했을 때 호출되는 함수
     public void OnTileClicked(int x, int y)
     {
+        Debug.Log("보드 클릭 함수 호출");
         // 1. 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
         if (selectedPos == null)
         {
@@ -126,38 +123,41 @@ public class CheseGameM : MonoBehaviour
             return null;
         }
 
-        // 1. 이미 해당 위치에 기물이 있다면 기존 기물 제거 (또는 예외 처리)
-        if (pieceGrid[x, y] != null)
-        {
-            DestroyPiece(x, y);
-        }
+       
 
-
-        // 2. 입력받은 논리 좌표(x, y)를 기반으로 월드 좌표 산출
-        Vector3 spawnWorldPos = boardM.GetWorldPosition(x, y);
-
-        // 3. 기물 인스턴스화 (GameObject 생성)
-        GameObject newPieceObj = pieceSpawner.Spawn(piecePrefab, spawnWorldPos, Quaternion.identity); 
-
-        // 4. 생성된 오브젝트에서 ChessPieceM 컴포넌트 추출
-        ChessPieceM newPiece = newPieceObj.GetComponent<ChessPieceM>();
-
-        // 4.5 기물의 위치를 스스로 저장하게 한다.
-        if(newPiece != null)
-        {
-            newPiece.CurrentPos = new Vector2Int(x, y);
-            if (newPiece is King)
+            // 1. 이미 해당 위치에 기물이 있다면 기존 기물 제거 (또는 예외 처리)
+            if (pieceGrid[x, y] != null)
             {
-                OnSpawnKing(newPiece, newPiece.isWhite);
+                DestroyPiece(x, y);
             }
-        }
 
-        activePieces.Add(newPiece);
 
-        // 5. 2차원 배열에 기물 등록 및 반환
-        pieceGrid[x, y] = newPiece; 
-        return newPiece;
+            // 2. 입력받은 논리 좌표(x, y)를 기반으로 월드 좌표 산출
+            Vector3 spawnWorldPos = boardM.GetWorldPosition(x, y);
 
+            // 3. 기물 인스턴스화 (GameObject 생성)
+            GameObject newPieceObj = spawner.Spawn(piecePrefab, spawnWorldPos, Quaternion.identity);
+
+            // 4. 생성된 오브젝트에서 ChessPieceM 컴포넌트 추출
+            ChessPieceM newPiece = newPieceObj.GetComponent<ChessPieceM>();
+
+            // 4.5 기물의 위치를 스스로 저장하게 한다.
+            if (newPiece != null)
+            {
+                newPiece.CurrentPos = new Vector2Int(x, y);
+                if (newPiece is King)
+                {
+                    OnSpawnKing(newPiece, newPiece.isWhite);
+                }
+            }
+
+            activePieces.Add(newPiece);
+
+
+            // 5. 2차원 배열에 기물 등록 및 반환
+            pieceGrid[x, y] = newPiece;
+            return newPiece;
+        
 
     }
 
@@ -234,8 +234,8 @@ public class CheseGameM : MonoBehaviour
         {
             activePieces.Remove(pieceGrid[x, y]);
         }
-     
-        pieceSpawner.Despawn(pieceGrid[x, y].gameObject);
+
+        spawner.Despawn(pieceGrid[x, y].gameObject);
     }
 
     /// <summary>

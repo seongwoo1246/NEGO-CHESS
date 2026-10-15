@@ -2,9 +2,16 @@
 using UnityEngine;
 using static UnityEngine.Audio.ProcessorInstance;
 
-public class SinglePoolSpawner : IPieceSpawner
+public class SinglePoolSpawner : MonoBehaviour, IPieceSpawner
 {
     private Dictionary<GameObject, Queue<GameObject>> PoolDict = new();
+
+   public void Awake()
+    {
+        ScriptM.Register<SinglePoolSpawner>(this, UseSpace.Global);
+    }
+
+ 
 
     public GameObject Spawn(GameObject prefab,Vector3 position, Quaternion rotation)
     {

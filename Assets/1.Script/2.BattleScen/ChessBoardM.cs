@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Google.GData.Extensions;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -10,8 +11,16 @@ using UnityEngine.EventSystems;
 public class ChessBoardM : MonoBehaviour
 {
     [Header("기준점 및 타일 설정")]
+    [SerializeField] private GameObject BoardSlot;
+    [SerializeField] private Transform BoardPosition;
     [SerializeField] private Transform originPoint; 
     [SerializeField] private float tileSize =1f;
+
+    private SinglePoolSpawner spawner;
+
+    public int boardSize = 8;
+
+    private GameObject[,] spawnedTiles;
 
     // 멀티시 클라이언트가 흑이면 true 싱글플레이나 백일 경우는 false로 둔다.
     public bool IsFlipped { get; set; } = false;
@@ -24,8 +33,49 @@ public class ChessBoardM : MonoBehaviour
     private void Awake()
     {
         ScriptM.Register<ChessBoardM>(this, UseSpace.Local);
+        if (ScriptM.TryGet<SinglePoolSpawner>(out SinglePoolSpawner service))
+        {
+            spawner = service;
+        }
+
+    }
+    private void Start()
+    {
+        InitializeBoard();
     }
 
+    public void InitializeBoard()
+    {
+        spawnedTiles = new GameObject[boardSize, boardSize];
+        if (ScriptM.TryGet<CheseGameM>(out CheseGameM game))
+    {
+            for (int x = 0; x < boardSize; x++)
+        {
+            for (int y = 0; y < boardSize; y++)
+            {
+                // 1. 앞서 만드신 GetworldPosition 함수를 통해 해당 그리드의 월드 좌표를 가져옴
+                Vector3 worldPos = GetWorldPosition(x, y);
+
+                // 2. 오브젝트 풀러(`SinglePoolSpawner`)를 통해 타일 소환
+               
+                    GameObject tile = spawner.Spawn(BoardSlot, worldPos, Quaternion.identity);
+
+
+                    // 3. 부모 오브젝트가 있다면 하이라키 정리
+                    if (BoardPosition != null)
+                    {
+                        tile.transform.SetParent(BoardPosition);
+                    }
+
+                    // 4. 나중을 위해 배열에 저장
+                    spawnedTiles[x, y] = tile;
+
+                }
+            }
+        }
+
+        Debug.Log("체스판 64칸 생성 완료!");
+    }
 
     /// <summary>
     /// 논리적 그리드 좌표를 받아와서 실제 클라이언트 화면에 월드 좌표로 바꿔서 보여준다.
@@ -77,8 +127,9 @@ public class ChessBoardM : MonoBehaviour
 
     private void OnMouseDown()
     {
+        Debug.Log("마우스 클릭중");
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-
+        Debug.Log("마우스 클릭중 생존");
         Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2Int gridPos = GetGridIndex(mouseWorldPos); // 좌표 변환
 
