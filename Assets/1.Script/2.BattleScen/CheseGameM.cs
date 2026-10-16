@@ -5,8 +5,13 @@ using Debug = DebugM<CheseGameM>;
 
 public class CheseGameM : MonoBehaviour
 {
+    [SerializeField] private PieceDatabase PieceDatabase;
 
-   private SinglePoolSpawner spawner;
+    private PieceData? selectedPieceData = null;
+    private bool isSpawnMode = false;
+
+
+    private SinglePoolSpawner spawner;
 
     // 왕의 위치를 찾기 위해 미리 변수 캐싱하기
     private ChessPieceM whiteKing;
@@ -28,16 +33,83 @@ public class CheseGameM : MonoBehaviour
     private void Awake()
     {
         ScriptM.Register<CheseGameM>(this, UseSpace.Local);
+      
+
+    }
+
+    private void Start()
+    {
         if (ScriptM.TryGet<SinglePoolSpawner>(out SinglePoolSpawner service))
-        { 
+        {
             spawner = service;
         }
-
     }
 
     private void OnDestroy()
     {
         ScriptM.Unregister<CheseGameM>();
+    }
+
+    // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
+    public void OnClickPieceButton(PieceData pieceData)
+    {
+        selectedPieceData = pieceData;
+        isSpawnMode = true;
+        Debug.Log($"{pieceData.pieceName} 선택됨! 소환할 타일을 누르세요.");
+    }
+
+    // 타일 선택시 호출하는 함수
+    public void OnTileClicked(int x, int y)
+    {
+        Debug.Log("보드 클릭 함수 호출");
+
+        // 💡 1. 만약 우측 UI에서 기물 소환 버튼을 눌러서 '소환 모드'라면?
+        if (isSpawnMode && selectedPieceData != null)
+        {
+            // 빈 칸인지 확인 등의 방어 코드를 넣은 뒤 소환 실행
+            GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
+            SpawnPiece(prefabToSpawn, x, y);
+
+            // 소환 모드 해제
+            isSpawnMode = false;
+            selectedPieceData = null;
+            return; 
+        }
+
+        // 💡 2. 소환 모드가 아니라면, 기존의 '체스 기물 선택 및 이동 로직' 실행
+        if (selectedPos == null)
+        {
+            SelectPiece(x, y);
+        }
+        else
+        {
+            Vector2Int targetPos = new Vector2Int(x, y);
+
+            if (currentPossibleMoves.Contains(targetPos))
+            {
+                MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                DeselectPiece();
+            }
+            else if (pieceGrid[x, y] != null && IsMyPiece(pieceGrid[x, y]))
+            {
+                SelectPiece(x, y);
+            }
+            else
+            {
+                DeselectPiece();
+            }
+        }
+    }
+    private GameObject GetPrefabByData(PieceData data)
+    {
+        // 1. SO의 메서드 결과를 받아온 뒤 바로 리턴합니다!
+        if (PieceDatabase != null)
+        {
+            return PieceDatabase.GetPrefab(data.Type, data.Color);
+        }
+
+        Debug.LogError("PieceDatabase가 연결되지 않았습니다!");
+        return null;
     }
 
 
@@ -49,38 +121,6 @@ public class CheseGameM : MonoBehaviour
         return pieceObj.data.Color == currentTurn;
     }
 
-    // 보드의 특정 칸을 클릭했을 때 호출되는 함수
-    public void OnTileClicked(int x, int y)
-    {
-        Debug.Log("보드 클릭 함수 호출");
-        // 1. 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
-        if (selectedPos == null)
-        {
-            SelectPiece(x, y);
-        }
-        // 2. 이미 기물을 선택한 상태에서 클릭한 경우
-        else
-        {
-            Vector2Int targetPos = new Vector2Int(x, y);
-
-            // 클릭한 칸이 이동 가능한 위치 중 하나라면 -> 이동 실행!
-            if (currentPossibleMoves.Contains(targetPos))
-            {
-                MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y); // 실제 이동
-                DeselectPiece(); // 선택 해제 및 하이라이트 꺼주기
-            }
-            // 다른 내 기물을 다시 클릭한 경우 -> 새로운 기물 선택
-            else if (pieceGrid[x, y] != null && IsMyPiece(pieceGrid[x, y]))
-            {
-                SelectPiece(x, y);
-            }
-            // 그 외 빈 공간이나 잘못된 위치 클릭시 -> 선택 취소
-            else
-            {
-                DeselectPiece();
-            }
-        }
-    }
 
     private void SelectPiece(int x, int y)
     {
@@ -243,6 +283,10 @@ public class CheseGameM : MonoBehaviour
     /// </summary>
     public GameObject GetPieceAt(int x, int y)
     {
+        if (pieceGrid[x, y] ==null)
+        {
+            return null;
+        }
         return pieceGrid[x, y].gameObject;
     }
 

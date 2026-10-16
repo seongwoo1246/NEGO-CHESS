@@ -1,7 +1,8 @@
-﻿using Google.GData.Extensions;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 
 /// <summary>
@@ -16,7 +17,7 @@ public class ChessBoardM : MonoBehaviour
     [SerializeField] private Transform originPoint; 
     [SerializeField] private float tileSize =1f;
 
-    private SinglePoolSpawner spawner;
+  private SinglePoolSpawner spawner;
 
     public int boardSize = 8;
 
@@ -33,14 +34,15 @@ public class ChessBoardM : MonoBehaviour
     private void Awake()
     {
         ScriptM.Register<ChessBoardM>(this, UseSpace.Local);
-        if (ScriptM.TryGet<SinglePoolSpawner>(out SinglePoolSpawner service))
-        {
-            spawner = service;
-        }
+       
 
     }
     private void Start()
     {
+        if (ScriptM.TryGet<SinglePoolSpawner>(out SinglePoolSpawner service))
+        {
+            spawner = service;
+        }
         InitializeBoard();
     }
 
@@ -74,7 +76,7 @@ public class ChessBoardM : MonoBehaviour
             }
         }
 
-        Debug.Log("체스판 64칸 생성 완료!");
+        
     }
 
     /// <summary>
@@ -119,23 +121,33 @@ public class ChessBoardM : MonoBehaviour
         int localX = IsFlipped ? (7-viewX) : viewX;
         int localY = IsFlipped ? (7-viewY) : viewY;
 
-        Debug.Log($"클릭한 좌표 {localX},{localY}");
-
         return new Vector2Int(localX, localY);
     }
 
 
-    private void OnMouseDown()
+    private void Update()
     {
-        Debug.Log("마우스 클릭중");
-        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
-        Debug.Log("마우스 클릭중 생존");
-        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2Int gridPos = GetGridIndex(mouseWorldPos); // 좌표 변환
-
-        if (gridPos.x >= 0 && gridPos.x < 8 && gridPos.y >= 0 && gridPos.y < 8)
+        // 1. New Input System 방식으로 마우스 왼쪽 버튼이 '방금 눌린 순간'을 감지
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-            OnTileClicked(gridPos.x, gridPos.y); // ★ 여기서 호출!
+           
+            // 3. New Input System에서 마우스 스크린 좌표 가져오기
+            Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
+            Vector3 mouseworldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
+
+            // 4. 매니저에서 마우스 클릭 후 레이캐스트 쏘기
+            RaycastHit2D hit = Physics2D.Raycast(mouseworldPos, Vector2.zero);
+            if (hit.collider != null)
+            {
+              
+                //  계산된 그리드 좌표가 유효한지 체크
+                Vector2Int gridPos = GetGridIndex(mouseworldPos);
+
+                if (gridPos.x >= 0 && gridPos.x < 8 && gridPos.y >= 0 && gridPos.y < 8)
+                {
+                    OnTileClicked(gridPos.x, gridPos.y);
+                }
+            }
         }
     }
 

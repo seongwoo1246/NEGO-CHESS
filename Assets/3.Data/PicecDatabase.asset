@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eb222dc3ec3ea3649950620ff3109be0, type: 3}
+  m_Name: PicecDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::PieceDatabase
+  mappings:
+  - type: 0
+    color: 1
+    prefab: {fileID: 952133044024572762, guid: 4778c96fee0990d4ea56301a33b7abcc, type: 3}
+  - type: 0
+    color: 2
+    prefab: {fileID: 7921895080507297895, guid: 1fbfa5fafff154a489907348dca8c801, type: 3}
+  - type: 2
+    color: 1
+    prefab: {fileID: 7737866848758700699, guid: 36631c65d4a50b14f9ceebabc13f4a85, type: 3}
+  - type: 2
+    color: 2
+    prefab: {fileID: 7554026422744678105, guid: b8bf919e07610194ab5f99f822d54c46, type: 3}
+  - type: 5
+    color: 1
+    prefab: {fileID: 6323654633626293741, guid: d1a7b86612f6df2479714b4f1bee635e, type: 3}
+  - type: 5
+    color: 2
+    prefab: {fileID: 6007532481542967660, guid: 94d19dec401d4ae4b97849007e83aa41, type: 3}
+  - type: 1
+    color: 1
+    prefab: {fileID: 8899443110370658383, guid: dafff4a6227abd343ae1c63d4f68835c, type: 3}
+  - type: 1
+    color: 2
+    prefab: {fileID: 2928673128239806215, guid: fd73862aa4ea38c4eb5bdc3080d15021, type: 3}
+  - type: 4
+    color: 1
+    prefab: {fileID: 165107445882953213, guid: f0c387e64d1216848b7eb8508b8bc259, type: 3}
+  - type: 4
+    color: 2
+    prefab: {fileID: 5292458508499549461, guid: 0761e39fe05aa3643a0ec5294d4d9a95, type: 3}
+  - type: 3
+    color: 1
+    prefab: {fileID: 5627630717516828333, guid: 704433e152fde96478c9444c6a36d9a5, type: 3}
+  - type: 3
+    color: 2
+    prefab: {fileID: 7134270764460649303, guid: a61ef5c55d60e2043884af3c7bcbab54, type: 3}

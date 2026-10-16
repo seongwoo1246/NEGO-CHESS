@@ -22,7 +22,12 @@ public class BoardNotationM : MonoBehaviour
     private void Awake()
     {
         InitLabels();
-      if(ScriptM.TryGet<ChessBoardM>(out var boardM))
+     
+    }
+
+    private void Start()
+    {
+        if (ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
             SetupNotation(boardM.IsFlipped);
         }
