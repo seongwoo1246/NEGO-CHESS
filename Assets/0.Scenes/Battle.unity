@@ -456,6 +456,7 @@ MonoBehaviour:
     maxPiece: 1
     pieceName: Queen
     icon: {fileID: 21300000, guid: 8dde74c05b5674a6b96e6c855da9dc82, type: 3}
+  countText: {fileID: 1293544893}
 --- !u!1001 &58302676
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -946,6 +947,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CheseGameM
   PieceDatabase: {fileID: 11400000, guid: d8e15f9b81bc7e24182041fcb42ea712, type: 2}
   currentTurn: 1
+  pieceButtonUIs: []
 --- !u!4 &211198754
 Transform:
   m_ObjectHideFlags: 0
@@ -1238,6 +1240,7 @@ MonoBehaviour:
     maxPiece: 8
     pieceName: Pawn
     icon: {fileID: 21300000, guid: c0503727f302a44a3b74e1083b31c080, type: 3}
+  countText: {fileID: 996763634}
 --- !u!1 &371634429
 GameObject:
   m_ObjectHideFlags: 0
@@ -2315,6 +2318,7 @@ MonoBehaviour:
     maxPiece: 1
     pieceName: King
     icon: {fileID: 21300000, guid: 1ea21c492ec9b4f778f6f0a9dfa0c532, type: 3}
+  countText: {fileID: 371634431}
 --- !u!1 &683180808
 GameObject:
   m_ObjectHideFlags: 0
@@ -3830,6 +3834,7 @@ MonoBehaviour:
     maxPiece: 2
     pieceName: Bishop
     icon: {fileID: 21300000, guid: 5c87fe55678ba447eb605e8ee793c858, type: 3}
+  countText: {fileID: 1336056023}
 --- !u!1 &1258962148
 GameObject:
   m_ObjectHideFlags: 0
@@ -3970,6 +3975,7 @@ MonoBehaviour:
     maxPiece: 2
     pieceName: Rook
     icon: {fileID: 21300000, guid: 49084320a93464c4aac4806e7b02323d, type: 3}
+  countText: {fileID: 1441374576}
 --- !u!1 &1293544891
 GameObject:
   m_ObjectHideFlags: 0
@@ -5438,6 +5444,7 @@ MonoBehaviour:
     maxPiece: 2
     pieceName: Knight
     icon: {fileID: 21300000, guid: b6bd772b73a504ab5a27db2031715b95, type: 3}
+  countText: {fileID: 1027562253}
 --- !u!1 &1802071317
 GameObject:
   m_ObjectHideFlags: 0

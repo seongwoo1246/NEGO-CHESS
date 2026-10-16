@@ -29,6 +29,8 @@ public class CheseGameM : MonoBehaviour
     private List<Vector2Int> attackMoves = new List<Vector2Int>(); // 공격이 가능한 부분 표시
     private List<MoveData> MoveHistory = new List<MoveData>(); //기보를 저장하기 위해서 있는 리스트
     private List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
+    [SerializeField] private List<PieceButtonUI> pieceButtonUIs;
+    private Dictionary<pieceType, int> spawnedPieceCounts = new Dictionary<pieceType, int>(); // 기물을 종류별로 소환해서 실시간으로 개수제한 및 UI 변경용
 
     private void Awake()
     {
@@ -53,9 +55,17 @@ public class CheseGameM : MonoBehaviour
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
     public void OnClickPieceButton(PieceData pieceData)
     {
+        // 남은 개수 제한 체크 (예: maxPiece 이상 소환했다면 리턴)
+        int currentCount = GetSpawnedCount(pieceData.Type);
+        if (currentCount >= pieceData.maxPiece)
+        {
+            Debug.Log($"{pieceData.pieceName}은(는) 더 이상 소환할 수 없습니다!");
+            return;
+        }
+
         selectedPieceData = pieceData;
         isSpawnMode = true;
-        Debug.Log($"{pieceData.pieceName} 선택됨! 소환할 타일을 누르세요.");
+        Debug.Log($"{pieceData.pieceName} 선택됨! 타일을 누르세요.");
     }
 
     // 타일 선택시 호출하는 함수
@@ -69,6 +79,9 @@ public class CheseGameM : MonoBehaviour
             // 빈 칸인지 확인 등의 방어 코드를 넣은 뒤 소환 실행
             GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
             SpawnPiece(prefabToSpawn, x, y);
+
+            AddSpawnedCount(selectedPieceData.Value.Type);
+            RefreshButtonUI();
 
             // 소환 모드 해제
             isSpawnMode = false;
@@ -100,6 +113,34 @@ public class CheseGameM : MonoBehaviour
             }
         }
     }
+
+    // 모든 버튼의 텍스트를 현재 남은 개수에 맞춰 갱신
+    private void RefreshButtonUI()
+    {
+        foreach (var btnUI in pieceButtonUIs)
+        {
+            int max = btnUI.pieceData.maxPiece;
+            int spawned = GetSpawnedCount(btnUI.pieceData.Type);
+            int remaining = max - spawned;
+
+            btnUI.UpdateCountUI(remaining);
+        }
+    }
+
+    private int GetSpawnedCount(pieceType type)
+    {
+        if (!spawnedPieceCounts.ContainsKey(type)) return 0;
+        return spawnedPieceCounts[type];
+    }
+
+    private void AddSpawnedCount(pieceType type)
+    {
+        if (!spawnedPieceCounts.ContainsKey(type))
+            spawnedPieceCounts[type] = 0;
+
+        spawnedPieceCounts[type]++;
+    }
+
     private GameObject GetPrefabByData(PieceData data)
     {
         // 1. SO의 메서드 결과를 받아온 뒤 바로 리턴합니다!
@@ -190,6 +231,8 @@ public class CheseGameM : MonoBehaviour
                     OnSpawnKing(newPiece, newPiece.isWhite);
                 }
             }
+
+           
 
             activePieces.Add(newPiece);
 

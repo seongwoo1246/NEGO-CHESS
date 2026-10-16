@@ -86,7 +86,13 @@ public abstract class ChessPieceM : MonoBehaviour
 
 
     public abstract void GetPossibleMoves(ChessPieceM[,] grid, List<Vector2Int> outputMoves);
-  
+
+    // 기물이 생성될 때 데이터를 주입해주는 함수
+    public void Init(PieceData _data)
+    {
+       data = _data;
+       
+    }
 
     private void Awake()
     {

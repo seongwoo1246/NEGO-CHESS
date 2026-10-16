@@ -146,6 +146,7 @@ public class ChessBoardM : MonoBehaviour
                 if (gridPos.x >= 0 && gridPos.x < 8 && gridPos.y >= 0 && gridPos.y < 8)
                 {
                     OnTileClicked(gridPos.x, gridPos.y);
+                    Debug.Log($"{ gridPos.x}{gridPos.y}");
                 }
             }
         }
