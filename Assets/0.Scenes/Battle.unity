@@ -454,7 +454,7 @@ MonoBehaviour:
     Color: 1
     cost: 10
     maxPiece: 1
-    pieceName: Queen
+    pieceName: "\uC5EC\uC655"
     icon: {fileID: 21300000, guid: 8dde74c05b5674a6b96e6c855da9dc82, type: 3}
   countText: {fileID: 1293544893}
 --- !u!1001 &58302676
@@ -513,6 +513,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 9010820488389435332, guid: 3325d1b3ad848664daa3e95a4393e383, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: fab06e0be9375cc4d823efa71629885c, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -946,8 +950,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CheseGameM
   PieceDatabase: {fileID: 11400000, guid: d8e15f9b81bc7e24182041fcb42ea712, type: 2}
+  ResetBtn: {fileID: 1296514833}
   currentTurn: 1
-  pieceButtonUIs: []
+  pieceButtonUIs:
+  - {fileID: 249332107}
+  - {fileID: 1241277530}
+  - {fileID: 1258962153}
+  - {fileID: 1753795621}
+  - {fileID: 45260811}
+  - {fileID: 675717838}
 --- !u!4 &211198754
 Transform:
   m_ObjectHideFlags: 0
@@ -1238,7 +1249,7 @@ MonoBehaviour:
     Color: 1
     cost: 1
     maxPiece: 8
-    pieceName: Pawn
+    pieceName: "\uBCD1"
     icon: {fileID: 21300000, guid: c0503727f302a44a3b74e1083b31c080, type: 3}
   countText: {fileID: 996763634}
 --- !u!1 &371634429
@@ -2316,7 +2327,7 @@ MonoBehaviour:
     Color: 1
     cost: 1
     maxPiece: 1
-    pieceName: King
+    pieceName: "\uC655"
     icon: {fileID: 21300000, guid: 1ea21c492ec9b4f778f6f0a9dfa0c532, type: 3}
   countText: {fileID: 371634431}
 --- !u!1 &683180808
@@ -3832,7 +3843,7 @@ MonoBehaviour:
     Color: 1
     cost: 5
     maxPiece: 2
-    pieceName: Bishop
+    pieceName: "\uC8FC\uAD50"
     icon: {fileID: 21300000, guid: 5c87fe55678ba447eb605e8ee793c858, type: 3}
   countText: {fileID: 1336056023}
 --- !u!1 &1258962148
@@ -3973,7 +3984,7 @@ MonoBehaviour:
     Color: 1
     cost: 5
     maxPiece: 2
-    pieceName: Rook
+    pieceName: "\uC804\uCC28"
     icon: {fileID: 21300000, guid: 49084320a93464c4aac4806e7b02323d, type: 3}
   countText: {fileID: 1441374576}
 --- !u!1 &1293544891
@@ -5439,10 +5450,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PieceButtonUI
   pieceData:
     Type: 1
-    Color: 0
+    Color: 1
     cost: 5
     maxPiece: 2
-    pieceName: Knight
+    pieceName: "\uAE30\uC0AC"
     icon: {fileID: 21300000, guid: b6bd772b73a504ab5a27db2031715b95, type: 3}
   countText: {fileID: 1027562253}
 --- !u!1 &1802071317

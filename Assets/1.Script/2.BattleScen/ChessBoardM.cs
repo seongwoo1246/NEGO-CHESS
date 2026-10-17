@@ -21,7 +21,7 @@ public class ChessBoardM : MonoBehaviour
 
     public int boardSize = 8;
 
-    private GameObject[,] spawnedTiles;
+    public GameObject[,] spawnedTiles;
 
     // 멀티시 클라이언트가 흑이면 true 싱글플레이나 백일 경우는 false로 둔다.
     public bool IsFlipped { get; set; } = false;
@@ -61,7 +61,17 @@ public class ChessBoardM : MonoBehaviour
                 // 2. 오브젝트 풀러(`SinglePoolSpawner`)를 통해 타일 소환
                
                     GameObject tile = spawner.Spawn(BoardSlot, worldPos, Quaternion.identity);
+                    SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
 
+                    bool isEven = (x + y) % 2 == 0;
+                    Color baseColor = isEven ? new Color(0.9f, 0.9f, 0.8f) : new Color(0.4f, 0.3f, 0.2f); // 밝은 칸 / 어두운 칸
+
+                    // 💡 타일에 컴포넌트를 가져와서 색상 초기화 위임
+                    BoardTile tileComponent = tile.GetComponent<BoardTile>();
+                    if (tileComponent != null)
+                    {
+                        tileComponent.SetBaseColor(baseColor);
+                    }
 
                     // 3. 부모 오브젝트가 있다면 하이라키 정리
                     if (BoardPosition != null)
@@ -130,7 +140,7 @@ public class ChessBoardM : MonoBehaviour
         // 1. New Input System 방식으로 마우스 왼쪽 버튼이 '방금 눌린 순간'을 감지
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
-           
+
             // 3. New Input System에서 마우스 스크린 좌표 가져오기
             Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
             Vector3 mouseworldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
@@ -139,96 +149,22 @@ public class ChessBoardM : MonoBehaviour
             RaycastHit2D hit = Physics2D.Raycast(mouseworldPos, Vector2.zero);
             if (hit.collider != null)
             {
-              
+
                 //  계산된 그리드 좌표가 유효한지 체크
                 Vector2Int gridPos = GetGridIndex(mouseworldPos);
 
                 if (gridPos.x >= 0 && gridPos.x < 8 && gridPos.y >= 0 && gridPos.y < 8)
                 {
-                    OnTileClicked(gridPos.x, gridPos.y);
-                    Debug.Log($"{ gridPos.x}{gridPos.y}");
+                    if (ScriptM.TryGet<CheseGameM>(out CheseGameM gameM))
+                    {
+                        gameM.OnTileClicked(gridPos.x, gridPos.y);
+                        Debug.Log($"{gridPos.x}{gridPos.y}");
+                    }
+
                 }
             }
         }
     }
 
-
-    /// <summary>
-    /// 마우스 클릭 등으로 보드의 특정 (x, y) 타일을 클릭했을 때 호출되는 함수
-    /// </summary>
-    public void OnTileClicked(int x, int y)
-    {
-        // 체스 게임 매니저 참조 가져오기 (이름은 실제 프로젝트의 매니저 스크립트에 맞게 변경)
-        if (!ScriptM.TryGet<CheseGameM>(out var gameM)) return;
-
-        // 1. 아직 기물을 선택하지 않은 상태
-        if (selectedPos == null)
-        {
-            if (gameM.GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y, gameM))
-            {
-                SelectPiece(x, y, gameM);
-            }
-        }
-        // 2. 이미 특정 기물을 선택한 상태
-        else
-        {
-            Vector2Int targetPos = new Vector2Int(x, y);
-
-            // ① 클릭한 곳이 이동 가능한 칸일 때 -> 네트워크 RPC 호출 또는 이동 실행
-            if (currentPossibleMoves.Contains(targetPos))
-            {
-                if (ScriptM.TryGet<NetworkChessPieceM>(out var netPieceM))
-                {
-                    netPieceM.RPC_RequestMove(selectedPos.Value.x, selectedPos.Value.y, x, y);
-                }
-
-                DeselectPiece();
-            }
-            // ② 다른 내 기물을 클릭했을 때 -> 선택 교체
-            else if (gameM.GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y, gameM))
-            {
-                SelectPiece(x, y, gameM);
-            }
-            // ③ 그 외 (빈 공간이나 이동 불가능한 칸) 클릭시 -> 선택 취소
-            else
-            {
-                DeselectPiece();
-            }
-        }
-    }
-
-    private void SelectPiece(int x, int y, CheseGameM gameM)
-    {
-        GameObject pieceObj = gameM.GetPieceAt(x, y);
-        if (pieceObj == null) return;
-
-        selectedPos = new Vector2Int(x, y);
-
-        // 선택한 기물로부터 이동 가능한 경로 목록 받아오기
-        var piece = pieceObj.GetComponent<ChessPieceM>();
-        if (piece != null)
-        {
-            // 1. 기존 이동 경로 리스트 초기화
-            currentPossibleMoves.Clear();
-
-            // 2. 리스트를 인자로 전달하여 내부에서 채우도록 호출
-            piece.GetPossibleMoves(gameM.pieceGrid, currentPossibleMoves);
-        }
-
-        // TODO: currentPossibleMoves 위치에 타일 하이라이트 켜기
-    }
-
-    private void DeselectPiece()
-    {
-        selectedPos = null;
-        currentPossibleMoves.Clear();
-
-        // TODO: 타일 하이라이트 끄기
-    }
-
-    private bool IsMyTurnAndPiece(int x, int y, CheseGameM gameM)
-    {
-        // 턴 및 팀 색상 체크 로직 구현
-        return true;
-    }
+   
 }

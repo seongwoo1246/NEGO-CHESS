@@ -76,12 +76,12 @@ public abstract class ChessPieceM : MonoBehaviour
     /// <summary>
     /// 같은 팀 기물인지 체크
     /// </summary>
-    protected bool IsSameTeam(ChessPieceM targetObj)
+   public bool IsSameTeam(ChessPieceM targetObj)
     {
         if (targetObj == null) return false;
 
         
-        return targetObj != null && targetObj.isWhite == this.isWhite;
+        return  targetObj.isWhite == this.isWhite;
     }
 
 
@@ -92,16 +92,6 @@ public abstract class ChessPieceM : MonoBehaviour
     {
        data = _data;
        
-    }
-
-    private void Awake()
-    {
-        ScriptM.Register<ChessPieceM>(this, UseSpace.Local);
-    }
-
-    private void OnDestroy()
-    {
-        ScriptM.Unregister<ChessPieceM>();
     }
 
 }

@@ -1,12 +1,18 @@
 ﻿
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Debug = DebugM<CheseGameM>;
 
 public class CheseGameM : MonoBehaviour
 {
     [SerializeField] private PieceDatabase PieceDatabase;
-
+    public GameObject ReadyPanel;
+    public GameObject CharacterPanel;
+    public GameObject gamePanel;
+    [Header("버튼들")]
+    public Button ResetBtn;
+    public Button ReadyBtn;
     private PieceData? selectedPieceData = null;
     private bool isSpawnMode = false;
 
@@ -35,8 +41,6 @@ public class CheseGameM : MonoBehaviour
     private void Awake()
     {
         ScriptM.Register<CheseGameM>(this, UseSpace.Local);
-      
-
     }
 
     private void Start()
@@ -45,11 +49,32 @@ public class CheseGameM : MonoBehaviour
         {
             spawner = service;
         }
+        if(ResetBtn !=  null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
+        if(ReadyBtn !=  null) { ReadyBtn.onClick.AddListener(ResetAllPieces); }
+
+        RefreshButtonUI();
     }
 
     private void OnDestroy()
     {
         ScriptM.Unregister<CheseGameM>();
+    }
+
+    /// <summary>
+    /// 선택한 (x, y) 좌표가 해당 팀의 소환 가능 영역(앞쪽 2줄)인지 판별
+    /// </summary>
+    private bool IsValidSpawnZone(int x, int y, PieceColor pieceColor)
+    {
+        if (pieceColor == PieceColor.white)
+        {
+            // 하얀색 팀은 아래쪽 2줄 (y 인덱스 0, 1)만 허용
+            return y >= 0 && y <= 1;
+        }
+        else
+        {
+            // 검은색 팀은 위쪽 2줄 (y 인덱스 6, 7)만 허용
+            return y >= 6 && y <= 7;
+        }
     }
 
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
@@ -65,7 +90,42 @@ public class CheseGameM : MonoBehaviour
 
         selectedPieceData = pieceData;
         isSpawnMode = true;
+      if(ScriptM.TryGet<ChessBoardM>(out ChessBoardM chessBoardM))
+
+        // 💡 모든 타일을 돌며 내 진영 앞쪽 2줄만 초록색으로 변경!
+        for (int x = 0; x < chessBoardM.boardSize; x++)
+        {
+            for (int y = 0; y < chessBoardM.boardSize; y++)
+            {
+                bool isValid = (pieceData.Color == PieceColor.white) ? (y <= 1) : (y >= 6);
+
+                // spawnedTiles 배열에서 BoardTile 컴포넌트를 가져와 색상 변경
+                BoardTile tileComp = chessBoardM.spawnedTiles[x, y].GetComponent<BoardTile>();
+                if (tileComp != null)
+                {
+                    if (isValid) tileComp.ChangeColor(Color.green); // 소환 가능 영역
+                    else tileComp.ChangeColor(new Color(0.5f, 0.5f, 0.5f, 0.5f)); // 그외 영역 어둡게 처리 등
+                }
+            }
+        }
         Debug.Log($"{pieceData.pieceName} 선택됨! 타일을 누르세요.");
+    }
+
+    // 타일 색상을 전부 원래대로 돌리는 공통 함수
+    private void ClearTileHighlights()
+    {
+        if (ScriptM.TryGet<ChessBoardM>(out ChessBoardM chessBoardM))
+            for (int x = 0; x < chessBoardM.boardSize; x++)
+        {
+            for (int y = 0; y < chessBoardM.boardSize; y++)
+            {
+                BoardTile tileComp = chessBoardM.spawnedTiles[x, y].GetComponent<BoardTile>();
+                if (tileComp != null)
+                {
+                    tileComp.ResetColor(); // 본래의 체스판 무늬 색상으로 복구
+                }
+            }
+        }
     }
 
     // 타일 선택시 호출하는 함수
@@ -73,45 +133,83 @@ public class CheseGameM : MonoBehaviour
     {
         Debug.Log("보드 클릭 함수 호출");
 
-        // 💡 1. 만약 우측 UI에서 기물 소환 버튼을 눌러서 '소환 모드'라면?
+        // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
         if (isSpawnMode && selectedPieceData != null)
         {
-            // 빈 칸인지 확인 등의 방어 코드를 넣은 뒤 소환 실행
+            if (!IsValidSpawnZone(x, y, selectedPieceData.Value.Color))
+            {
+                Debug.Log("자신의 진영(앞쪽 2줄)에만 기물을 소환할 수 있습니다!");
+                return;
+            }
+            // 소환 실행
             GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
             SpawnPiece(prefabToSpawn, x, y);
 
+            // 카운트 증가 및 UI 갱신
             AddSpawnedCount(selectedPieceData.Value.Type);
             RefreshButtonUI();
 
             // 소환 모드 해제
             isSpawnMode = false;
             selectedPieceData = null;
+            ClearTileHighlights();
             return; 
         }
 
-        // 💡 2. 소환 모드가 아니라면, 기존의 '체스 기물 선택 및 이동 로직' 실행
+        // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
         if (selectedPos == null)
         {
-            SelectPiece(x, y);
+            // 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
+            if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
+            {
+                SelectPiece(x, y);
+            }
         }
         else
         {
             Vector2Int targetPos = new Vector2Int(x, y);
 
+            // 클릭한 칸이 이동 가능한 위치 중 하나라면 -> 네트워크 이동 또는 실제 이동 실행
             if (currentPossibleMoves.Contains(targetPos))
             {
-                MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                if (ScriptM.TryGet<NetworkChessPieceM>(out var netPieceM))
+                {
+                    netPieceM.RPC_RequestMove(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                }
+                else
+                {
+                    MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                }
                 DeselectPiece();
             }
-            else if (pieceGrid[x, y] != null && IsMyPiece(pieceGrid[x, y]))
+            // 다른 내 기물을 다시 클릭한 경우 -> 새로운 기물로 선택 교체
+            else if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
             {
                 SelectPiece(x, y);
             }
+            // 그 외 빈 공간이나 잘못된 위치 클릭 시 -> 선택 취소
             else
             {
                 DeselectPiece();
             }
         }
+    }
+
+    private bool IsMyTurnAndPiece(int x, int y)
+    {
+        // 1. 매니저가 관리하는 2차원 배열(pieceGrid)에서 해당 위치의 기물 오브젝트를 가져옵니다.
+        GameObject pieceObj = GetPieceAt(x, y);
+        if (pieceObj == null) return false;
+
+        // 2. 기물 오브젝트에서 ChessPieceM 컴포넌트를 가져옵니다.
+        ChessPieceM piece = pieceObj.GetComponent<ChessPieceM>();
+        if (piece == null) return false;
+
+        // 3. 기물의 팀(색상)과 현재 진행 중인 턴(currentTurn)을 비교합니다.
+        // (만약 기물이 isWhite 불리언을 쓴다면 아래와 같이 비교 가능)
+        PieceColor pieceColor = piece.isWhite ? PieceColor.white : PieceColor.black;
+
+        return pieceColor == currentTurn;
     }
 
     // 모든 버튼의 텍스트를 현재 남은 개수에 맞춰 갱신
@@ -154,38 +252,73 @@ public class CheseGameM : MonoBehaviour
     }
 
 
-    private bool IsMyPiece(ChessPieceM pieceObj)
-    {
-        if (pieceObj == null) return false;
-
-        // 기물의 팀과 현재 턴의 팀이 같으면 내 기물(선택 가능한 기물)로 판정
-        return pieceObj.data.Color == currentTurn;
-    }
-
-
     private void SelectPiece(int x, int y)
     {
+        Debug.Log("말 선택함");
+
+       
         ChessPieceM pieceObj = pieceGrid[x, y];
         if (pieceObj == null) return;
 
-
         // 1. 이전 기물이 남겨둔 하이라이트/이동 경로 좌표를 깨끗이 비움
-        currentPossibleMoves.Clear();
+        DeselectPiece();
 
         // 2. 현재 새로 선택한 pieceObj의 이동 가능 경로만 리스트에 쏙 채워 넣음
         pieceObj.GetPossibleMoves(pieceGrid, currentPossibleMoves);
 
         // 3. 새로 채워진 currentPossibleMoves 좌표에 하이라이트 켜기
-        // TODO: currentPossibleMoves 위치에 타일 하이라이트 이펙트 켜주기
+        if(ScriptM.TryGet<ChessBoardM>(out ChessBoardM service))
+        {
+            // 💡 4. [선택된 기물 타일 하이라이트] 선택된 기물이 있는 칸은 파란색 등으로 표시
+            BoardTile selectedTile = service.spawnedTiles[x, y].GetComponent<BoardTile>();
+            if (selectedTile != null)
+            {
+                selectedTile.ChangeColor(Color.blue); // 선택된 자리는 파란색
+            }
+            foreach (Vector2Int targetPos in currentPossibleMoves)
+            {
+                BoardTile moveTile = service.spawnedTiles[targetPos.x, targetPos.y].GetComponent<BoardTile>();
+                if (moveTile != null)
+                {
+                    moveTile.ChangeColor(Color.yellow); // 이동 가능 칸은 노란색
+                }
+            }
+        }
     }
 
     private void DeselectPiece()
     {
-       
+
+        // 만약 선택된 기물이 있었다면, 그 주변에 칠했던 색상들을 원복
+        if (selectedPos != null)
+        {
+            // 💡 1. 이동 가능했던 칸들과 선택된 칸을 포함하여 모든 보드 타일의 색상을 원래대로 원복
+            ClearAllTileColors();
+        }
+
+        // 선택 상태 초기화
+        selectedPos = null;
         currentPossibleMoves.Clear();
-        // TODO: 타일 하이라이트 이펙트 모두 끄기
     }
 
+    /// <summary>
+    /// 보드의 모든 타일 색상을 원래 체스판 무늬(originalColor)로 되돌리는 공통 함수
+    /// </summary>
+    private void ClearAllTileColors()
+    {
+        if (ScriptM.TryGet<ChessBoardM>(out ChessBoardM service))
+            for (int x = 0; x < service.boardSize; x++)
+        {
+            for (int y = 0; y < service.boardSize; y++)
+            {
+                BoardTile tileComp = service.spawnedTiles[x, y].GetComponent<BoardTile>();
+                if (tileComp != null)
+                {
+                    tileComp.ResetColor(); // 각 칸이 들고 있는 본래의 색상으로 복구
+                }
+            }
+        }
+    }
 
     /// <summary>
     /// 원하는 위치(x, y)에 원하는 기물 프리팹을 생성합니다.
@@ -200,7 +333,7 @@ public class CheseGameM : MonoBehaviour
 
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
-            Debug.LogError("ChessPieceM 서비스를 찾을 수 없습니다.");
+            Debug.LogError("ChessBoardM 서비스를 찾을 수 없습니다.");
             return null;
         }
 
@@ -209,6 +342,8 @@ public class CheseGameM : MonoBehaviour
             // 1. 이미 해당 위치에 기물이 있다면 기존 기물 제거 (또는 예외 처리)
             if (pieceGrid[x, y] != null)
             {
+
+            Debug.Log("제거 실시");
                 DestroyPiece(x, y);
             }
 
@@ -309,16 +444,56 @@ public class CheseGameM : MonoBehaviour
     /// </summary>
     public void DestroyPiece(int x, int y)
     {
+        // 💡 해당 좌표에 기물이 실제로 존재할 때만 제거 실행
         if (pieceGrid[x, y] != null)
         {
-            pieceGrid[x, y] = null;
-        }
-        if (activePieces.Contains(pieceGrid[x, y]))
-        {
+            ChessPieceM pieceToDestroy = pieceGrid[x, y];
+
+            ReturnSpawnedCount(pieceToDestroy.data.Type);
+
             activePieces.Remove(pieceGrid[x, y]);
+
+            // spawner로 반환
+            spawner.Despawn(pieceGrid[x, y].gameObject);
+
+            // 배열 비워주기
+            pieceGrid[x, y] = null;
+
+            RefreshButtonUI();
+        }
+    }
+
+    private void ReturnSpawnedCount(pieceType type)
+    {
+        // 딕셔너리에 해당 기물이 없거나 이미 0개 이면 무시
+        if (!spawnedPieceCounts.ContainsKey(type)) return;
+
+        spawnedPieceCounts[type]--;
+
+        // 음수가 되지 않도록 방어 코드 추가
+        if (spawnedPieceCounts[type] < 0)
+        {
+            spawnedPieceCounts[type] = 0;
+        }
+    }
+
+    public void ResetAllPieces()
+    {
+        // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 2; y++)
+            {
+                // 내부에서 이미 null 체크와 카운트 복구, despan이 다 처리됨
+                DestroyPiece(x, y);
+            }
         }
 
-        spawner.Despawn(pieceGrid[x, y].gameObject);
+        // 2. UI 갱신은 모든 기물이 다 지워진 후 맨 마지막에 딱 한 번만 호출!
+        RefreshButtonUI();
+
+        // 3. 선택 상태 초기화
+        DeselectPiece();
     }
 
     /// <summary>
@@ -406,5 +581,12 @@ public class CheseGameM : MonoBehaviour
         }
 
         return attackMoves;
+    }
+
+    private void SetReady()
+    {
+        ReadyPanel.SetActive(false);
+        CharacterPanel.SetActive(true);
+        gamePanel.SetActive(true);
     }
 }
