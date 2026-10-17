@@ -13,6 +13,10 @@ public class CheseGameM : MonoBehaviour
     [Header("버튼들")]
     public Button ResetBtn;
     public Button ReadyBtn;
+
+
+    private int currentCost;
+
     private PieceData? selectedPieceData = null;
     private bool isSpawnMode = false;
 
@@ -50,7 +54,7 @@ public class CheseGameM : MonoBehaviour
             spawner = service;
         }
         if(ResetBtn !=  null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
-        if(ReadyBtn !=  null) { ReadyBtn.onClick.AddListener(ResetAllPieces); }
+        if(ReadyBtn !=  null) { ReadyBtn.onClick.AddListener(SetReady); }
 
         RefreshButtonUI();
     }
@@ -235,8 +239,9 @@ public class CheseGameM : MonoBehaviour
     {
         if (!spawnedPieceCounts.ContainsKey(type))
             spawnedPieceCounts[type] = 0;
-
+        
         spawnedPieceCounts[type]++;
+
     }
 
     private GameObject GetPrefabByData(PieceData data)
@@ -342,8 +347,6 @@ public class CheseGameM : MonoBehaviour
             // 1. 이미 해당 위치에 기물이 있다면 기존 기물 제거 (또는 예외 처리)
             if (pieceGrid[x, y] != null)
             {
-
-            Debug.Log("제거 실시");
                 DestroyPiece(x, y);
             }
 
@@ -356,6 +359,11 @@ public class CheseGameM : MonoBehaviour
 
             // 4. 생성된 오브젝트에서 ChessPieceM 컴포넌트 추출
             ChessPieceM newPiece = newPieceObj.GetComponent<ChessPieceM>();
+
+        if(singlePlayer.maxCost>=currentCost)
+        {
+            currentCost += newPiece.data.cost;
+        }
 
             // 4.5 기물의 위치를 스스로 저장하게 한다.
             if (newPiece != null)
@@ -448,6 +456,8 @@ public class CheseGameM : MonoBehaviour
         if (pieceGrid[x, y] != null)
         {
             ChessPieceM pieceToDestroy = pieceGrid[x, y];
+
+            currentCost -= pieceToDestroy.data.cost;
 
             ReturnSpawnedCount(pieceToDestroy.data.Type);
 
@@ -585,6 +595,12 @@ public class CheseGameM : MonoBehaviour
 
     private void SetReady()
     {
+        if (whiteKing == null)
+        {
+            Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
+            return; 
+        }
+
         ReadyPanel.SetActive(false);
         CharacterPanel.SetActive(true);
         gamePanel.SetActive(true);

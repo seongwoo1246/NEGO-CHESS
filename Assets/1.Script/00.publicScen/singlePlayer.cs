@@ -7,6 +7,7 @@ public static class singlePlayer
      public static int birthDay;
      public static bool isGirl = true;
      public static string gender = "여";
+    public static int maxCost = 49;
      public static int Gold = 0;
     public static Sprite icon;
 }

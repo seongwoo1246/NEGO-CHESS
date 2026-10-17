@@ -950,7 +950,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CheseGameM
   PieceDatabase: {fileID: 11400000, guid: d8e15f9b81bc7e24182041fcb42ea712, type: 2}
+  ReadyPanel: {fileID: 1884015597}
+  CharacterPanel: {fileID: 583244932}
+  gamePanel: {fileID: 981623359}
   ResetBtn: {fileID: 1296514833}
+  ReadyBtn: {fileID: 1061879448}
   currentTurn: 1
   pieceButtonUIs:
   - {fileID: 249332107}
