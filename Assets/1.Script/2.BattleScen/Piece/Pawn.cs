@@ -78,7 +78,7 @@ public class Pawn : ChessPieceM
 
                 if (CanPromote(forwardY))
                 {
-                    //프로모션 함수 호출
+                    gameM.RequestPromotion(this, CurrentPos.x, forwardY);
                 }
             }
         }

@@ -421,6 +421,8 @@ public class CheseGameM : MonoBehaviour
 
 
     public GameObject SettingPanel;
+    public GameObject NegoPanel;
+    public GameObject PromotionPanel;
 
     [Header("협상으로 금지된 특수 룰 상태")]
     public bool canUseEnPassant = true;   // 앙파상 가능 여부 (협상 성공 시 false로 변경)
@@ -436,6 +438,11 @@ public class CheseGameM : MonoBehaviour
     [Header("대사를 위한 텍스트")]
     public TextMeshProUGUI CharacterText;
     public TextMeshProUGUI MyText;
+
+    [Header("프로모션 관련 대기 상태")]
+    private Vector2Int pendingPromotionPos;
+    private ChessPieceM pendingPromotionPawn;
+    private bool isWaitingForPromotion = false;
 
     // 협상과 도발 관련 변수
     private float characterNegoPower = 50f;
@@ -580,7 +587,7 @@ public class CheseGameM : MonoBehaviour
            new Vector2Int(toX, toY),
            pieceToMove,
            1,
-           10,
+           1,
            capturedPiece
        );
 
@@ -588,6 +595,23 @@ public class CheseGameM : MonoBehaviour
         pieceToMove.CurrentPos = move.To;
 
         MoveHistory.Add(move);
+
+        // 폰이 실제로 이동을 마쳤을 때 실행되는 곳
+        if (pieceToMove is Pawn pawn)
+        {
+            // 2칸을 이동한 경우 판정 (예: 출발 Y와 도착 Y의 차이가 2인 경우)
+            if (Mathf.Abs(fromY - toY) == 2)
+            {
+                pawn.movedTwoSquaresLastTurn = true;
+            }
+            else
+            {
+                pawn.movedTwoSquaresLastTurn = false;
+            }
+
+            // 첫 이동이 끝났으므로 이후부터는 2칸 전진 불가 처리
+            pawn.isFirstMove = false;
+        }
         Debug.Log("이동 완료");
     }
 
@@ -829,6 +853,20 @@ public class CheseGameM : MonoBehaviour
         {
             pieceGrid[lastMove.To.x, lastMove.To.y] = null;
         }
+        if (lastMove.IsPromotion)
+        {
+            // 1. 프로모션으로 생겼던 새 기물 파괴
+            DestroyPiece(lastMove.To.x, lastMove.To.y);
+
+            // 2. 원래 폰 다시 스폰
+            GameObject pawnPrefab = GetPrefabByData(lastMove.MovedPiece.data);
+            SpawnPiece(pawnPrefab, lastMove.From.x, lastMove.From.y);
+
+            // 3. 프로모션으로 얻었던 협상력 원상복귀 (증가했던 차이만큼 차감)
+            int costDiff = lastMove.newCost - lastMove.oldCost; 
+            myNegoPower -= costDiff;
+            ClampNegoPower();
+        }
     }
 
     // 1. 도발 성공 시 호출 (도발한 대상의 협상력 5% 감소)
@@ -877,6 +915,62 @@ public class CheseGameM : MonoBehaviour
         }
 
         ClampNegoPower();
+    }
+    public void RequestPromotion(ChessPieceM pawn, int x, int y)
+    {
+        pendingPromotionPawn = pawn;
+        pendingPromotionPos = new Vector2Int(x, y);
+        isWaitingForPromotion = true;
+
+        // 승진 기물(여왕, 룩, 비숍, 나이트 등)을 고를 수 있는 UI 팝업 오픈
+        if (PromotionPanel != null)
+        {
+            PromotionPanel.SetActive(true);
+        }
+    }
+    //각 버튼이 들고 있어야함
+    public void OnPromotionPieceSelected(GameObject selectedPiecePrefab)
+    {
+        if (!isWaitingForPromotion || pendingPromotionPawn == null) return;
+
+        int x = pendingPromotionPos.x;
+        int y = pendingPromotionPos.y;
+
+        // A. 기존 폰의 코스트와 팀 정보 백업
+        int oldCost = pendingPromotionPawn.data.cost; // 폰의 기존 코스트
+        bool isMyPiece = (pendingPromotionPawn.data.Color == PieceColor.white); // 팀 판정
+
+        // B. 기존 폰 제거 
+        DestroyPiece(x, y);
+
+    // C. 선택한 프리팹으로 새 기물 스폰 
+    ChessPieceM newPiece = SpawnPiece(selectedPiecePrefab, x, y);
+    int newCost = newPiece.data.cost; // 새로 바뀐 기물의 코스트
+
+        // D. 협상력 변동 처리 
+        OnPiecePromoted(isMyPiece, oldCost, newCost);
+
+    // E. 기보(MoveData)에 프로모션 기록 추가
+    MoveData move = new MoveData(
+        new Vector2Int(pendingPromotionPawn.CurrentPos.x, pendingPromotionPawn.CurrentPos.y),
+        new Vector2Int(x, y),
+        newPiece,
+        oldCost,
+        newCost,
+        null // 잡으면서 승진한 경우가 아니라면 null
+    );
+        move.IsPromotion = true; // 프로모션 플래그 설정
+        MoveHistory.Add(move);
+
+        // F. UI 닫기 및 상태 초기화
+        if (PromotionPanel != null)
+        {
+            PromotionPanel.SetActive(false);
+    }
+        isWaitingForPromotion = false;
+        pendingPromotionPawn = null;
+
+        Debug.Log($"프로모션 성공! 코스트 차이({newCost - oldCost})만큼 협상력이 반영되었습니다.");
     }
 
     // 4. 협상력 범위를 0 ~ 100 사이로 제한하는 방어 코드
