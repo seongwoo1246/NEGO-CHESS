@@ -77,3 +77,11 @@ public enum EditMode
     Gender,
     Message
 }
+
+public enum NegotiationType 
+{ 
+    EnPassant,
+    Castling,
+    Promotion,
+    Undo 
+}

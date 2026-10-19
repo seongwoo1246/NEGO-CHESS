@@ -11,6 +11,8 @@ public struct MoveData
     public Vector2Int To;            // 도착 위치 (x, y)
     public ChessPieceM MovedPiece;    // 이동한 기물
     public ChessPieceM CapturedPiece; // 잡힌 기물 (없으면 null)
+    public int oldCost;
+    public int newCost;
 
     // 특수 이동 복구용 (필요시 추가)
     public bool IsPromotion; // 프로모션
@@ -24,12 +26,14 @@ public struct MoveData
     /// <param name="to">도착칸</param>
     /// <param name="movedPiece">움직인 말</param>
     /// <param name="capturedPiece">잡힌 말</param>
-    public MoveData(Vector2Int from, Vector2Int to, ChessPieceM movedPiece, ChessPieceM capturedPiece = null)
+    public MoveData(Vector2Int from, Vector2Int to, ChessPieceM movedPiece, int oldcost, int newcost,ChessPieceM capturedPiece = null)
     {
         From = from;
         To = to;
         MovedPiece = movedPiece;
         CapturedPiece = capturedPiece;
+        oldCost = oldcost;
+        newCost = newcost;
         IsPromotion = false;
         IsEnPassant = false;
         IsCastling = false;
