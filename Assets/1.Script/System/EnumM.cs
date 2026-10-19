@@ -70,6 +70,13 @@ public enum CharacterSprite
     Smile
 }
 
+public enum CharacterType
+{
+    seo,
+    reon,
+    cloe
+}
+
 public enum EditMode
 {
     None,

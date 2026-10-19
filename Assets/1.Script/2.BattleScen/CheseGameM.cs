@@ -1,4 +1,5 @@
 ﻿using Cysharp.Threading.Tasks;
+using DG.Tweening;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -55,6 +56,15 @@ public class CheseGameM : MonoBehaviour
         if (ResetBtn != null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
         if (ReadyBtn != null) { ReadyBtn.onClick.AddListener(SetReady); }
         if (SettingBtn != null) SettingBtn.onClick.AddListener(ActiveSelfSetting);
+        if (NegoBtn != null) NegoBtn.onClick.AddListener(ActiveSelfNegoPanel);
+        if (enPassantBtn != null) enPassantBtn.onClick.AddListener(()=> TryNegotiateRule(0));
+        if (CastlingBtn != null) CastlingBtn.onClick.AddListener(()=> TryNegotiateRule(1));
+        if (PromotionBtn != null) PromotionBtn.onClick.AddListener(()=> TryNegotiateRule(2));
+        if (UndoBtn != null) UndoBtn.onClick.AddListener(() => TryNegotiateRule(3));
+        if (QueenBtn != null) QueenBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Queen));
+        if (KnightBtn != null) KnightBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Knight));
+        if (BishopBtn != null) BishopBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Bishop));
+        if (RookBtn != null) RookBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Rook));
 
         RefreshButtonUI();
     }
@@ -395,6 +405,9 @@ public class CheseGameM : MonoBehaviour
         ReadyPanel.SetActive(false);
         CharacterPanel.SetActive(true);
         gamePanel.SetActive(true);
+
+        StartTurnTimer(PieceColor.white);
+
     }
     #endregion
 
@@ -466,8 +479,19 @@ public class CheseGameM : MonoBehaviour
     public void ActiveSelfSetting()
     {
         SettingPanel.SetActive(!SettingPanel.activeSelf);
-
     }
+    public void ActiveSelfNegoPanel()
+    {
+      float successChance = NegoSuccessChance();
+
+        NegoPanel.SetActive(!NegoPanel.activeSelf);
+        enPassantText.text = $"앙파상 제한 = {successChance:F0}%";
+        CastlingText.text = $"캐슬링 제한 = {successChance:F0}%";
+        PromotionText.text = $"프로모션 제한 = {successChance:F0}%";
+        UndoText.text = $"한 수 무르기 = {successChance:F0}%";
+    }
+
+  
 
 
     private bool IsMyTurnAndPiece(int x, int y)
@@ -733,7 +757,7 @@ public class CheseGameM : MonoBehaviour
         {
             // 3. 실패 시 페널티 (예: 협상력 10% 감소)
             myNegoPower -= 10f;
-            myNegoPower = Mathf.Clamp(myNegoPower, 0f, 100f);
+            ClampNegoPower();
             Debug.Log($"협상 실패... 페널티로 협상력이 10% 감소했습니다. (현재: {myNegoPower}%)");
         }
     }
@@ -817,11 +841,10 @@ public class CheseGameM : MonoBehaviour
             if (isMyMove) myNegoPower -= costDiff; // 승진으로 올랐던 협상력을 다시 깎음
             else characterNegoPower -= costDiff;
         }
-        
+
 
         // 범위 제한 (0 ~ 100)
-        myNegoPower = Mathf.Clamp(myNegoPower, 0f, 100f);
-        characterNegoPower = Mathf.Clamp(characterNegoPower, 0f, 100f);
+        ClampNegoPower();
     }
 
     // 기존에 올리셨던 무르기 코드의 실제 실행부 분리
@@ -928,45 +951,48 @@ public class CheseGameM : MonoBehaviour
             PromotionPanel.SetActive(true);
         }
     }
-    //각 버튼이 들고 있어야함
-    public void OnPromotionPieceSelected(GameObject selectedPiecePrefab)
+    public void OnPromotionPieceSelected(PieceDatabase piecedatabase, pieceType selectedType)
     {
         if (!isWaitingForPromotion || pendingPromotionPawn == null) return;
 
         int x = pendingPromotionPos.x;
         int y = pendingPromotionPos.y;
 
-        // A. 기존 폰의 코스트와 팀 정보 백업
+        // 기존 폰의 코스트와 팀 정보 백업
         int oldCost = pendingPromotionPawn.data.cost; // 폰의 기존 코스트
-        bool isMyPiece = (pendingPromotionPawn.data.Color == PieceColor.white); // 팀 판정
+        PieceColor pieceColor = pendingPromotionPawn.data.Color; // 백인지 흑인지 팀 컬러 확인
+        bool isMyPiece = (pieceColor == PieceColor.white);
 
-        // B. 기존 폰 제거 
+        // 기존 폰 제거 (이미 만들어두신 DestroyPiece 활용)
         DestroyPiece(x, y);
 
-    // C. 선택한 프리팹으로 새 기물 스폰 
-    ChessPieceM newPiece = SpawnPiece(selectedPiecePrefab, x, y);
-    int newCost = newPiece.data.cost; // 새로 바뀐 기물의 코스트
+        //PieceDatabase를 이용해 선택한 기물(Queen, Knight 등)의 프리팹 가져오기
+        GameObject selectedPrefab = piecedatabase.GetPrefab(selectedType, pieceColor);
 
-        // D. 협상력 변동 처리 
+        //새 기물 스폰 (이미 만들어두신 SpawnPiece 활용)
+        ChessPieceM newPiece = SpawnPiece(selectedPrefab, x, y);
+        int newCost = newPiece.data.cost; // 새로 바뀐 기물의 코스트
+
+        // 협상력 변동 처리 (코스트 차이만큼 반영)
         OnPiecePromoted(isMyPiece, oldCost, newCost);
 
-    // E. 기보(MoveData)에 프로모션 기록 추가
-    MoveData move = new MoveData(
-        new Vector2Int(pendingPromotionPawn.CurrentPos.x, pendingPromotionPawn.CurrentPos.y),
-        new Vector2Int(x, y),
-        newPiece,
-        oldCost,
-        newCost,
-        null // 잡으면서 승진한 경우가 아니라면 null
-    );
+        //  기보(MoveData)에 프로모션 기록 추가
+        MoveData move = new MoveData(
+            new Vector2Int(pendingPromotionPawn.CurrentPos.x, pendingPromotionPawn.CurrentPos.y),
+            new Vector2Int(x, y),
+            pendingPromotionPawn, // 무르기 때 원래 폰을 복원하기 위해 기존 폰 저장
+            oldCost,
+            newCost,
+            null
+        );
         move.IsPromotion = true; // 프로모션 플래그 설정
         MoveHistory.Add(move);
 
-        // F. UI 닫기 및 상태 초기화
+        //  UI 닫기 및 상태 초기화
         if (PromotionPanel != null)
         {
             PromotionPanel.SetActive(false);
-    }
+        }
         isWaitingForPromotion = false;
         pendingPromotionPawn = null;
 
@@ -985,8 +1011,7 @@ public class CheseGameM : MonoBehaviour
     {
         // 예: 내 협상력과 상대 협상력의 차이를 기반으로 성공 확률 계산
         // 내 협상력이 높을수록 확률이 높아지도록 설정 가능
-        float successChance = 50f + (myNegoPower - characterNegoPower);
-        successChance = Mathf.Clamp(successChance, 10f, 90f); // 최소 10%, 최대 90% 보장
+        float successChance = NegoSuccessChance();
 
         float randomValue = UnityEngine.Random.Range(0f, 100f);
 
@@ -1000,6 +1025,11 @@ public class CheseGameM : MonoBehaviour
             Debug.Log($"협상 실패... (성공 확률: {successChance}%, 나온 값: {randomValue:F1})");
             return false;
         }
+    }
+    private float NegoSuccessChance()
+    {
+        float successChance = 10f + (myNegoPower - characterNegoPower);
+        return Mathf.Clamp(successChance, 10f, 90f); // 최소 10%, 최대 90% 보장
     }
 
     #endregion
@@ -1065,6 +1095,21 @@ public class CheseGameM : MonoBehaviour
         Debug.Log("제한 시간 초과! 자동으로 턴을 넘깁니다.");
         // TODO: 턴 강제 종료 및 상대방에게 턴 넘기는 로직 호출 후 5초로 재 설정
     }
+    #endregion
+
+    #region 대사 관련 함수
+    public void TriggerCharacterInteraction(CharacterType characterType)
+    {
+        if (ScriptM.TryGet<DialogueController>(out DialogueController service))
+        {
+            // 1. 매니저에게 현재 플레이어 정보와 캐릭터에 맞는 대사를 달라고 요청
+            string dialogue = service.GetMatchingDialogue(characterType);
+
+            // 2. DOTween을 이용해 화면에 부드럽게 출력
+            service.ShowDialogue(dialogue);
+        }
+    }
+
     #endregion
 
     #endregion
