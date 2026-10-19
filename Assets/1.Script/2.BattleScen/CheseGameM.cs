@@ -403,10 +403,16 @@ public class CheseGameM : MonoBehaviour
     public Button SettingBtn;
     public Button ProvokeBtn;
     public Button NegoBtn;
+    //협상 버튼들
     public Button enPassantBtn;
     public Button CastlingBtn;
     public Button PromotionBtn;
     public Button UndoBtn;
+    //프로모션 버튼들
+    public Button QueenBtn;
+    public Button KnightBtn;
+    public Button BishopBtn;
+    public Button RookBtn;
 
     public TextMeshProUGUI enPassantText;
     public TextMeshProUGUI CastlingText;
@@ -683,6 +689,50 @@ public class CheseGameM : MonoBehaviour
     }
 
     #region 협상관련  함수들
+    // UI 버튼에 각각 연결할 함수
+    public void TryNegotiateRule(int ruleTypeInt)
+    {
+        NegotiationType ruleType = (NegotiationType)ruleTypeInt;
+
+        bool isNegotiationSuccess = TryNegotiate();
+
+        if (isNegotiationSuccess)
+        {
+            Debug.Log($"협상 성공! [{ruleType}] 규칙이 금지(봉쇄)됩니다.");
+
+            // 2. 성공 시 해당 룰을 비활성화(막아버림)
+            ApplyRuleBan(ruleType);
+
+           
+        }
+        else
+        {
+            // 3. 실패 시 페널티 (예: 협상력 10% 감소)
+            myNegoPower -= 10f;
+            myNegoPower = Mathf.Clamp(myNegoPower, 0f, 100f);
+            Debug.Log($"협상 실패... 페널티로 협상력이 10% 감소했습니다. (현재: {myNegoPower}%)");
+        }
+    }
+    // 규칙을 실제로 차단하는 함수
+    private void ApplyRuleBan(NegotiationType ruleType)
+    {
+        switch (ruleType)
+        {
+            case NegotiationType.EnPassant:
+                canUseEnPassant = false;
+                break;
+            case NegotiationType.Castling:
+                canUseCastling = false;
+                break;
+            case NegotiationType.Promotion:
+                canUsePromotion = false;
+                break;
+            case NegotiationType.Undo:
+                TryUndoWithNegotiation();
+                break;
+        }
+    }
+
     // 💡 플레이어가 '무르기 협상' 버튼을 눌렀을 때 호출할 함수
     public void TryUndoWithNegotiation()
     {
@@ -694,7 +744,7 @@ public class CheseGameM : MonoBehaviour
         }
 
         // 2. 협상 성공 확률 계산 (예시: 내 협상력 vs 상대 협상력)
-        bool isNegotiationSuccess = EvaluateUndoNegotiation();
+        bool isNegotiationSuccess = TryNegotiate();
 
         if (isNegotiationSuccess)
         {
@@ -710,25 +760,10 @@ public class CheseGameM : MonoBehaviour
             // 5. 기존에 만들어두신 완벽한 무르기 실행
             ExecuteUndoLastMove(lastMove, lastIndex);
         }
-        else
-        {
-            // 6. 협상 실패 시 페널티 (협상력 10% 감소)
-            myNegoPower -= 10f;
-            myNegoPower = Mathf.Clamp(myNegoPower, 0f, 100f);
-
-            Debug.Log($"무르기 협상 실패... 협상력이 10% 감소했습니다. (현재 내 협상력: {myNegoPower}%)");
-        }
+      
     }
 
-    // 협상 성공 확률 판정 함수
-    private bool EvaluateUndoNegotiation()
-    {
-        float successChance = 50f + (myNegoPower - characterNegoPower);
-        successChance = Mathf.Clamp(successChance, 10f, 90f); // 최소 10%, 최대 90% 보장
-
-        float randomValue = UnityEngine.Random.Range(0f, 100f);
-        return randomValue <= successChance;
-    }
+   
 
     // 💡 해당 수가 진행될 때 변동되었던 협상력을 '원상복귀' 시키는 함수
     private void RevertNegotiationPowerForMove(MoveData move, bool isMyMove)
@@ -852,7 +887,7 @@ public class CheseGameM : MonoBehaviour
     }
 
     // 5. 협상 시도 시 성공 확률 계산 
-    public bool TryNegotiate(bool isMyTurn)
+    public bool TryNegotiate()
     {
         // 예: 내 협상력과 상대 협상력의 차이를 기반으로 성공 확률 계산
         // 내 협상력이 높을수록 확률이 높아지도록 설정 가능

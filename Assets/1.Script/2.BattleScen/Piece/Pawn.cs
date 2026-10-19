@@ -34,6 +34,7 @@ public class Pawn : ChessPieceM
             }
         }
 
+
         // 3. 대각선 적 기물 잡기 (좌/우 대각선)
         int[] sideX = { -1, 1 };
         foreach (int dx in sideX)
@@ -51,19 +52,33 @@ public class Pawn : ChessPieceM
                 }
             }
 
-            // 4. 앙파상(En Passant) 검사
-            int sideY = CurrentPos.y; // 바로 옆 칸
-            if (IsValidIndex(targetX, sideY))
+
+            if (ScriptM.TryGet<CheseGameM>(out CheseGameM gameM))
             {
-                
-                if (board[targetX, targetY] != null && !IsSameTeam(board[targetX, targetY]))
+                if (!gameM.canUseEnPassant) return;
+                if (!gameM.canUsePromotion) return;
+
+
+
+                // 4. 앙파상(En Passant) 검사
+                int sideY = CurrentPos.y; // 바로 옆 칸
+                if (IsValidIndex(targetX, sideY))
                 {
-                    Pawn enemyPawn = board[targetX, targetY].GetComponent<Pawn>();
-                    // 바로 옆 적 폰이 직전 턴에 2칸 전진한 경우
-                    if (enemyPawn != null && enemyPawn.movedTwoSquaresLastTurn)
+
+                    if (board[targetX, targetY] != null && !IsSameTeam(board[targetX, targetY]))
                     {
-                        possibleMoves.Add(new Vector2Int(targetX, targetY)); // 대각선 뒤 빈 칸으로 이동 가능
+                        Pawn enemyPawn = board[targetX, targetY].GetComponent<Pawn>();
+                        // 바로 옆 적 폰이 직전 턴에 2칸 전진한 경우
+                        if (enemyPawn != null && enemyPawn.movedTwoSquaresLastTurn)
+                        {
+                            possibleMoves.Add(new Vector2Int(targetX, targetY)); // 대각선 뒤 빈 칸으로 이동 가능
+                        }
                     }
+                }
+
+                if (CanPromote(forwardY))
+                {
+                    //프로모션 함수 호출
                 }
             }
         }
