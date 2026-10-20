@@ -31,11 +31,8 @@ public class Characters : MonoBehaviour
     public PieceDatabase pieceDatabase;
     public List<PieceSpawnInfo> defaultPieceLayout;
 
-    [Header("3. AI 및 게임플레이 관련")]
-    public bool isAIPlayer = false;
-
     [Header("AI 생각 깊이 (숫자가 높을수록 똑똑하지만 연산이 많아집니다)")]
-    public int searchDepth = 3; // 3수 앞을 내다보는 고수준 설정!
+    public int searchDepth;
 
     private CheseGameM gameM;
 

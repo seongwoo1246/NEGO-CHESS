@@ -1,16 +1,22 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Reon : MonoBehaviour
+public class Reon : Characters
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Awake()
     {
-        
+        // 1. 부모가 가진 변수(characterId, isAIPlayer 등)에 코드로 값을 직접 지정합니다!
+        characterId = 102;
+        searchDepth = 4;
+        Debug.Log("레온 캐릭터가 코드로 기본 데이터를 성공적으로 세팅했습니다!");
     }
 
-    // Update is called once per frame
-    void Update()
+    public override void SetupBoard(CheseGameM gameM)
     {
-        
+        base.SetupBoard(gameM);
+    }
+
+    public override void OnAITurn()
+    {
+        base.OnAITurn();
     }
 }
