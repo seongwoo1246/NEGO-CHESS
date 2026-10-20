@@ -474,7 +474,7 @@ public class CheseGameM : MonoBehaviour
     private List<Vector2Int> currentPossibleMoves = new List<Vector2Int>(); // 현재 이동 가능한 칸 표시
     private List<Vector2Int> attackMoves = new List<Vector2Int>(); // 공격이 가능한 부분 표시
     private List<MoveData> MoveHistory = new List<MoveData>(); //기보를 저장하기 위해서 있는 리스트
-    private List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
+    public List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
 
     public void ActiveSelfSetting()
     {
@@ -521,8 +521,14 @@ public class CheseGameM : MonoBehaviour
         ChessPieceM pieceObj = pieceGrid[x, y];
         if (pieceObj == null) return;
 
+        // 전에 선택한게 있으면 타일을 되돌리기 위해서 필요
+        selectedPos = new Vector2Int(x, y);
+
         // 1. 이전 기물이 남겨둔 하이라이트/이동 경로 좌표를 깨끗이 비움
         DeselectPiece();
+
+        // 이동을 위한 좌표 입력
+        selectedPos = new Vector2Int(x, y);
 
         // 2. 현재 새로 선택한 pieceObj의 이동 가능 경로만 리스트에 쏙 채워 넣음
         pieceObj.GetPossibleMoves(pieceGrid, currentPossibleMoves);
@@ -950,6 +956,8 @@ public class CheseGameM : MonoBehaviour
         {
             PromotionPanel.SetActive(true);
         }
+
+        
     }
     public void OnPromotionPieceSelected(PieceDatabase piecedatabase, pieceType selectedType)
     {
@@ -963,8 +971,11 @@ public class CheseGameM : MonoBehaviour
         PieceColor pieceColor = pendingPromotionPawn.data.Color; // 백인지 흑인지 팀 컬러 확인
         bool isMyPiece = (pieceColor == PieceColor.white);
 
-        // 기존 폰 제거 (이미 만들어두신 DestroyPiece 활용)
-        DestroyPiece(x, y);
+        int pawnX = pendingPromotionPawn.CurrentPos.x;
+        int pawnY = pendingPromotionPawn.CurrentPos.y;
+
+        // 기존 폰 제거 (만들어두신 DestroyPiece 재활용)
+        DestroyPiece(pawnX, pawnY);
 
         //PieceDatabase를 이용해 선택한 기물(Queen, Knight 등)의 프리팹 가져오기
         GameObject selectedPrefab = piecedatabase.GetPrefab(selectedType, pieceColor);
