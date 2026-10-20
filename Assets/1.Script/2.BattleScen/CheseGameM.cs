@@ -1098,12 +1098,12 @@ public class CheseGameM : MonoBehaviour
     #endregion
 
     #region 대사 관련 함수
-    public void TriggerCharacterInteraction(CharacterType characterType)
+    public void TriggerCharacterInteraction(CharacterType characterType, bool isBattle)
     {
         if (ScriptM.TryGet<DialogueController>(out DialogueController service))
         {
             // 1. 매니저에게 현재 플레이어 정보와 캐릭터에 맞는 대사를 달라고 요청
-            string dialogue = service.GetMatchingDialogue(characterType);
+            string dialogue = service.GetMatchingDialogue(characterType, isBattle);
 
             // 2. DOTween을 이용해 화면에 부드럽게 출력
             service.ShowDialogue(dialogue);

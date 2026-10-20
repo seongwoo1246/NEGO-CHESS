@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 [System.Serializable]
 public struct CharacterDialogue
@@ -16,8 +17,13 @@ public struct CharacterDialogue
 
     [Header("성별 조건")]
     public bool requireGirl;
+    public bool requireMan;
+
     [Header("협상력에 따른 결과")]
     public bool NegoPowerOver;
+
+    [Header("대사에 맞는 이미지 넣기")]
+    public Sprite icon;
 }
 
 /// <summary>
@@ -26,13 +32,20 @@ public struct CharacterDialogue
 public class DialogueController : MonoBehaviour
 {
     public TextMeshProUGUI characterText; // 대사 출력용 텍스트 (첫 번째 이미지 참고)
+    public Image CharIcon;
 
+    [Header("일상 파트 대사 모음")]
+    public List<CharacterDialogue> dailyDialogues_Seo;
+    public List<CharacterDialogue> dailyDialogues_Reon;
+    public List<CharacterDialogue> dailyDialogues_Cloe;
+    [Header("배틀 파트 대사 모음")]
+    public List<CharacterDialogue> battleDialogues_Seo;
+    public List<CharacterDialogue> battleDialogues_Reon;
+    public List<CharacterDialogue> battleDialogues_Cloe;
     public void Awake()
     {
         ScriptM.Register<DialogueController>(this, UseSpace.Global);
     }
-
-
 
     // 대사를 출력하는 함수
     public void ShowDialogue(string message)
@@ -54,61 +67,78 @@ public class DialogueController : MonoBehaviour
         seq.Append(characterText.DOFade(0f, 0.5f)); // 0.5초 동안 사라짐
     }
 
-    public List<CharacterDialogue> dialogues;
-
     // 플레이어의 정보를 받아 대사를 골라주는 함수
-    public string GetMatchingDialogue(CharacterType characterType)
+    public string GetMatchingDialogue(CharacterType characterType, bool isBattle)
     {
         int currentMonth = System.DateTime.Now.Month;
         int currentDay = System.DateTime.Now.Day;
 
-        // 조건에 맞는 대사들을 담아둘 임시 후보 리스트
-        List<string> candidateDialogues = new List<string>();
+        // 💡 핵심: 상황에 맞는 리스트를 통째로 골라 담을 변수
+        List<CharacterDialogue> targetList = null;
 
-        foreach (var d in dialogues)
+        // 1. 일상 / 배틀 여부와 캐릭터 타입에 따라 알맞은 리스트 선택
+        if (!isBattle) // 일상 파트인 경우
         {
+            switch (characterType)
+            {
+                case CharacterType.seo: targetList = dailyDialogues_Seo; break;
+                case CharacterType.reon: targetList = dailyDialogues_Reon; break;
+                case CharacterType.cloe: targetList = dailyDialogues_Cloe; break;
+            }
+        }
+        else // 배틀 파트인 경우
+        {
+            switch (characterType)
+            {
+                case CharacterType.seo: targetList = battleDialogues_Seo; break;
+                case CharacterType.reon: targetList = battleDialogues_Reon; break;
+                case CharacterType.cloe: targetList = battleDialogues_Cloe; break;
+            }
+        }
 
-            if (d.characterType != characterType) continue;
+        // 만약 리스트가 비어있거나 잘못 연결되었다면 안전하게 기본 처리
+        if (targetList == null) return "반가워, 체스 한 판 두어볼까?";
+
+        List<CharacterDialogue> candidateList = new List<CharacterDialogue>();
+
+        // 2. 골라낸 리스트를 가지고 기존처럼 조건 검사 진행
+        foreach (var d in targetList)
+        {
             bool isMatch = false;
 
-            // 1. 생일 조건 판정
             if (d.isBirthdayCondition)
             {
                 if (singlePlayer.birthMonth == currentMonth && singlePlayer.birthDay == currentDay)
-                {
                     isMatch = true;
-                }
             }
-            // 2. 일반 기념일 조건 판정
             else
             {
                 bool matchMonth = (d.targetMonth == 0 || d.targetMonth == currentMonth);
                 bool matchDay = (d.targetDay == 0 || d.targetDay == currentDay);
-                if (matchMonth && matchDay)
-                {
-                    isMatch = true;
-                }
+                if (matchMonth && matchDay) isMatch = true;
             }
 
-            // 성별 조건 판정
-            bool matchGender = (!d.requireGirl || singlePlayer.isGirl);
+            bool matchGender = (!d.requireGirl && !d.requireMan) ||
+                               (d.requireGirl && singlePlayer.isGirl) ||
+                               (d.requireMan && !singlePlayer.isGirl);
 
-            // 조건이 일치한다면 후보 리스트에 추가 (이름 포맷팅 적용)
             if (isMatch && matchGender)
             {
-                string formattedText = string.Format(d.dialogueText, singlePlayer.playerName);
-                candidateDialogues.Add(formattedText);
+                candidateList.Add(d);
             }
         }
 
-        // 만약 조건에 맞는 대사가 하나라도 있다면 그중에서 무작위로 하나 반환!
-        if (candidateDialogues.Count > 0)
+        // 3. 후보 중 랜덤 선택 후 텍스트 및 아이콘 반환
+        if (candidateList.Count > 0)
         {
-            int randomIndex = UnityEngine.Random.Range(0, candidateDialogues.Count);
-            return candidateDialogues[randomIndex];
+            int randomIndex = UnityEngine.Random.Range(0, candidateList.Count);
+            CharacterDialogue selected = candidateList[randomIndex];
+
+            CharIcon.sprite = selected.icon; // 아이콘 저장 (스크린샷 변수명 기준)
+            return string.Format(selected.dialogueText, singlePlayer.playerName);
         }
 
-        // 조건에 맞는 특별 대사가 전혀 없다면 기본 대사 반환
+       
         return "반가워, 체스 한 판 두어볼까?";
     }
 }
