@@ -48,6 +48,11 @@ public class Characters : MonoBehaviour
         }
     }
 
+    private void OnDestroy()
+    {
+        ScriptM.Unregister<Characters>();  
+    }
+
     /// <summary>
     /// 설정된 배치 정보(defaultPieceLayout)를 바탕으로 체스판에 기물을 동적 생성합니다.
     /// </summary>

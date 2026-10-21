@@ -225,6 +225,7 @@ GameObject:
   - component: {fileID: 712150333326940607}
   - component: {fileID: 411173740595196330}
   - component: {fileID: 3808340261370510159}
+  - component: {fileID: -2192473219702030515}
   m_Layer: 5
   m_Name: seocut
   m_TagString: Untagged
@@ -290,6 +291,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &-2192473219702030515
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5869601049165009034}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &6627506140096368946
 GameObject:
   m_ObjectHideFlags: 0
@@ -355,7 +368,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC785\uB2C8\uB2E4!"
+  m_text: "\uCD5C\uD6C4\uC758 \uD55C \uC218 \uC785\uB2C8\uB2E4."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}

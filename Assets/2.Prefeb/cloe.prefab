@@ -100,10 +100,10 @@ MonoBehaviour:
     pieceType: 2
     pieceColor: 2
   - position: {x: 3, y: 7}
-    pieceType: 4
+    pieceType: 5
     pieceColor: 2
   - position: {x: 4, y: 7}
-    pieceType: 5
+    pieceType: 4
     pieceColor: 2
   - position: {x: 5, y: 7}
     pieceType: 2

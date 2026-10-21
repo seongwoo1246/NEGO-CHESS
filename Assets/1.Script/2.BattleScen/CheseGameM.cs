@@ -39,12 +39,52 @@ public class PlayerTimerData
     }
 }
 
+[System.Serializable]
+public struct Cutin
+{
+    public int id;
+    public Image cutInIcon;
+    public TextMeshProUGUI bigText;
+    public TextMeshProUGUI smallText;
+    public bool isCheckmate;
+    public CanvasGroup canvasGroup;
+
+
+
+    [Header("체크일 때 / 체크메이트일 때 텍스트 설정")]
+    [SerializeField] private string checkBigText;     // 체크 상태일 때의 큰 글자
+    [SerializeField] private string checkmateBigText; // 체크메이트 상태일 때의 큰 글자
+
+    public string BigTextValue => isCheckmate ? checkmateBigText : checkBigText;
+
+    [SerializeField] private string checkSmallText;     // 체크 상태일 때의 작은 글자
+    [SerializeField] private string checkmateSmallText; // 체크메이트 상태일 때의 작은 글자
+
+    public string SmallTextValue => isCheckmate ? checkmateSmallText : checkSmallText;
+
+    public Cutin(int _id, Image _cutInIcon,TextMeshProUGUI _bigText, TextMeshProUGUI _smallText, bool _isCheckmate,CanvasGroup _canvasGroup, string _checkBigText , string _checkmateBigText,string _checkSmallText, string _checkmateSmallText)
+    {
+        id = _id;
+        cutInIcon = _cutInIcon;
+        bigText = _bigText;
+        smallText = _smallText;
+        isCheckmate = _isCheckmate;
+        canvasGroup = _canvasGroup;
+        checkBigText = _checkBigText;
+        checkmateBigText = _checkmateBigText;
+        checkSmallText = _checkSmallText;
+        checkmateSmallText = _checkmateSmallText;
+    }
+
+}
+
 
 public class CheseGameM : MonoBehaviour
 {
     private void Awake()
     {
         ScriptM.Register<CheseGameM>(this, UseSpace.Local);
+        
     }
 
     private void Start()
@@ -423,8 +463,9 @@ public class CheseGameM : MonoBehaviour
     #endregion
 
     #region 게임중 필요한 것들
+
+    #region 선언부
     [Header("게임 중 필요한 것")]
-   
     //버튼들
     public Button SettingBtn;
     public Button ProvokeBtn;
@@ -462,8 +503,15 @@ public class CheseGameM : MonoBehaviour
     private bool isTimerRunning = false;
 
     [Header("대사를 위한 텍스트")]
+    public GameObject CharacterTextSlot;
     public TextMeshProUGUI CharacterText;
     public TextMeshProUGUI MyText;
+    //투명값 조절용
+    [SerializeField] private CanvasGroup myTextCanvasGroup;
+    [SerializeField] private CanvasGroup characterTextCanvasGroup;
+    // DoTween용
+    private Sequence myTextSequence;
+    private Sequence characterTextSequence;
 
     [Header("프로모션 관련 대기 상태")]
     private Vector2Int pendingPromotionPos;
@@ -480,8 +528,8 @@ public class CheseGameM : MonoBehaviour
     // 왕의 위치를 찾기 위해 미리 변수 캐싱하기
     private ChessPieceM whiteKing;
     private ChessPieceM blackKing;
-    
 
+    public bool isWhiteTurn = true;
     public PieceColor currentTurn = PieceColor.white;
 
     private Vector2Int? selectedPos = null; // 현재 선택된 기물의 좌표
@@ -491,8 +539,9 @@ public class CheseGameM : MonoBehaviour
     private List<MoveData> MoveHistory = new List<MoveData>(); //기보를 저장하기 위해서 있는 리스트
     public List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
     public List<Characters> characterList = new List<Characters>();// 배틀씬 이동시 할 행동
+    public List<Cutin> cutins = new List<Cutin>(); // 체크 및 체크메이트시 활용
 
-
+    #endregion
     public void ActiveSelfSetting()
     {
         SettingPanel.SetActive(!SettingPanel.activeSelf);
@@ -507,8 +556,6 @@ public class CheseGameM : MonoBehaviour
         PromotionText.text = $"프로모션 제한 = {successChance:F0}%";
         UndoText.text = $"한 수 무르기 = {successChance:F0}%";
     }
-
-
     private Characters SpawnOrGetCharacter(int id)
     {
         // 1. 💡 가장 먼저! 리스트에 있는 모든 캐릭터들을 한 바퀴 돌며 전부 꺼줍니다(False).
@@ -670,16 +717,21 @@ public class CheseGameM : MonoBehaviour
             pawn.isFirstMove = false;
         }
 
-        // 💡 5. 방금 움직인 팀의 반대편(상대방) 킹이 체크 상태인지 확인!
-        // (예: 흰색이 움직였다면 검은색 킹이 체크인지 검사)
-        bool opponentTeam = !pieceToMove.isWhite; // 현재 기물의 반대 팀
-        if (IsKingInCheck(opponentTeam, pieceGrid))
+        // 방금 움직인 기물이 흰색이면 플레이어의 턴(행동)입니다!
+        bool isMyTurn = pieceToMove.isWhite;
+
+        if (isMyTurn && IsKingInCheck(false, pieceGrid)) // 검은색(상대) 킹이 체크당했는지 검사
         {
-            Debug.Log("상대방 킹이 체크(Check) 상태입니다!");
-            // TODO: 화면에 "Check!" UI 띄우기, 경고 효과음 재생 등
+            // 내가 체크했을 때 -> MyText 연출
+            ShowMyCheckMessage("체크입니다. 자 어떤 식으로 대응 하실건가요^^");
+        }
+        else if (!isMyTurn && IsKingInCheck(true, pieceGrid)) // 흰색(내) 킹이 체크당했는지 검사
+        {
+            // 상대가 나를 체크했을 때 -> 상대 캐릭터 Cutin 연출
+            int enemyCharacterId = singlePlayer.selectedCharacterId;
+            TriggerCheckCutin(enemyCharacterId, false);
         }
 
-        Debug.Log("이동 완료");
     }
 
     /// <summary>
@@ -745,6 +797,40 @@ public class CheseGameM : MonoBehaviour
         return enemyAttackMoves.Contains(kingPos);
     }
 
+    public void TriggerCheckCutin(int targetCharacterId, bool isCheckmateState)
+    {
+        // 1. 현재 대전 중인 캐릭터 ID와 체크 상태에 맞는 데이터를 찾습니다.
+        Cutin target = cutins.Find(c => c.id == targetCharacterId && c.isCheckmate == isCheckmateState);
+
+        // 2. 데이터가 존재한다면
+        if (target.cutInIcon != null)
+        {
+            // 텍스트 적용
+            target.bigText.text = target.BigTextValue;
+            target.smallText.text = target.SmallTextValue;
+
+            // 3. 💡 코드로 해당 캐릭터의 컷인 오브젝트만 켜고 DOTween 연출 실행!
+            PlayCutinSequence(target.canvasGroup, target.cutInIcon.gameObject);
+        }
+    }
+
+    public void PlayCutinSequence(CanvasGroup group, GameObject obj, float displayDuration = 1.5f)
+    {
+        group.alpha = 0f;
+        obj.transform.localScale = Vector3.one * 0.8f;
+        obj.SetActive(true); // 알맞은 캐릭터 컷인만 켬!
+
+        Sequence seq = DOTween.Sequence();
+        seq.Append(group.DOFade(1f, 0.3f))
+           .Join(obj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack));
+        seq.AppendInterval(displayDuration);
+        seq.Append(group.DOFade(0f, 0.2f))
+           .Join(obj.transform.DOScale(Vector3.one * 0.8f, 0.2f).SetEase(Ease.InBack));
+        seq.OnComplete(() => {
+            obj.SetActive(false);
+        });
+    }
+
     // 1. target 팀의 킹 위치 찾기
     private Vector2Int FindKingPosition(bool isWhiteTarget)
     {
@@ -774,6 +860,11 @@ public class CheseGameM : MonoBehaviour
         }
 
         return attackMoves;
+    }
+
+    private void TurnEnd()
+    {
+       
     }
 
     #region 협상관련  함수들
@@ -1154,6 +1245,60 @@ public class CheseGameM : MonoBehaviour
             service.ShowDialogue(dialogue);
         }
     }
+
+    public void ShowMyCheckMessage(string message, float displayDuration = 1.5f)
+    {
+        if (MyText == null) return;
+
+        // 기존 진행 중인 애니메이션이 있다면 중단
+        myTextSequence?.Kill();
+
+        // 1. 텍스트 내용 세팅
+        MyText.text = message;
+
+        // 2. 초기 상태 설정 (크기를 0으로 축소, 알파값 0)
+        Transform textTransform = MyText.transform;
+        textTransform.localScale = Vector3.zero;
+
+        if (myTextCanvasGroup != null)
+        {
+            myTextCanvasGroup.alpha = 0f;
+        }
+
+        MyText.gameObject.SetActive(true);
+
+        // 3. DOTween Sequence 생성
+        myTextSequence = DOTween.Sequence();
+
+        // [등장 연출] 0.35초 동안 스케일이 1.2배로 커졌다가 1.0으로 튕기듯 정착 (OutBack 이징)
+        myTextSequence.Append(textTransform.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack));
+
+        if (myTextCanvasGroup != null)
+        {
+            myTextSequence.Join(myTextCanvasGroup.DOFade(1f, 0.2f));
+        }
+
+        // [대기] 지정한 시간만큼 화면에 멈춤
+        myTextSequence.AppendInterval(displayDuration);
+
+        // [퇴장 연출] 0.8초 동안 아주 천천히 서서히 투명해지면서 disappear (Linear 또는 InQuad)
+        if (myTextCanvasGroup != null)
+        {
+            myTextSequence.Append(myTextCanvasGroup.DOFade(0f, 0.8f).SetEase(Ease.InOutQuad));
+        }
+        else
+        {
+            // CanvasGroup이 없을 경우 TMP 자체 알파값 조절
+            myTextSequence.Append(MyText.DOFade(0f, 0.8f).SetEase(Ease.InOutQuad));
+        }
+
+        // [완료 처리] 사라진 뒤 오브젝트 비활성화
+        myTextSequence.OnComplete(() =>
+        {
+            MyText.gameObject.SetActive(false);
+        });
+    }
+
 
     #endregion
 

@@ -15,6 +15,12 @@ public class Seo : Characters
         isUnlocked = false;
         Debug.Log("서오 캐릭터가 코드로 기본 데이터를 성공적으로 세팅했습니다!");
     }
+
+    private void OnDestroy()
+    {
+        ScriptM.Unregister<Seo>();
+    }
+
     public override void SetupBoard(CheseGameM gameM)
     {
         base.SetupBoard(gameM);
