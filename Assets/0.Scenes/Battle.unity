@@ -991,6 +991,7 @@ MonoBehaviour:
   SettingBtn: {fileID: 1298201875}
   ProvokeBtn: {fileID: 1802071319}
   NegoBtn: {fileID: 988967148}
+  TimerBtn: {fileID: 1103174901}
   enPassantBtn: {fileID: 1365746380}
   CastlingBtn: {fileID: 683180810}
   PromotionBtn: {fileID: 2021978907}
@@ -1013,9 +1014,11 @@ MonoBehaviour:
     timerText: {fileID: 1810788440}
   blackTimer:
     timerText: {fileID: 1898835214}
+  CharacterTextSlot: {fileID: 525650076}
   CharacterText: {fileID: 186637592}
   MyText: {fileID: 1892735185}
-  currentTurn: 1
+  myTextCanvasGroup: {fileID: 1892735187}
+  characterTextCanvasGroup: {fileID: 525650080}
   activePieces: []
   characterList:
   - {fileID: 875613383}
@@ -1879,6 +1882,7 @@ GameObject:
   - component: {fileID: 525650077}
   - component: {fileID: 525650079}
   - component: {fileID: 525650078}
+  - component: {fileID: 525650080}
   m_Layer: 5
   m_Name: chatWindow
   m_TagString: Untagged
@@ -1944,6 +1948,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 525650076}
   m_CullTransparentMesh: 1
+--- !u!225 &525650080
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 525650076}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &570874658
 GameObject:
   m_ObjectHideFlags: 0
@@ -7296,6 +7312,7 @@ GameObject:
   - component: {fileID: 1892735184}
   - component: {fileID: 1892735186}
   - component: {fileID: 1892735185}
+  - component: {fileID: 1892735187}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -7352,7 +7369,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4286883792
-  m_fontColor: {r: 0.81568635, g: 0.654902, b: 0.5176471, a: 1}
+  m_fontColor: {r: 0.18039216, g: 0.14901961, b: 0.11764707, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -7422,6 +7439,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1892735183}
   m_CullTransparentMesh: 1
+--- !u!225 &1892735187
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1892735183}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1898835212
 GameObject:
   m_ObjectHideFlags: 0

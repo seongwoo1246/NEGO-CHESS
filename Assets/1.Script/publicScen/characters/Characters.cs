@@ -19,6 +19,8 @@ public struct MoveBestMove
     public bool isValid;
 }
 
+
+
 public class Characters : MonoBehaviour
 {
     [Header("1. 캐릭터 기본 데이터")]
@@ -40,7 +42,7 @@ public class Characters : MonoBehaviour
 
     private void Awake()
     {
-        ScriptM.Register<Characters>(this, UseSpace.Local);
+        ScriptM.Register<Characters>(this,UseSpace.Local);
 
         if (ScriptM.TryGet<CheseGameM>(out CheseGameM _gameM))
         {
@@ -56,8 +58,10 @@ public class Characters : MonoBehaviour
     /// <summary>
     /// 설정된 배치 정보(defaultPieceLayout)를 바탕으로 체스판에 기물을 동적 생성합니다.
     /// </summary>
-    public virtual void SetupBoard(CheseGameM gameM) 
+    public virtual void SetupBoard(CheseGameM gameMa) 
     {
+        gameM = gameMa;
+
         if (defaultPieceLayout == null || defaultPieceLayout.Count == 0)
         {
             Debug.LogWarning("배치할 기물 데이터가 없습니다!");
@@ -89,11 +93,11 @@ public class Characters : MonoBehaviour
 
         // 1. 가장 좋은 이동 경로를 담을 변수 초기화
         MoveBestMove bestMove = FindBestMove(searchDepth);
-
         // 2. 계산된 가장 좋은 수가 있다면 실제로 체스판에서 기물을 움직임
         if (bestMove.isValid)
         {
             ExecuteMove(bestMove.from, bestMove.to);
+            gameM.TurnEnd();
         }
         else
         {
@@ -141,11 +145,10 @@ public class Characters : MonoBehaviour
                 }
             }
         }
-
         return selectedMove;
     }
 
-    // 🧠 미니맥스 알고리즘 (나와 상대방의 수를 번갈아가며 시뮬레이션하는 두뇌)
+    // 미니맥스 알고리즘 (나와 상대방의 수를 번갈아가며 시뮬레이션하는 두뇌)
     private int Minimax(int depth, bool isMaximizing, int alpha, int beta)
     {
         // 목표 깊이(몇 수 앞)에 도달했거나 게임이 끝났다면 현재 판의 점수를 계산해서 반환합니다.
@@ -153,7 +156,6 @@ public class Characters : MonoBehaviour
         {
             return EvaluateBoard(); // 판을 평가하는 점수 판독기
         }
-
         if (isMaximizing) // 내 차례 (점수를 최대한 높이고 싶어 함)
         {
             int maxEval = -99999;
@@ -182,16 +184,19 @@ public class Characters : MonoBehaviour
         }
         else // 상대방 차례 (AI 입장에서 내 점수를 최대한 깎아내리려고 함)
         {
+            
             int minEval = 99999;
             List<ChessPieceM> enemyPieces = GetAllEnemyPieces();
 
             foreach (var piece in enemyPieces)
             {
+               
                 List<Vector2Int> moves = new List<Vector2Int>();
                 piece.GetPossibleMoves(gameM.pieceGrid, moves);
 
                 foreach (var target in moves)
                 {
+                    
                     Vector2Int start = piece.CurrentPos;
                     SimulateMove(start, target);
                     int eval = Minimax(depth - 1, true, alpha, beta);
@@ -235,11 +240,11 @@ public class Characters : MonoBehaviour
     {
         switch (type)
         {
-            case pieceType.Pawn: return 10;
-            case pieceType.Knight: return 30;
-            case pieceType.Bishop: return 30;
-            case pieceType.Rook: return 50;
-            case pieceType.Queen: return 90;
+            case pieceType.Pawn: return 100;
+            case pieceType.Knight: return 300;
+            case pieceType.Bishop: return 300;
+            case pieceType.Rook: return 500;
+            case pieceType.Queen: return 900;
             case pieceType.King: return 10000;
             default: return 0;
         }
@@ -247,12 +252,103 @@ public class Characters : MonoBehaviour
 
 
 
-    // [가상 함수 껍데기들 - 본인의 게임 매니저 시스템에 맞춰 연결해 주세요]
-    private List<ChessPieceM> GetAllMyPieces() { return null; }
-    private List<ChessPieceM> GetAllEnemyPieces() { return null; }
-    private void SimulateMove(Vector2Int from, Vector2Int to) { }
-    private void UndoMove(Vector2Int from, Vector2Int to) { }
-    private void ExecuteMove(Vector2Int from, Vector2Int to) { }
+    
+    // 내 팀의 모든 살아있는 기물들을 찾아 리스트로 반환하는 함수 override
+    protected List<ChessPieceM> GetAllMyPieces()
+    {
+        if (gameM == null) return new List<ChessPieceM>();
 
-    protected PieceColor myColor;
+        List<ChessPieceM> myPieces = new List<ChessPieceM>();
+
+        // AI가 흰색이면 기물도 흰색(isWhite == true), AI가 검정색이면 기물도 검정색(isWhite == false)이어야 내 기물!
+        bool isMeWhite = (myColor == PieceColor.white);
+
+        foreach (var piece in gameM.activePieces)
+        {
+            if (piece != null && piece.isWhite == isMeWhite)
+            {
+                myPieces.Add(piece);
+            }
+        }
+        return myPieces;
+    }
+
+    // 상대 팀의 모든 살아있는 기물들을 반환하는 함수 override
+    protected List<ChessPieceM> GetAllEnemyPieces()
+    {
+        if (gameM == null) return new List<ChessPieceM>();
+
+        List<ChessPieceM> enemyPieces = new List<ChessPieceM>();
+
+        bool isMeWhite = (myColor == PieceColor.white);
+
+        foreach (var piece in gameM.activePieces)
+        {
+            // 내 색상과 반대인 것들이 적 기물!
+            if (piece != null && piece.isWhite != isMeWhite)
+            {
+                enemyPieces.Add(piece);
+            }
+        }
+        return enemyPieces;
+    }
+
+    private struct SimpleSimData
+    {
+        public Vector2Int from;
+        public Vector2Int to;
+        public ChessPieceM movedPiece;
+        public ChessPieceM capturedPiece;
+    }
+    private Stack<SimpleSimData> simStack = new Stack<SimpleSimData>();
+
+    private void SimulateMove(Vector2Int from, Vector2Int to) 
+    {
+        // 1. 현재 그리드에서 기물 가져오기 (프로젝트의 그리드 변수명에 맞게 조절)
+        ChessPieceM movingPiece = gameM.pieceGrid[from.x, from.y];
+        ChessPieceM targetPiece = gameM.pieceGrid[to.x, to.y];
+
+        // 2. 스택에 백업
+        simStack.Push(new SimpleSimData
+        {
+            from = from,
+            to = to,
+            movedPiece = movingPiece,
+            capturedPiece = targetPiece
+        });
+
+        // 3. 그리드 데이터 가상 이동
+        gameM.pieceGrid[from.x, from.y] = null;
+        gameM.pieceGrid[to.x, to.y] = movingPiece;
+
+        if (movingPiece != null)
+            movingPiece.CurrentPos = to;
+
+        // 만약 상대 기물이 잡혔다면 시뮬레이션 동안 비활성화
+        if (targetPiece != null)
+            targetPiece.gameObject.SetActive(false);
+    }
+    private void UndoMove(Vector2Int from, Vector2Int to) 
+    {
+        if (simStack.Count == 0) return;
+
+        SimpleSimData last = simStack.Pop();
+
+        // 1. 기물 위치 원래대로 복구
+        gameM.pieceGrid[last.from.x, last.from.y] = last.movedPiece;
+        gameM.pieceGrid[last.to.x, last.to.y] = last.capturedPiece;
+
+        if (last.movedPiece != null)
+            last.movedPiece.CurrentPos = last.from;
+
+        // 2. 잡혔던 기물이 있었다면 다시 활성화
+        if (last.capturedPiece != null)
+            last.capturedPiece.gameObject.SetActive(true);
+    }
+    private void ExecuteMove(Vector2Int from, Vector2Int to)
+    { 
+        gameM.MovePiece(from.x,from.y,to.x,to.y);
+    }
+
+    protected PieceColor myColor = PieceColor.black;
 }

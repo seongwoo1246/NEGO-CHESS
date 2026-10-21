@@ -100,10 +100,12 @@ public class CheseGameM : MonoBehaviour
 
         if (activeCharacter != null)
         {
+            currentAI = activeCharacter;
             activeCharacter.SetupBoard(this); // 자식(Seo 등)이 각자 기물 배치 진행
         }
 
        
+
         if (ResetBtn != null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
         if (ReadyBtn != null) { ReadyBtn.onClick.AddListener(SetReady); }
         if (SettingBtn != null) SettingBtn.onClick.AddListener(ActiveSelfSetting);
@@ -116,6 +118,7 @@ public class CheseGameM : MonoBehaviour
         if (KnightBtn != null) KnightBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Knight));
         if (BishopBtn != null) BishopBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Bishop));
         if (RookBtn != null) RookBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Rook));
+        if (TimerBtn != null) TimerBtn.onClick.AddListener(TurnEnd);
 
         RefreshButtonUI();
     }
@@ -209,41 +212,49 @@ public class CheseGameM : MonoBehaviour
             return;
         }
 
-        // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
-        if (selectedPos == null)
+        if (!isMovedone)
         {
-            // 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
-            if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
+            
+            // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
+            if (selectedPos == null)
             {
-                SelectPiece(x, y);
-            }
-        }
-        else
-        {
-            Vector2Int targetPos = new Vector2Int(x, y);
-
-            // 클릭한 칸이 이동 가능한 위치 중 하나라면 -> 네트워크 이동 또는 실제 이동 실행
-            if (currentPossibleMoves.Contains(targetPos))
-            {
-                if (ScriptM.TryGet<NetworkChessPieceM>(out var netPieceM))
+                // 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
+                if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
                 {
-                    netPieceM.RPC_RequestMove(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                    SelectPiece(x, y);
                 }
-                else
-                {
-                    MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
-                }
-                DeselectPiece();
             }
-            // 다른 내 기물을 다시 클릭한 경우 -> 새로운 기물로 선택 교체
-            else if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
-            {
-                SelectPiece(x, y);
-            }
-            // 그 외 빈 공간이나 잘못된 위치 클릭 시 -> 선택 취소
             else
             {
-                DeselectPiece();
+                Vector2Int targetPos = new Vector2Int(x, y);
+
+                // 클릭한 칸이 이동 가능한 위치 중 하나라면 -> 네트워크 이동 또는 실제 이동 실행
+                if (currentPossibleMoves.Contains(targetPos))
+                {
+                    if (ScriptM.TryGet<NetworkChessPieceM>(out var netPieceM))
+                    {
+                        if (netPieceM != null) 
+                        netPieceM.RPC_RequestMove(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                    }
+                    else
+                    {
+                        MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                        isMovedone = true;
+                    }
+                    DeselectPiece();
+                }
+                // 다른 내 기물을 다시 클릭한 경우 -> 새로운 기물로 선택 교체
+                else if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
+                {
+                    SelectPiece(x, y);
+                }
+                // 그 외 빈 공간이나 잘못된 위치 클릭 시 -> 선택 취소
+                else
+                {
+                    DeselectPiece();
+                }
+
+               
             }
         }
     }
@@ -470,6 +481,7 @@ public class CheseGameM : MonoBehaviour
     public Button SettingBtn;
     public Button ProvokeBtn;
     public Button NegoBtn;
+    public Button TimerBtn;
     //협상 버튼들
     public Button enPassantBtn;
     public Button CastlingBtn;
@@ -519,6 +531,7 @@ public class CheseGameM : MonoBehaviour
     private bool isWaitingForPromotion = false;
 
     public characterData Data { get; private set; }
+    private Characters currentAI;
 
     // 협상과 도발 관련 변수
     private float characterNegoPower = 50f;
@@ -529,8 +542,13 @@ public class CheseGameM : MonoBehaviour
     private ChessPieceM whiteKing;
     private ChessPieceM blackKing;
 
-    public bool isWhiteTurn = true;
-    public PieceColor currentTurn = PieceColor.white;
+    //턴 관련 변수
+    private bool isWhiteTurn = true;
+    private PieceColor currentTurn = PieceColor.white;
+
+    // 기물 움직이면 끝인 변수
+    private bool isMovedone = false;
+
 
     private Vector2Int? selectedPos = null; // 현재 선택된 기물의 좌표
 
@@ -542,6 +560,7 @@ public class CheseGameM : MonoBehaviour
     public List<Cutin> cutins = new List<Cutin>(); // 체크 및 체크메이트시 활용
 
     #endregion
+
     public void ActiveSelfSetting()
     {
         SettingPanel.SetActive(!SettingPanel.activeSelf);
@@ -862,9 +881,25 @@ public class CheseGameM : MonoBehaviour
         return attackMoves;
     }
 
-    private void TurnEnd()
+    public void TurnEnd()
     {
-       
+        isWhiteTurn = !isWhiteTurn;
+        currentTurn = isWhiteTurn? PieceColor.white : PieceColor.black;
+
+        if(isWhiteTurn)
+        {
+            StartTurnTimer(PieceColor.white);
+        }
+        else
+        {
+           
+            if (currentAI != null)
+            {
+                currentAI.OnAITurn();
+            }
+            StartTurnTimer(PieceColor.black);
+            isMovedone = false;
+        }
     }
 
     #region 협상관련  함수들
@@ -1205,6 +1240,11 @@ public class CheseGameM : MonoBehaviour
         // 현재 턴에 해당하는 타이머 데이터 가져오기
         PlayerTimerData activeTimerData = (currentTurn == PieceColor.white) ? whiteTimer : blackTimer;
 
+        if(activeTimerData.TimerTime == 0)
+        {
+            activeTimerData.TimerTime += 5f;
+        }
+
         try
         {
             while (activeTimerData.TimerTime > 0)
@@ -1215,9 +1255,8 @@ public class CheseGameM : MonoBehaviour
                 // 프로퍼티 세터를 통해 시간이 감가되고 UI가 즉시 자동 업데이트됨!
                 activeTimerData.TimerTime -= 1f;
             }
-
-            // 시간이 다 되었을 때
-            OnTimeOut();
+            
+            OnTimeOut();          
         }
         catch (OperationCanceledException)
         {
@@ -1229,7 +1268,8 @@ public class CheseGameM : MonoBehaviour
     {
         isTimerRunning = false;
         Debug.Log("제한 시간 초과! 자동으로 턴을 넘깁니다.");
-        // TODO: 턴 강제 종료 및 상대방에게 턴 넘기는 로직 호출 후 5초로 재 설정
+        TurnEnd();
+
     }
     #endregion
 
