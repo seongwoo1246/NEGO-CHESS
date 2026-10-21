@@ -26,6 +26,8 @@ public class Characters : MonoBehaviour
     public Image icon;
     public characterData characterData;
     public CharacterType characterType;
+    public bool isUnlocked;
+
 
     [Header("2. 기물 초기 배치 정보")]
     public PieceDatabase pieceDatabase;
@@ -38,14 +40,8 @@ public class Characters : MonoBehaviour
 
     private void Awake()
     {
-        if (ScriptM.TryGet<CheseGameM>(out CheseGameM _gameM))
-        {
-            gameM = _gameM;
-        }
-    }
+        ScriptM.Register<Characters>(this, UseSpace.Local);
 
-    private void OnEnable()
-    {
         if (ScriptM.TryGet<CheseGameM>(out CheseGameM _gameM))
         {
             gameM = _gameM;

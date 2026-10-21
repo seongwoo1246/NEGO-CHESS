@@ -4278,7 +4278,7 @@ MonoBehaviour:
   genderChangeBtn: {fileID: 569301928}
   completeBtn: {fileID: 1197065108}
   Texts: {fileID: 573410146}
-  Icon: {fileID: 0}
+  Icon: {fileID: 1420569368}
 --- !u!4 &1770468990
 Transform:
   m_ObjectHideFlags: 0
@@ -4652,7 +4652,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  closeButton: {fileID: 909698105}
+  isOpen: 0
 --- !u!224 &1988915577
 RectTransform:
   m_ObjectHideFlags: 0

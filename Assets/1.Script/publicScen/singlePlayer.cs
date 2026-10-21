@@ -10,6 +10,11 @@ public static class singlePlayer
     public static int maxCost = 49;
      public static int Gold = 0;
     public static Sprite icon;
+    public static int selectedCharacterId;
+    public static bool isSeoWin { get; set; } = false;
+    public static bool isReonWin { get; set; } = false;
+    public static bool isCloeWin { get; set; } = false;
+
 }
 
 

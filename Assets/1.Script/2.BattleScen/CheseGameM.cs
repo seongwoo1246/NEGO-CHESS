@@ -53,6 +53,17 @@ public class CheseGameM : MonoBehaviour
         {
             spawner = service;
         }
+
+        int currentId = singlePlayer.selectedCharacterId;
+
+        Characters activeCharacter = SpawnOrGetCharacter(currentId);
+
+        if (activeCharacter != null)
+        {
+            activeCharacter.SetupBoard(this); // 자식(Seo 등)이 각자 기물 배치 진행
+        }
+
+       
         if (ResetBtn != null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
         if (ReadyBtn != null) { ReadyBtn.onClick.AddListener(SetReady); }
         if (SettingBtn != null) SettingBtn.onClick.AddListener(ActiveSelfSetting);
@@ -413,6 +424,8 @@ public class CheseGameM : MonoBehaviour
 
     #region 게임중 필요한 것들
     [Header("게임 중 필요한 것")]
+   
+    //버튼들
     public Button SettingBtn;
     public Button ProvokeBtn;
     public Button NegoBtn;
@@ -426,13 +439,13 @@ public class CheseGameM : MonoBehaviour
     public Button KnightBtn;
     public Button BishopBtn;
     public Button RookBtn;
-
+    // 협상 글자들
     public TextMeshProUGUI enPassantText;
     public TextMeshProUGUI CastlingText;
     public TextMeshProUGUI PromotionText;
     public TextMeshProUGUI UndoText;
 
-
+    // 필요 패널
     public GameObject SettingPanel;
     public GameObject NegoPanel;
     public GameObject PromotionPanel;
@@ -457,6 +470,8 @@ public class CheseGameM : MonoBehaviour
     private ChessPieceM pendingPromotionPawn;
     private bool isWaitingForPromotion = false;
 
+    public characterData Data { get; private set; }
+
     // 협상과 도발 관련 변수
     private float characterNegoPower = 50f;
     private float myNegoPower = 50f;
@@ -475,6 +490,8 @@ public class CheseGameM : MonoBehaviour
     private List<Vector2Int> attackMoves = new List<Vector2Int>(); // 공격이 가능한 부분 표시
     private List<MoveData> MoveHistory = new List<MoveData>(); //기보를 저장하기 위해서 있는 리스트
     public List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
+    public List<Characters> characterList = new List<Characters>();// 배틀씬 이동시 할 행동
+
 
     public void ActiveSelfSetting()
     {
@@ -491,8 +508,24 @@ public class CheseGameM : MonoBehaviour
         UndoText.text = $"한 수 무르기 = {successChance:F0}%";
     }
 
-  
 
+    private Characters SpawnOrGetCharacter(int id)
+    {
+        // 1. 💡 가장 먼저! 리스트에 있는 모든 캐릭터들을 한 바퀴 돌며 전부 꺼줍니다(False).
+        foreach (var character in characterList)
+        {
+            if (character != null)
+            {
+                character.gameObject.SetActive(false);
+            }
+        }
+
+        // 2. 그중에서 이번 판에 플레이할 선택된 캐릭터만 딱 골라서 켭니다(True).
+        characterList[id].gameObject.SetActive(true);
+
+        // 3. 선택된 캐릭터를 반환합니다.
+        return characterList[id];
+    }
 
     private bool IsMyTurnAndPiece(int x, int y)
     {
@@ -510,8 +543,6 @@ public class CheseGameM : MonoBehaviour
 
         return pieceColor == currentTurn;
     }
-
-
 
     private void SelectPiece(int x, int y)
     {
@@ -567,10 +598,6 @@ public class CheseGameM : MonoBehaviour
         selectedPos = null;
         currentPossibleMoves.Clear();
     }
-
-
-
-
 
     /// <summary>
     /// 지정한 출발 위치(fromX, fromY)의 기물을 목적지(toX, toY)로 이동시킵니다.
@@ -642,10 +669,18 @@ public class CheseGameM : MonoBehaviour
             // 첫 이동이 끝났으므로 이후부터는 2칸 전진 불가 처리
             pawn.isFirstMove = false;
         }
+
+        // 💡 5. 방금 움직인 팀의 반대편(상대방) 킹이 체크 상태인지 확인!
+        // (예: 흰색이 움직였다면 검은색 킹이 체크인지 검사)
+        bool opponentTeam = !pieceToMove.isWhite; // 현재 기물의 반대 팀
+        if (IsKingInCheck(opponentTeam, pieceGrid))
+        {
+            Debug.Log("상대방 킹이 체크(Check) 상태입니다!");
+            // TODO: 화면에 "Check!" UI 띄우기, 경고 효과음 재생 등
+        }
+
         Debug.Log("이동 완료");
     }
-
-
 
     /// <summary>
     /// 특정 위치의 기물을 제거(파괴/포획)합니다.
@@ -684,7 +719,6 @@ public class CheseGameM : MonoBehaviour
             }
         }
     }
-
 
     /// <summary>
     /// 특정 위치에 어떤 기물이 있는지 조회합니다.

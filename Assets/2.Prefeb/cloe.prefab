@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1288219067846872114}
   - component: {fileID: 5064080252814067173}
+  - component: {fileID: 3164663404760973376}
   - component: {fileID: 6024376569438085263}
   m_Layer: 5
   m_Name: cloe
@@ -46,6 +47,74 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3938818818585441401}
   m_CullTransparentMesh: 1
+--- !u!114 &3164663404760973376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3938818818585441401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 302121c5bb8de3d4d861616a6032e1bc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Cloe
+  characterId: 2
+  icon: {fileID: 8444373460099905172}
+  characterData: {fileID: 11400000, guid: adb3736bb3878f241850f6a2b9e6570b, type: 2}
+  characterType: 2
+  isUnlocked: 1
+  pieceDatabase: {fileID: 11400000, guid: d8e15f9b81bc7e24182041fcb42ea712, type: 2}
+  defaultPieceLayout:
+  - position: {x: 0, y: 6}
+    pieceType: 1
+    pieceColor: 2
+  - position: {x: 1, y: 6}
+    pieceType: 1
+    pieceColor: 2
+  - position: {x: 2, y: 6}
+    pieceType: 0
+    pieceColor: 2
+  - position: {x: 3, y: 6}
+    pieceType: 0
+    pieceColor: 2
+  - position: {x: 4, y: 6}
+    pieceType: 0
+    pieceColor: 2
+  - position: {x: 5, y: 6}
+    pieceType: 0
+    pieceColor: 2
+  - position: {x: 6, y: 6}
+    pieceType: 1
+    pieceColor: 2
+  - position: {x: 7, y: 6}
+    pieceType: 1
+    pieceColor: 2
+  - position: {x: 0, y: 7}
+    pieceType: 3
+    pieceColor: 2
+  - position: {x: 1, y: 7}
+    pieceType: 4
+    pieceColor: 2
+  - position: {x: 2, y: 7}
+    pieceType: 2
+    pieceColor: 2
+  - position: {x: 3, y: 7}
+    pieceType: 4
+    pieceColor: 2
+  - position: {x: 4, y: 7}
+    pieceType: 5
+    pieceColor: 2
+  - position: {x: 5, y: 7}
+    pieceType: 2
+    pieceColor: 2
+  - position: {x: 6, y: 7}
+    pieceType: 4
+    pieceColor: 2
+  - position: {x: 7, y: 7}
+    pieceType: 3
+    pieceColor: 2
+  searchDepth: 5
 --- !u!114 &6024376569438085263
 MonoBehaviour:
   m_ObjectHideFlags: 0

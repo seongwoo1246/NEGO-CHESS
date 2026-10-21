@@ -14101,6 +14101,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1762465781}
   - component: {fileID: 1762465782}
+  - component: {fileID: 1762465783}
   - component: {fileID: 1762465780}
   - component: {fileID: 1762465779}
   - component: {fileID: 1762465778}
@@ -14216,6 +14217,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
+--- !u!114 &1762465783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1762465777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f4099a7d32b4234190f82e1d420ae82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BattleM
+  seoBtn: {fileID: 1627159204}
+  reonBtn: {fileID: 1195389105}
+  cloeBtn: {fileID: 1643177025}
+  reonLock: {fileID: 171902812}
+  cloeLock: {fileID: 1138552068}
 --- !u!1 &1783419041
 GameObject:
   m_ObjectHideFlags: 0

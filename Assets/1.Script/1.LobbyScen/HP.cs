@@ -11,8 +11,8 @@ public class HP : MonoBehaviour
     [SerializeField] private TextMeshProUGUI HpText;
     [SerializeField] public Slider hpBar;
     [SerializeField] private int currentHp;
-    public int maxHp;
-    public int useHp;
+    public int maxHp = 100;
+    public int useHp = 20;
 
   
 
@@ -52,8 +52,8 @@ public class HP : MonoBehaviour
 
     private void Start()
     {
-        CheckOfflineHpRegen(5, 600f);
-        StartRegenerateHP(5, 600f).Forget();
+        CheckOfflineHpRegen(5, 120f);
+        StartRegenerateHP(5, 120f).Forget();
     }
 
     private void OnEnable()
