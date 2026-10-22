@@ -44,6 +44,8 @@ public class Rook : ChessPieceM
                 // 다음 칸으로 이동
                 nextX += dir.x;
                 nextY += dir.y;
+
+                
             }
         }
 

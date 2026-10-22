@@ -1,4 +1,5 @@
-﻿using Google.GData.Extensions;
+﻿using Cysharp.Threading.Tasks;
+using Google.GData.Extensions;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,7 +20,22 @@ public struct MoveBestMove
     public bool isValid;
 }
 
+// 가상 시뮬레이션용 기물 데이터 구조체
+public struct SimPieceData
+{
+    public pieceType type;
+    public PieceColor color;
+    public Vector2Int pos;
+    public bool hasMoved;
 
+    public SimPieceData(pieceType type, PieceColor color, Vector2Int pos, bool hasMoved)
+    {
+        this.type = type;
+        this.color = color;
+        this.pos = pos;
+        this.hasMoved = hasMoved;
+    }
+}
 
 public class Characters : MonoBehaviour
 {
@@ -75,7 +91,7 @@ public class Characters : MonoBehaviour
 
             if (prefabToSpawn != null)
             {
-                gameM.SpawnPiece(prefabToSpawn, spawnInfo.position.x, spawnInfo.position.y);
+                gameM.SpawnPiece(prefabToSpawn, spawnInfo.position.x, spawnInfo.position.y,PieceColor.black);
             }
             else
             {
@@ -87,17 +103,24 @@ public class Characters : MonoBehaviour
     }
 
     // AI 이동 결정 함수 (가상 함수로 만들어 캐릭터마다 다르게 오버라이드 가능)
-    public virtual void OnAITurn()
+    public virtual async UniTask OnAITurnAsync()
     {
-        Debug.Log(" 그랜드마스터 AI가 최적의 수를 계산하기 시작합니다...");
+        await UniTask.Delay(System.TimeSpan.FromSeconds(2f));
 
-        // 1. 가장 좋은 이동 경로를 담을 변수 초기화
         MoveBestMove bestMove = FindBestMove(searchDepth);
-        // 2. 계산된 가장 좋은 수가 있다면 실제로 체스판에서 기물을 움직임
+
+        // 연산 후 프레임 안정화를 위해 잠시 대기 (선택사항)
+        await UniTask.Yield(PlayerLoopTiming.Update);
+
         if (bestMove.isValid)
         {
             ExecuteMove(bestMove.from, bestMove.to);
-            gameM.TurnEnd();
+
+            // 💡 AI 행동 완료 후 안전하게 턴 종료 호출
+            if (gameM != null)
+            {
+                gameM.TurnEnd();
+            }
         }
         else
         {
@@ -217,21 +240,31 @@ public class Characters : MonoBehaviour
     private int EvaluateBoard()
     {
         int score = 0;
-        // 체스 말마다 가치를 매겨둡니다 (폰=1점, 나이트/비숍=3점, 룩=5점, 퀸=9점, 킹=1000점)
-        foreach (var piece in gameM.activePieces)
-        {
-            int pieceValue = GetPieceValue(piece.data.Type);
 
-            // 내 기물이면 점수를 더하고, 적 기물이면 점수를 뺍니다.
-            if (piece.data.Color == myColor)
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
             {
-                score += pieceValue;
-            }
-            else
-            {
-                score -= pieceValue;
+                ChessPieceM piece = gameM.pieceGrid[x, y];
+                if (piece == null) continue;
+
+                int pieceValue = GetPieceValue(piece.data.Type);
+                int positionalBonus = GetBlackPositionBonus(piece);
+                int safetyPenalty = EvaluateCurrentPieceSafety(piece, new Vector2Int(x, y));
+
+                int totalscore = pieceValue + positionalBonus + safetyPenalty; 
+
+                if (piece.data.Color == PieceColor.black)
+                {
+                    score += totalscore;
+                }
+                else
+                {
+                    score -= totalscore;
+                }
             }
         }
+
         return score;
     }
 
@@ -250,9 +283,98 @@ public class Characters : MonoBehaviour
         }
     }
 
+    private int GetBlackPositionBonus(ChessPieceM piece)
+    {
+        int y = piece.CurrentPos.y;
+        int x = piece.CurrentPos.x;
 
+        // 1. 폰: 아래로 내려갈수록(y=0에 가까울수록) 프로모션에 임박하므로 점수가 급격히 상승
+        if (piece.data.Type == pieceType.Pawn)
+        {
+            int[,] blackPawnTable = {
+            {   0,   0,   0,   0,   0,   0,   0,   0 }, // y = 0 (프로모션 목적지! 도달 시 최대 가점)
+            { 200, 250, 300, 400, 400, 300, 250, 200 }, // y = 1 (프로모션 직전)
+            { 100, 130, 160, 200, 200, 160, 130, 100 }, // y = 2
+            {  50,  70, 100, 130, 130, 100,  70,  50 }, // y = 3 (중앙 진입)
+            {  20,  30,  50,  70,  70,  50,  30,  20 }, // y = 4
+            {  10,  15,  25,  40,  40,  25,  15,  10 }, // y = 5
+            {   5,   5,  10,  20,  20,  10,   5,   5 }, // y = 6 (폰 시작 위치)
+            {   0,   0,   0,   0,   0,   0,   0,   0 }  // y = 7 (맨 윗줄 백업 진영)
+        };
+            return blackPawnTable[y, x];
+        }
 
-    
+        // 2. 나이트 / 비숍: 중앙(3, 4열 및 2~5행)으로 활발하게 전진하도록 유도
+        if (piece.data.Type == pieceType.Knight || piece.data.Type == pieceType.Bishop)
+        {
+            int[,] blackMinorTable = {
+            {-10,-5,-5,-5,-5,-5,-5,-10},
+            { -5, 0, 0, 0, 0, 0, 0, -5},
+            { -5, 0,15,20,20,15, 0, -5},
+            { -5, 5,20,25,25,20, 5, -5},
+            { -5, 5,20,25,25,20, 5, -5},
+            { -5, 0,15,20,20,15, 0, -5},
+            { -5, 0, 5, 5, 5, 5, 0, -5},
+            {-10,-5,-5,-5,-5,-5,-5,-10}
+        };
+            return blackMinorTable[y, x];
+        }
+
+        return 0;
+    }
+
+    public bool IsSquareAttacked(Vector2Int targetPos, PieceColor attackerColor)
+    {
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                ChessPieceM piece = gameM.pieceGrid[x, y];
+                // 살아있는 상대 팀 기물인 경우
+                if (piece != null && piece.data.Color == attackerColor)
+                {
+                    List<Vector2Int> enemyMoves = new List<Vector2Int>();
+                    piece.GetPossibleMoves(gameM.pieceGrid, enemyMoves);
+
+                    // 상대 기물이 해당 칸으로 갈 수 있다면 공격받고 있는 것임
+                    if (enemyMoves.Contains(targetPos))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // 미니맥스 탐색 중 기물 이동 후 점수를 평가할 때 또는 이동 우선순위를 매길 때 적용
+    private int EvaluateCurrentPieceSafety(ChessPieceM piece, Vector2Int currentPos)
+    {
+        int safetyPenalty = 0;
+        PieceColor enemyColor = (piece.data.Color == PieceColor.white) ? PieceColor.black : PieceColor.white;
+
+        // 현재 내 기물이 있는 칸이 상대방에게 공격받고 있는지 확인
+        bool isAttacked = IsSquareAttacked(currentPos, enemyColor);
+
+        if (isAttacked)
+        {
+            // 내 다른 아군이 이 칸을 지켜주고 있는지 확인
+            bool isDefended = IsSquareAttacked(currentPos, piece.data.Color);
+
+            // 공격은 받는데 방어는 없다면 (공짜로 죽을 위기에 처함)
+            if (!isDefended)
+            {
+                safetyPenalty -= piece.data.cost; // 기물 가치만큼 페널티
+            }
+            else
+            {
+                safetyPenalty -= (piece.data.cost / 2); // 교환 국면이면 절반 페널티
+            }
+        }
+
+        return safetyPenalty;
+    }
+
     // 내 팀의 모든 살아있는 기물들을 찾아 리스트로 반환하는 함수 override
     protected List<ChessPieceM> GetAllMyPieces()
     {
@@ -299,55 +421,81 @@ public class Characters : MonoBehaviour
         public Vector2Int to;
         public ChessPieceM movedPiece;
         public ChessPieceM capturedPiece;
+
+        // 💡 승진 백업용 데이터 추가
+        public bool wasPromotion;
+        public pieceType originalType;
     }
     private Stack<SimpleSimData> simStack = new Stack<SimpleSimData>();
 
-    private void SimulateMove(Vector2Int from, Vector2Int to) 
+    private void SimulateMove(Vector2Int from, Vector2Int to)
     {
-        // 1. 현재 그리드에서 기물 가져오기 (프로젝트의 그리드 변수명에 맞게 조절)
         ChessPieceM movingPiece = gameM.pieceGrid[from.x, from.y];
         ChessPieceM targetPiece = gameM.pieceGrid[to.x, to.y];
 
-        // 2. 스택에 백업
+        bool isPromotion = false;
+        pieceType originalType = pieceType.Pawn; // Enum 대소문자 프로젝트 기준 통일
+
+        // 1. 폰 프로모션 체크 (가상 승진)
+        if (movingPiece != null && movingPiece.data.Type == pieceType.Pawn)
+        {
+            originalType = pieceType.Pawn;
+
+            // 상대방/나의 끝 행에 도달했을 때
+            if (to.y == 0 || to.y == 7)
+            {
+                isPromotion = true;
+                // 시뮬레이션 동안만 퀸으로 가상 변경 (평가 점수 산정용)
+                movingPiece.data.Type = pieceType.Queen;
+            }
+        }
+
+        // 2. 복원용 스택(simStack)에 백업 정보 푸시
         simStack.Push(new SimpleSimData
         {
             from = from,
             to = to,
             movedPiece = movingPiece,
-            capturedPiece = targetPiece
+            capturedPiece = targetPiece,
+            wasPromotion = isPromotion,
+            originalType = originalType
         });
 
-        // 3. 그리드 데이터 가상 이동
+        // 3. 논리적 보드(pieceGrid) 데이터 업데이트
         gameM.pieceGrid[from.x, from.y] = null;
         gameM.pieceGrid[to.x, to.y] = movingPiece;
 
         if (movingPiece != null)
+        {
             movingPiece.CurrentPos = to;
-
-        // 만약 상대 기물이 잡혔다면 시뮬레이션 동안 비활성화
-        if (targetPiece != null)
-            targetPiece.gameObject.SetActive(false);
+        }
     }
-    private void UndoMove(Vector2Int from, Vector2Int to) 
+    private void UndoMove(Vector2Int from, Vector2Int to)
     {
         if (simStack.Count == 0) return;
 
         SimpleSimData last = simStack.Pop();
 
-        // 1. 기물 위치 원래대로 복구
+        // 1. 가상 승진했던 기물이면 다시 원래 타입(폰)으로 복구
+        if (last.wasPromotion && last.movedPiece != null)
+        {
+            last.movedPiece.data.Type = last.originalType;
+        }
+
+        // 2. 논리 보드(pieceGrid) 좌표 원상복구
         gameM.pieceGrid[last.from.x, last.from.y] = last.movedPiece;
         gameM.pieceGrid[last.to.x, last.to.y] = last.capturedPiece;
 
+        // 3. 기물 내부 좌표 복구
         if (last.movedPiece != null)
+        {
             last.movedPiece.CurrentPos = last.from;
-
-        // 2. 잡혔던 기물이 있었다면 다시 활성화
-        if (last.capturedPiece != null)
-            last.capturedPiece.gameObject.SetActive(true);
+        }
     }
     private void ExecuteMove(Vector2Int from, Vector2Int to)
     { 
         gameM.MovePiece(from.x,from.y,to.x,to.y);
+        
     }
 
     protected PieceColor myColor = PieceColor.black;

@@ -1,10 +1,12 @@
 ﻿using Cysharp.Threading.Tasks;
 using DG.Tweening;
+using Google.GData.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using CancellationToken = System.Threading.CancellationToken;
 using Debug = DebugM<CheseGameM>;
@@ -362,7 +364,7 @@ public class CheseGameM : MonoBehaviour
     /// <param name="x">Target Grid X (0~7)</param>
     /// <param name="y">Target Grid Y (0~7)</param>
     /// <returns>생성된 기물의 GameObject</returns>
-    public ChessPieceM SpawnPiece(GameObject piecePrefab, int x, int y)
+    public ChessPieceM SpawnPiece(GameObject piecePrefab, int x, int y,PieceColor color =PieceColor.white)
     {
 
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
@@ -394,14 +396,19 @@ public class CheseGameM : MonoBehaviour
             currentCost += newPiece.data.cost;
         }
 
-        // 4.5 기물의 위치를 스스로 저장하게 한다.
+        
         if (newPiece != null)
         {
+            newPiece.data.Color = color;
+            newPiece.isWhite = (color == PieceColor.white);
+
             newPiece.CurrentPos = new Vector2Int(x, y);
             if (newPiece is King)
             {
                 OnSpawnKing(newPiece, newPiece.isWhite);
             }
+
+
         }
 
 
@@ -411,6 +418,7 @@ public class CheseGameM : MonoBehaviour
 
         // 5. 2차원 배열에 기물 등록 및 반환
         pieceGrid[x, y] = newPiece;
+
         return newPiece;
 
 
@@ -692,7 +700,6 @@ public class CheseGameM : MonoBehaviour
         if (capturedPiece != null)
         {
             DestroyPiece(toX, toY);
-            capturedPiece.gameObject.SetActive(false);
         }
 
         // 3. 목적지의 월드 좌표 계산
@@ -734,6 +741,46 @@ public class CheseGameM : MonoBehaviour
 
             // 첫 이동이 끝났으므로 이후부터는 2칸 전진 불가 처리
             pawn.isFirstMove = false;
+        }
+
+        // 킹이 실제로 이동을 마쳤을 때 (캐슬링 처리 포함)
+        if (pieceToMove is King king)
+        {
+            king.hasMoved = true;
+
+            // 2칸 이동했다면 캐슬링 실행
+            if (Mathf.Abs(fromX - toX) == 2)
+            {
+                int y = fromY;
+                if (toX > fromX) // 우측 캐슬링
+                {
+                    ChessPieceM rook = pieceGrid[7, y];
+                    if (rook != null)
+                    {
+                        pieceGrid[7, y] = null;
+                        pieceGrid[5, y] = rook;
+                        rook.CurrentPos = new Vector2Int(5, y);
+                        rook.transform.position = boardM.GetWorldPosition(5, y);
+                        if (rook is Rook r) r.hasMoved = true;
+                    }
+                }
+                else // 좌측 캐슬링
+                {
+                    ChessPieceM rook = pieceGrid[0, y];
+                    if (rook != null)
+                    {
+                        pieceGrid[0, y] = null;
+                        pieceGrid[3, y] = rook;
+                        rook.CurrentPos = new Vector2Int(3, y);
+                        rook.transform.position = boardM.GetWorldPosition(3, y);
+                        if (rook is Rook r) r.hasMoved = true;
+                    }
+                }
+            }
+        }
+        else if (pieceToMove is Rook rookPiece)
+        {
+            rookPiece.hasMoved = true;
         }
 
         // 방금 움직인 기물이 흰색이면 플레이어의 턴(행동)입니다!
@@ -892,13 +939,21 @@ public class CheseGameM : MonoBehaviour
         }
         else
         {
-           
-            if (currentAI != null)
-            {
-                currentAI.OnAITurn();
-            }
             StartTurnTimer(PieceColor.black);
             isMovedone = false;
+            TriggerAITurnAsync().Forget();
+
+        }
+    }
+
+    private async UniTaskVoid TriggerAITurnAsync()
+    {
+        // 화면 멈춤(렉) 방지 및 호출 스택 분리를 위해 한 프레임 대기 (또는 가벼운 딜레이)
+        await UniTask.Yield(PlayerLoopTiming.Update);
+
+        if (currentAI != null)
+        {
+            await currentAI.OnAITurnAsync();
         }
     }
 
@@ -976,8 +1031,6 @@ public class CheseGameM : MonoBehaviour
         }
       
     }
-
-   
 
     // 💡 해당 수가 진행될 때 변동되었던 협상력을 '원상복귀' 시키는 함수
     private void RevertNegotiationPowerForMove(MoveData move, bool isMyMove)
@@ -1105,19 +1158,25 @@ public class CheseGameM : MonoBehaviour
 
         ClampNegoPower();
     }
-    public void RequestPromotion(ChessPieceM pawn, int x, int y)
+    public void RequestPromotion(ChessPieceM pawn, int x, int y ,bool isAi)
     {
-        pendingPromotionPawn = pawn;
-        pendingPromotionPos = new Vector2Int(x, y);
-        isWaitingForPromotion = true;
-
-        // 승진 기물(여왕, 룩, 비숍, 나이트 등)을 고를 수 있는 UI 팝업 오픈
-        if (PromotionPanel != null)
+        if (isAi)
         {
-            PromotionPanel.SetActive(true);
+            // 💡 AI인 경우 UI를 띄우지 않고 곧바로 여왕(Queen)으로 자동 승진 처리!
+            ExecuteAIPromotion(pawn, x, y);
         }
+        else
+        {
+            pendingPromotionPawn = pawn;
+            pendingPromotionPos = new Vector2Int(x, y);
+            isWaitingForPromotion = true;
 
-        
+            // 승진 기물(여왕, 룩, 비숍, 나이트 등)을 고를 수 있는 UI 팝업 오픈
+            if (PromotionPanel != null)
+            {
+                PromotionPanel.SetActive(true);
+            }
+        }   
     }
     public void OnPromotionPieceSelected(PieceDatabase piecedatabase, pieceType selectedType)
     {
@@ -1168,6 +1227,58 @@ public class CheseGameM : MonoBehaviour
         pendingPromotionPawn = null;
 
         Debug.Log($"프로모션 성공! 코스트 차이({newCost - oldCost})만큼 협상력이 반영되었습니다.");
+    }
+
+    private void ExecuteAIPromotion(ChessPieceM pawn, int x, int y)
+    {
+        if (pawn == null) return;
+
+        int oldCost = pawn.data.cost;
+        PieceColor aiColor = PieceColor.black;
+
+        int pawnX = pawn.CurrentPos.x;
+        int pawnY = pawn.CurrentPos.y;
+
+        // 💡 1. 먼저 그리드 배열에서 해당 위치를 확실하게 비워줍니다!
+        if (pieceGrid[pawnX, pawnY] == pawn)
+        {
+          pieceGrid[pawnX, pawnY] = null;
+        }
+
+        // 2. 기존 폰 오브젝트 제거 (즉시 파괴하거나 숨기기)
+        if (pawn.gameObject != null)
+        {
+            Destroy(pawn.gameObject); // 혹은 DestroyImmediate(pawn.gameObject);
+        }
+       
+        // 3. 그 자리에 안전하게 새 여왕 스폰
+        GameObject queenPrefab = PieceDatabase.GetPrefab(pieceType.Queen, aiColor);
+        ChessPieceM newPiece = SpawnPiece(queenPrefab, x, y);
+
+        if (newPiece != null)
+        {
+            newPiece.isWhite = (aiColor == PieceColor.white);
+            newPiece.data.Color = aiColor;
+            // 그리드에 새 기물 등록
+            pieceGrid[x, y] = newPiece;
+            newPiece.CurrentPos = new Vector2Int(x, y);
+        }
+
+        int newCost = (newPiece != null) ? newPiece.data.cost : 900;
+        OnPiecePromoted(true, oldCost, newCost);
+
+        MoveData move = new MoveData(
+            new Vector2Int(pawnX, pawnY),
+            new Vector2Int(x, y),
+            pawn,
+            oldCost,
+            newCost,
+            null
+        );
+        move.IsPromotion = true;
+        MoveHistory.Add(move);
+
+        Debug.Log($"[AI 프로모션] 폰이 여왕으로 승진했습니다! 코스트 차이({newCost - oldCost})만큼 협상력이 반영되었습니다.");
     }
 
     // 4. 협상력 범위를 0 ~ 100 사이로 제한하는 방어 코드
@@ -1341,6 +1452,87 @@ public class CheseGameM : MonoBehaviour
 
 
     #endregion
+
+    #endregion
+
+    #region 게임 끝날 때 필요한 것들
+    [Header("게임 끝날 때 필요한 것들")]
+    public GameObject ResultPanel;
+    public TextMeshProUGUI ResultText;
+    public TextMeshProUGUI NegoText;
+    public TextMeshProUGUI TimeText;
+    public TextMeshProUGUI ResultMoneyText;
+
+    [Header("게임 설정 데이터")]
+    
+    [SerializeField] private int nextCharacterID = 1; // 승리 시 해제할 다음 캐릭터 인덱스 또는 ID
+
+    /// <label>게임 종료 판정 및 결과 UI 처리 함수 (UniTask 비동기)</label>
+    public async UniTaskVoid ShowGameResultAsync(bool isWin, int currentNegotiationPower, float remainingSeconds)
+    {
+        // 1. 결과 패널 활성화
+        if (ResultPanel != null)
+        {
+            ResultPanel.SetActive(true);
+        }
+
+        // 2. 승리/패배 배율 설정 (이기면 x10, 지면 x2)
+        int multiplier = isWin ? 10 : 2;
+
+        // 3. 점수 계산 (협상력 환산금액 + 남은 시간 환산금액)
+        // 예시: 협상력 * 배율, 남은 시간(초) * 배율
+        int negoMoney = currentNegotiationPower * multiplier;
+        int timeMoney = Mathf.FloorToInt(remainingSeconds) * multiplier;
+        int totalMoney = negoMoney + timeMoney;
+
+        // 4. UI 텍스트 반영
+        if (ResultText != null)
+        {
+            ResultText.text = isWin ? "승리" : "패배";
+        }
+
+        if (NegoText != null)
+        {
+            NegoText.text = $"현재 협상력 : {negoMoney} (x{multiplier})";
+        }
+
+        if (TimeText != null)
+        {
+            TimeText.text = $"현재 남은 시간 : {timeMoney} (x{multiplier})";
+        }
+
+        if (ResultMoneyText != null)
+        {
+            ResultMoneyText.text = $"획득한 돈 : {totalMoney} 원";
+        }
+
+        // 5. SinglePlayer (또는 돈 관리 시스템)에 돈 반영 및 저장
+        singlePlayer.Gold += totalMoney;
+
+        // 6. 이긴 경우 다음 캐릭터 잠금 해제 처리
+        if (isWin)
+        {
+            UnlockNextCharacter();
+        }
+
+        // 7. UniTask를 이용해 정확히 5초 대기 (Time.timeScale 영향 받지 않음)
+        await UniTask.Delay(System.TimeSpan.FromSeconds(5f), ignoreTimeScale: true);
+
+        // 8. 로비 씬으로 이동
+        if(ScriptM.TryGet<ScenesM>(out ScenesM service))
+        {
+            service.LoadScene(SceneNumber.Lobby);
+        }
+    }
+
+    /// <summary>
+    /// 다음 캐릭터 잠금 해제 로직 (PlayerPrefs 또는 데이터 매니저 연동)
+    /// </summary>
+    private void UnlockNextCharacter()
+    {
+
+        Debug.Log($"[캐릭터 해제] {nextCharacterID}번 캐릭터의 잠금이 해제되었습니다!");
+    }
 
     #endregion
 

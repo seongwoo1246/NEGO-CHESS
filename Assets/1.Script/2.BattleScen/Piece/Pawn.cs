@@ -21,13 +21,14 @@ public class Pawn : ChessPieceM
         int direction = isWhite ? 1 : -1;
 
         // 1. 앞으로 1칸 이동
-        int forwardY = CurrentPos.y + direction;
+        int forwardY = CurrentPos.y + direction; // 흑이면 direction이 -1이므로 6 -> 5로 정상 감소
+       
         if (IsValidIndex(CurrentPos.x, forwardY) && board[CurrentPos.x, forwardY] == null)
         {
             possibleMoves.Add(new Vector2Int(CurrentPos.x, forwardY));
 
-            // 2. 첫 이동 시 앞으로 2칸 이동 (1칸 앞도 비어있어야 함)
-            int doubleForwardY = CurrentPos.y + (direction * 2);
+            // 2. 첫 이동 시 앞으로 2칸 이동 (반드시 '첫 칸(forwardY)'이 비어있을 때만 2칸째도 검사해야 함!)
+            int doubleForwardY = CurrentPos.y + (direction * 2); // 6에서 시작하면 6 + (-2) = 4가 되어야 함!
             if (isFirstMove && IsValidIndex(CurrentPos.x, doubleForwardY) && board[CurrentPos.x, doubleForwardY] == null)
             {
                 possibleMoves.Add(new Vector2Int(CurrentPos.x, doubleForwardY));
@@ -60,25 +61,41 @@ public class Pawn : ChessPieceM
 
 
 
-                // 4. 앙파상(En Passant) 검사
-                int sideY = CurrentPos.y; // 바로 옆 칸
-                if (IsValidIndex(targetX, sideY))
-                {
+                // 4. 앙파상(En Passant) 검사 예시 수정
+                int sidex = targetX; // 옆 칸의 X
+                int sideY = CurrentPos.y; // 내 폰과 같은 행(Y)에 있는 적 폰을 검사
 
-                    if (board[targetX, targetY] != null && !IsSameTeam(board[targetX, targetY]))
+                // 검사와 접근하는 좌표를 정확히 통일해야 합니다!
+                if (IsValidIndex(sidex, sideY))
+                {
+                    if (board[sidex, sideY] != null && !IsSameTeam(board[sidex, sideY]))
                     {
-                        Pawn enemyPawn = board[targetX, targetY].GetComponent<Pawn>();
-                        // 바로 옆 적 폰이 직전 턴에 2칸 전진한 경우
+                        Pawn enemyPawn = board[sidex, sideY].GetComponent<Pawn>();
+
                         if (enemyPawn != null && enemyPawn.movedTwoSquaresLastTurn)
                         {
-                            possibleMoves.Add(new Vector2Int(targetX, targetY)); // 대각선 뒤 빈 칸으로 이동 가능
+                            // 앙파상으로 이동할 최종 목표 칸 (적 기물 뒤쪽 대각선 칸)
+                            int targetCaptureY = CurrentPos.y + direction;
+
+                            if (IsValidIndex(sidex, targetCaptureY))
+                            {
+                                possibleMoves.Add(new Vector2Int(sidex, targetCaptureY));
+                            }
                         }
                     }
                 }
 
-                if (CanPromote(forwardY))
-                {
-                    gameM.RequestPromotion(this, CurrentPos.x, forwardY);
+                if (CanPromote(CurrentPos.y))
+                { 
+                    if(isWhite)
+                    {
+                        gameM.RequestPromotion(this, CurrentPos.x, CurrentPos.y, false);
+                    }
+                    else
+                    {
+                        gameM.RequestPromotion(this, CurrentPos.x, CurrentPos.y, true);
+                    }
+                   
                 }
             }
         }
@@ -89,6 +106,8 @@ public class Pawn : ChessPieceM
     {
         return (isWhite && currentY == 7) || (!isWhite && currentY == 0);
     }
+
+   
 
     private new bool IsValidIndex(int x, int y) => x >= 0 && x < 8 && y >= 0 && y < 8;
 }
