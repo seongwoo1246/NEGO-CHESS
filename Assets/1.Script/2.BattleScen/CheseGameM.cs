@@ -803,13 +803,6 @@ public class CheseGameM : MonoBehaviour
             TriggerCheckCutin(enemyCharacterId, false);
         }
 
-        if (CheckThreefoldRepetition(isWhiteTurn, pieceGrid))
-        {
-            // 앞서 만든 무승부 결과 함수 호출 (고정 1000원 지급)
-            ShowGameResultAsync(GameResultType.Draw, myNegoPower, whiteTimer.TimerTime).Forget();
-            return;
-        }
-
     }
 
     /// <summary>
@@ -1607,59 +1600,7 @@ private void UnlockNextCharacter(int currentDefeatedCharacterId)
         return true;
     }
 
-    /// <summary>
-    /// 현재 보드의 기물 배치와 턴 정보를 조합하여 고유한 상태 문자열 생성
-    /// </summary>
-    private string GetBoardStateString(bool isWhiteTurn, ChessPieceM[,] grid)
-    {
-        System.Text.StringBuilder sb = new System.Text.StringBuilder();
-
-        // 누구 턴인지 먼저 추가
-        sb.Append(isWhiteTurn ? "W|" : "B|");
-
-        // 보드판을 순회하며 살아있는 기물들의 정보(위치, 타입, 색상)를 문자열로 직렬화
-        for (int x = 0; x < 8; x++)
-        {
-            for (int y = 0; y < 8; y++)
-            {
-                ChessPieceM piece = grid[x, y];
-                if (piece != null)
-                {
-                    sb.Append($"{x},{y},{piece.data.Type},{(piece.isWhite ? "W" : "B")};");
-                }
-            }
-        }
-
-        return sb.ToString();
-    }
-
-    /// <summary>
-    /// 매 이동 완료 시 호출하여 현재 국면이 3번 반복되었는지 검사
-    /// </summary>
-    public bool CheckThreefoldRepetition(bool isWhiteTurn, ChessPieceM[,] grid)
-    {
-        // 1. 현재 보드판의 상태 문자열 생성
-        string currentStateKey = GetBoardStateString(isWhiteTurn, grid);
-
-        // 2. 딕셔너리에 기록하고 등장 횟수 증가
-        if (positionHistory.ContainsKey(currentStateKey))
-        {
-            positionHistory[currentStateKey]++;
-        }
-        else
-        {
-            positionHistory[currentStateKey] = 1;
-        }
-
-        // 3. 동일한 국면이 3번 이상 나타났다면 삼중 반복 무승부 성립!
-        if (positionHistory[currentStateKey] >= 3)
-        {
-            Debug.Log("[무승부] 삼중 반복 무승부(Threefold Repetition)가 발생했습니다!");
-            return true;
-        }
-
-        return false;
-    }
+  
     #endregion
 
 
