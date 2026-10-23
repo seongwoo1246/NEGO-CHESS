@@ -1183,6 +1183,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3003185100593048457}
   - component: {fileID: 5858749022185198658}
+  - component: {fileID: 5851312307636850904}
   - component: {fileID: 1534610717812108562}
   - component: {fileID: 7893984045828667153}
   m_Layer: 5
@@ -1227,6 +1228,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1339554217176850413}
   m_CullTransparentMesh: 1
+--- !u!114 &5851312307636850904
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1339554217176850413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
+  isOpen: 0
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!114 &1534610717812108562
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8153,6 +8168,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7946173720558113142}
   - component: {fileID: 3558683675868223143}
+  - component: {fileID: 6794951781263580294}
   - component: {fileID: 997423155134651774}
   m_Layer: 5
   m_Name: Panel
@@ -8160,7 +8176,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &7946173720558113142
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8188,6 +8204,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6355440087698142170}
   m_CullTransparentMesh: 1
+--- !u!114 &6794951781263580294
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6355440087698142170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
+  isOpen: 0
+  inputActions: {fileID: 0}
 --- !u!114 &997423155134651774
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8683,7 +8713,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4730088074934529996}
-  - component: {fileID: 7629296252715754303}
   - component: {fileID: 2772437400511502330}
   - component: {fileID: 1697491335880886418}
   - component: {fileID: 4539768683966545549}
@@ -8715,19 +8744,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &7629296252715754303
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6991877069394670761}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  isOpen: 0
 --- !u!223 &2772437400511502330
 Canvas:
   m_ObjectHideFlags: 0
@@ -9971,7 +9987,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: m
+  m_text: Esc
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -10105,108 +10121,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KeySettingM
   inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
-  turnover:
-    m_Name: Turnover
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 9f0502bb-8002-4af0-8c40-0ae5f5c85bd3
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 1bd7e69e-acc5-4b78-9fee-51209c983bc9
-      m_Path: <Keyboard>/enter
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Turnover
-      m_Flags: 0
-    m_Flags: 0
-  negotiation:
-    m_Name: Negotiation
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: aa5ccd6f-97aa-4242-aca4-ff0667dbb4aa
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 68a216c6-bfcb-4f1f-b483-cc42c5fad463
-      m_Path: <Keyboard>/n
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Negotiation
-      m_Flags: 0
-    m_Flags: 0
-  giveUp:
-    m_Name: Give Up
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 2e855e72-0852-4053-a4c6-c725e4367e12
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 519d9292-73ae-481b-a019-f0e9b21d5ea2
-      m_Path: <Keyboard>/g
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Give Up
-      m_Flags: 0
-    m_Flags: 0
-  openMenu:
-    m_Name: Open Menu
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: ed61f907-a507-4eae-96db-640d1a67722b
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 34d20c8b-84d9-4ee6-afbd-f2694b9f8d47
-      m_Path: <Keyboard>/m
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Open Menu
-      m_Flags: 0
-    m_Flags: 0
-  ready:
-    m_Name: Ready
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 2df8c72a-4664-4950-91bd-7fbcd8152046
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 458ff8c2-f7a9-45bb-819b-b2a1e0d41016
-      m_Path: <Keyboard>/r
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Ready
-      m_Flags: 0
-    m_Flags: 0
-  gameStart:
-    m_Name: Game Start
-    m_Type: 0
-    m_ExpectedControlType: 
-    m_Id: 075a4b0d-01ef-4292-a10a-00b2f6b2b14d
-    m_Processors: 
-    m_Interactions: 
-    m_SingletonActionBindings:
-    - m_Name: 
-      m_Id: 860ebd24-5a9e-4365-92dc-354a48e02ab0
-      m_Path: <Keyboard>/s
-      m_Interactions: 
-      m_Processors: 
-      m_Groups: 
-      m_Action: Game Start
-      m_Flags: 0
-    m_Flags: 0
   turnoverT: {fileID: 132697722401696032}
   negotiationT: {fileID: 4231610070644141101}
   giveUpT: {fileID: 2659484869549699727}

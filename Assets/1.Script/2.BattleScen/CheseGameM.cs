@@ -1,12 +1,10 @@
 ﻿using Cysharp.Threading.Tasks;
 using DG.Tweening;
-using Google.GData.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using CancellationToken = System.Threading.CancellationToken;
 using Debug = DebugM<CheseGameM>;
@@ -93,6 +91,8 @@ public class CheseGameM : MonoBehaviour
     {
         positionHistory.Clear();
 
+        UpdateNegotiationPowers();
+
         whiteTimer.TimerTime = 300;
         blackTimer.TimerTime = 300;
 
@@ -126,6 +126,7 @@ public class CheseGameM : MonoBehaviour
         if (BishopBtn != null) BishopBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Bishop));
         if (RookBtn != null) RookBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Rook));
         if (TimerBtn != null) TimerBtn.onClick.AddListener(TurnEnd);
+        if (ProvokeBtn != null) ProvokeBtn.onClick.AddListener(OnTauntSuccess);
 
         RefreshButtonUI();
     }
@@ -134,6 +135,8 @@ public class CheseGameM : MonoBehaviour
     {
         ScriptM.Unregister<CheseGameM>();
     }
+
+  
 
     #region 준비단계에 필요한 것들
     [Header("준비단계에 필요한 것")]
@@ -482,7 +485,7 @@ public class CheseGameM : MonoBehaviour
         gamePanel.SetActive(true);
 
         StartTurnTimer(PieceColor.white);
-
+        ShowMyCheckMessage(" 안녕하세요. 한 수 부탁드립니다.");
     }
     #endregion
 
@@ -547,9 +550,8 @@ public class CheseGameM : MonoBehaviour
     private Characters currentAI;
 
     // 협상과 도발 관련 변수
-    private float characterNegoPower = 50f;
-    private float myNegoPower = 50f;
-
+    private float characterNegoPower;
+    private float myNegoPower;
 
     // 왕의 위치를 찾기 위해 미리 변수 캐싱하기
     private ChessPieceM whiteKing;
@@ -588,6 +590,7 @@ public class CheseGameM : MonoBehaviour
         PromotionText.text = $"프로모션 제한 = {successChance:F0}%";
         UndoText.text = $"한 수 무르기 = {successChance:F0}%";
     }
+    
     private Characters SpawnOrGetCharacter(int id)
     {
         // 1. 💡 가장 먼저! 리스트에 있는 모든 캐릭터들을 한 바퀴 돌며 전부 꺼줍니다(False).
@@ -821,6 +824,9 @@ public class CheseGameM : MonoBehaviour
 
             activePieces.Remove(pieceGrid[x, y]);
 
+            bool isMyPiece = (pieceToDestroy.data.Color == PieceColor.white); // 플레이어 색상 기준
+            OnPieceDestroyed(isMyPiece, pieceToDestroy.data.cost);
+
             // spawner로 반환
             spawner.Despawn(pieceGrid[x, y].gameObject);
 
@@ -943,30 +949,20 @@ public class CheseGameM : MonoBehaviour
         if(isWhiteTurn)
         {
             StartTurnTimer(PieceColor.white);
+            
+        }
+        else
+        {
+            StartTurnTimer(PieceColor.black);
+            isMovedone = false;
+            currentAI.OnAITurnAsync().Forget();
             if (CheckStalemate(true, pieceGrid))
             {
                 // 무승부 처리 함수 호출 (고정 1000원 지급)
                 ShowGameResultAsync(GameResultType.Draw, myNegoPower, whiteTimer.TimerTime).Forget();
                 return;
             }
-        }
-        else
-        {
-            StartTurnTimer(PieceColor.black);
-            isMovedone = false;
-            TriggerAITurnAsync().Forget();
 
-        }
-    }
-
-    private async UniTaskVoid TriggerAITurnAsync()
-    {
-        // 화면 멈춤(렉) 방지 및 호출 스택 분리를 위해 한 프레임 대기 (또는 가벼운 딜레이)
-        await UniTask.Yield(PlayerLoopTiming.Update);
-
-        if (currentAI != null)
-        {
-            await currentAI.OnAITurnAsync();
         }
     }
 
@@ -1043,6 +1039,41 @@ public class CheseGameM : MonoBehaviour
             ExecuteUndoLastMove(lastMove, lastIndex);
         }
       
+    }
+    /// <summary>
+    /// 보드판 위에 살아있는 기물들의 코스트를 합산하여 나와 상대방의 협상력을 갱신하는 함수
+    /// </summary>
+    public void UpdateNegotiationPowers()
+    {
+        float whiteCostSum = 0f;
+        float blackCostSum = 0f;
+
+        // 보드판 전체를 순회하며 살아있는 기물의 코스트 합산
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                ChessPieceM piece = pieceGrid[x, y];
+                if (piece != null)
+                {
+                    // 백 팀 기물인지 흑 팀 기물인지 판별 (프로젝트 내 기물 색상 변수에 맞게 수정하세요)
+                    if (piece.isWhite)
+                    {
+                        whiteCostSum += piece.data.cost;
+                    }
+                    else
+                    {
+                        blackCostSum += piece.data.cost;
+                    }
+                }
+            }
+        }
+
+
+        myNegoPower = whiteCostSum + singlePlayer.bonusNegoPower;
+        characterNegoPower = blackCostSum;
+
+        Debug.Log($"[협상력 갱신 완료] 내 협상력: {myNegoPower} | 상대 협상력: {characterNegoPower}");
     }
 
     // 💡 해당 수가 진행될 때 변동되었던 협상력을 '원상복귀' 시키는 함수
@@ -1124,20 +1155,22 @@ public class CheseGameM : MonoBehaviour
         }
     }
 
-    // 1. 도발 성공 시 호출 (도발한 대상의 협상력 5% 감소)
-    public void OnTauntSuccess(bool isMyTeam)
+    // 1. 도발 성공 시 호출 
+    public void OnTauntSuccess()
     {
-        if (isMyTeam)
+        if(myNegoPower>=0)
         {
             myNegoPower -= 5f;
-        }
-        else
-        {
-            characterNegoPower -= 5f;
-        }
 
-        // 협상력이 0 미만이나 100을 넘지 않도록 안전하게 조절 (선택사항)
-        ClampNegoPower();
+            if (TryNegotiate())
+            {
+                characterNegoPower -= 10f;
+                ShowMyCheckMessage("(상대의 빈틈을 만들었다. 상대의 협상력이 저하)");
+            }
+            ClampNegoPower();
+            ShowMyCheckMessage("(효과가 없었나 안 통하는 듯 하다. 나의 협상력이 5% 감소했다.)");
+        }
+        ShowMyCheckMessage("(협상력이 0%라서 뭐라고 하든 의미가 없을 듯 하다.)");
     }
 
     // 2. 말이 잡혔을 때 호출 (잡힌 말의 코스트만큼 협상력 감소)
@@ -1242,6 +1275,7 @@ public class CheseGameM : MonoBehaviour
         Debug.Log($"프로모션 성공! 코스트 차이({newCost - oldCost})만큼 협상력이 반영되었습니다.");
     }
 
+    // 적 프로모션
     private void ExecuteAIPromotion(ChessPieceM pawn, int x, int y)
     {
         if (pawn == null) return;
@@ -1538,8 +1572,14 @@ public class CheseGameM : MonoBehaviour
 
         // 5초 대기 후 로비 씬으로 이동
         await UniTask.Delay(System.TimeSpan.FromSeconds(5f), ignoreTimeScale: true);
+        if(ScriptM.TryGet<HP>(out HP service1))
+        {
+            service1.ShowPanel();
+        }
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
+            
+            ScriptM.ClearSceneLocalServices();
             service.LoadScene(SceneNumber.Lobby);
         }
     }

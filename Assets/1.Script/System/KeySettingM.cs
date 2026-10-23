@@ -6,14 +6,6 @@ public class KeySettingM : MonoBehaviour
 {
     [Header("Input Action Asset 참조")]
     [SerializeField] private InputActionAsset inputActions;
-
-    [SerializeField] private InputAction turnover;
-    [SerializeField] private InputAction negotiation;
-    [SerializeField] private InputAction giveUp;
-    [SerializeField] private InputAction openMenu;
-    [SerializeField] private InputAction ready;
-    [SerializeField] private InputAction gameStart;
-
     [Header("UI 교체를 위한 텍스트들")]
     [SerializeField] private TextMeshProUGUI turnoverT;
     [SerializeField] private TextMeshProUGUI negotiationT;
@@ -60,6 +52,7 @@ public class KeySettingM : MonoBehaviour
         Sound.SetActive(false);
         DisPlay.SetActive(false);
         Setting.SetActive(true);
+        UpdateAllUI();
     }
 
     public void ExitSetting()
@@ -77,12 +70,15 @@ public class KeySettingM : MonoBehaviour
     /// </summary>
     public void UpdateAllUI()
     {
-        UpdateActionUI(turnover, turnoverT, 0);
-        UpdateActionUI(negotiation, negotiationT, 0);
-        UpdateActionUI(giveUp, giveUpT, 0);
-        UpdateActionUI(openMenu, openMenuT, 0);
-        UpdateActionUI(ready, readyT, 0);
-        UpdateActionUI(gameStart, gameStartT, 0);
+        if (inputActions == null) return;
+
+        // 각 액션을 에셋에서 직접 찾아와서 UI 텍스트 업데이트
+        UpdateActionUI(inputActions.FindAction("Turnover"), turnoverT, 0);
+        UpdateActionUI(inputActions.FindAction("Negotiation"), negotiationT, 0);
+        UpdateActionUI(inputActions.FindAction("GiveUp"), giveUpT, 0);
+        UpdateActionUI(inputActions.FindAction("OpenMenu"), openMenuT, 0);
+        UpdateActionUI(inputActions.FindAction("Ready"), readyT, 0);
+        UpdateActionUI(inputActions.FindAction("GameStart"), gameStartT, 0);
     }
 
     /// <summary>
@@ -104,41 +100,49 @@ public class KeySettingM : MonoBehaviour
     /// <param name="bindingIndex">바꿀 바인딩 인덱스 (기본 0)</param>
     public void StartRebinding(InputAction actionToRebind, TMP_Text targetText, int bindingIndex = 0)
     {
-        // 1. 리바인딩 시작 전 해당 액션 비활성화
-        actionToRebind.Disable();
+        if (actionToRebind == null) return;
+
+        // 💡 핵심: 액션이 속한 액션 맵이 꺼져있다면 켜주어야 입력을 감지할 수 있습니다!
+        if (actionToRebind.actionMap != null && !actionToRebind.actionMap.enabled)
+        {
+            actionToRebind.actionMap.Enable();
+        }
 
         if (targetText != null) targetText.text = "...";
 
-        // 2. 대기 모드 진입 및 키 입력 감지
+        // 리바인딩 대상 액션만 비활성화
+        actionToRebind.Disable();
+
         var rebindingOperation = actionToRebind.PerformInteractiveRebinding(bindingIndex)
-            // 키보드/마우스/패드 등의 아무 입력이나 대기
-            .WithControlsExcluding("<Mouse>/position") // 마우스 이동 등 제외할 입력 지정 가능
+            .WithControlsExcluding("<Mouse>/position")
             .WithControlsExcluding("<Mouse>/delta")
             .OnComplete(operation =>
             {
-                // 입력 완료 시 처리
+                operation.Dispose();
                 actionToRebind.Enable();
-                operation.Dispose(); // 메모리 해제
 
-                // 입력시 UI변경
-                UpdateActionUI(actionToRebind, targetText, bindingIndex);
+                if (targetText != null)
+                {
+                    targetText.text = actionToRebind.GetBindingDisplayString(bindingIndex);
+                }
 
-                // 바뀐 키 세팅 저장
                 SaveKeyBindings();
-                Debug.Log($"키 변경 완료: {actionToRebind.name} -> {actionToRebind.bindings[bindingIndex].effectivePath}");
+                Debug.Log($"[KeySettingM] 키 변경 완료: {actionToRebind.name}");
             })
             .OnCancel(operation =>
             {
-                // 취소 시 처리
-                actionToRebind.Enable();
                 operation.Dispose();
+                actionToRebind.Enable();
 
-                //취소 시 기존 키 복원
-                UpdateActionUI(actionToRebind, targetText, bindingIndex);
-            });
+                if (targetText != null)
+                {
+                    targetText.text = actionToRebind.GetBindingDisplayString(bindingIndex);
+                }
+                Debug.Log($"[KeySettingM] 키 변경 취소됨");
+            })
+            .Start();
 
-        // 3. 리바인딩 시작
-        rebindingOperation.Start();
+        Debug.Log($"[KeySettingM] 리바인딩 대기 시작: {actionToRebind.name}"); // 진입 확인용 로그
     }
 
     /// <summary>
@@ -176,6 +180,7 @@ public class KeySettingM : MonoBehaviour
                 Debug.Log("[KeySettingM] 키 바인딩 불러오기 완료");
             }
         }
+        UpdateAllUI();
     }
 
     /// <summary>
@@ -209,32 +214,62 @@ public class KeySettingM : MonoBehaviour
 
     public void OnClickRebindTurnOver()
     {
-        StartRebinding(turnover, turnoverT, 0);
+        if (inputActions == null) return;
+        InputAction targetAction = inputActions.FindAction("Turnover"); // 에셋에서 직접 찾기
+        if (targetAction != null)
+        {
+            StartRebinding(targetAction, turnoverT, 0);
+        }
     }
 
     public void OnClickRebindNegotiation()
     {
-        StartRebinding(negotiation, negotiationT, 0);
+        if (inputActions == null) return;
+        InputAction targetAction = inputActions.FindAction("Negotiation");
+        if (targetAction != null)
+        {
+            StartRebinding(targetAction, negotiationT, 0);
+        }
     }
 
     public void OnClickRebindGiveUp()
     {
-        StartRebinding(giveUp, giveUpT, 0);
+         if (inputActions == null) return;
+        InputAction targetAction = inputActions.FindAction("GiveUp");
+        if (targetAction != null)
+        {
+            StartRebinding(targetAction, giveUpT, 0);
+        }
     }
 
     public void OnClickRebindOpenMenu()
     {
-        StartRebinding(openMenu, openMenuT, 0);
+        if (inputActions == null) return;
+        InputAction targetAction = inputActions.FindAction("OpenMenu");
+        if (targetAction != null)
+        {
+            StartRebinding(targetAction, openMenuT, 0);
+        }
     }
 
     public void OnClickRebindReady()
     {
-        StartRebinding(ready, readyT,0);
+        if (inputActions == null) return;
+        InputAction targetAction = inputActions.FindAction("Ready");
+        if (targetAction != null)
+        {
+            StartRebinding(targetAction, readyT, 0);
+        }
     }
 
     public void OnClickRebindGameStart()
     {
-        StartRebinding(gameStart, gameStartT,0);
+         if (inputActions == null) return;
+        InputAction targetAction = inputActions.FindAction("GameStart");
+        if (targetAction != null)
+        {
+            StartRebinding(targetAction, gameStartT, 0);
+        }
     }
 
     #endregion

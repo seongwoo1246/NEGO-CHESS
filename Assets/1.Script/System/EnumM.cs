@@ -99,3 +99,16 @@ public enum GameResultType
     Lose,
     Draw 
 }
+
+public enum UpgradeType
+{
+    MaxHp,      
+    UseHp,      
+    MaxCost,    
+    Negotiation,
+    SpawnPawn,  
+    SpawnBishop,
+    SpawnKnight,
+    SpawnRook,
+    SpawnQueen,
+}

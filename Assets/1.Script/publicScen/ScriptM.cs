@@ -34,6 +34,17 @@ public static class ScriptM
         if (_services.ContainsKey(type))
         {
             Debug.LogWarningWithTag("ServiceLocator", $"이미 등록된 서비스");
+
+            // 💡 핵심: 이미 존재하는 서비스라면, 새로 등록하려 한 중복 오브젝트를 즉시 파괴합니다!
+            if (service is Component component)
+            {
+                UnityEngine.Object.Destroy(component.gameObject);
+            }
+            else if (service is GameObject go)
+            {
+                UnityEngine.Object.Destroy(go);
+            }
+            return; // 등록 로직 중단
         }
 
         //전역 사용될 시 계속 들고 다니기

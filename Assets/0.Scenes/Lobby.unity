@@ -176,7 +176,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Button
+  m_text: "\uD655\uC778"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
@@ -721,7 +721,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -785,8 +785,8 @@ MonoBehaviour:
   HpText: {fileID: 612876663}
   hpBar: {fileID: 420995744}
   currentHp: 100
-  maxHp: 100
-  useHp: 10
+  baseMaxHp: 100
+  baseUseHp: 20
   hpPanelRect: {fileID: 420995743}
 --- !u!1 &75972976
 GameObject:
@@ -1377,8 +1377,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 10
     price: 1000
+    pricestep: 1000
     pulse: 2
   upgradeBtn: {fileID: 152479071}
 --- !u!1 &154179252
@@ -2618,8 +2622,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 6
     price: 2000
+    pricestep: 1000
     pulse: 1
   upgradeBtn: {fileID: 350561946}
 --- !u!1 &370297237
@@ -2759,8 +2767,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 5
     price: 1500
+    pricestep: 1000
     pulse: 1
   upgradeBtn: {fileID: 370297239}
 --- !u!224 &397495025 stripped
@@ -2941,7 +2953,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -239, y: -59.396454}
+  m_AnchoredPosition: {x: -240.51599, y: -59.396454}
   m_SizeDelta: {x: 481.03198, y: 118.79291}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &420995744
@@ -3771,8 +3783,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 5
     price: 1500
+    pricestep: 1000
     pulse: 1
   upgradeBtn: {fileID: 555017777}
 --- !u!1 &575623242
@@ -4439,6 +4455,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!224 &673974964
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6007,6 +6024,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!224 &835034456
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6926,8 +6944,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 10
     price: 1000
+    pricestep: 1000
     pulse: 10
   upgradeBtn: {fileID: 920874917}
 --- !u!1 &959829909
@@ -7067,8 +7089,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 7
     price: 1000
+    pricestep: 1000
     pulse: 1
   upgradeBtn: {fileID: 959829911}
 --- !u!1 &970312882
@@ -7790,6 +7816,10 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5851312307636850904, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+      propertyPath: inputActions
+      value: 
+      objectReference: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
     - target: {fileID: 6991877069394670761, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
       propertyPath: m_Name
       value: Setting
@@ -8409,8 +8439,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 100
     price: 500
+    pricestep: 1000
     pulse: 1
   upgradeBtn: {fileID: 1136131944}
 --- !u!1 &1138552068
@@ -11528,8 +11562,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 10
     price: 1000
+    pricestep: 1000
     pulse: 2
   upgradeBtn: {fileID: 1491890101}
 --- !u!1 &1545374647
@@ -12551,7 +12589,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1643193988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12628,6 +12666,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!224 &1643193992
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12675,41 +12714,78 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceM
   currentGold: 0
+  GoldText: {fileID: 1397510646}
   MaxHp:
+    levelText: {fileID: 1852271354}
+    priceText: {fileID: 516594508}
+    currentLevel: 0
     maxLevel: 10
     price: 1000
+    pricestep: 1000
     pulse: 10
   UseHp:
+    levelText: {fileID: 1067431597}
+    priceText: {fileID: 1277665110}
+    currentLevel: 0
     maxLevel: 10
     price: 1000
+    pricestep: 1000
     pulse: 2
   MaxCost:
+    levelText: {fileID: 406623374}
+    priceText: {fileID: 1813244690}
+    currentLevel: 0
     maxLevel: 100
     price: 500
+    pricestep: 1000
     pulse: 1
   NegoUp:
+    levelText: {fileID: 37845439}
+    priceText: {fileID: 1624412473}
+    currentLevel: 0
     maxLevel: 10
     price: 1000
+    pricestep: 1000
     pulse: 2
   MaxPawnUp:
+    levelText: {fileID: 1891163035}
+    priceText: {fileID: 1039101790}
+    currentLevel: 0
     maxLevel: 7
     price: 1000
+    pricestep: 1000
     pulse: 1
   MaxBishopUp:
+    levelText: {fileID: 816957767}
+    priceText: {fileID: 1672887672}
+    currentLevel: 0
     maxLevel: 5
     price: 1500
+    pricestep: 1000
     pulse: 1
   MaxKnightUp:
+    levelText: {fileID: 1233440253}
+    priceText: {fileID: 738098070}
+    currentLevel: 0
     maxLevel: 5
     price: 1500
+    pricestep: 1000
     pulse: 1
   MaxRookUp:
+    levelText: {fileID: 775922071}
+    priceText: {fileID: 426612616}
+    currentLevel: 0
     maxLevel: 5
     price: 1500
+    pricestep: 1000
     pulse: 1
   MaxQueenUp:
+    levelText: {fileID: 822147359}
+    priceText: {fileID: 1898936802}
+    currentLevel: 0
     maxLevel: 6
     price: 2000
+    pricestep: 1000
     pulse: 1
 --- !u!1 &1655300510
 GameObject:
@@ -13756,8 +13832,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ReinforceSlot
   targetStat:
+    levelText: {fileID: 0}
+    priceText: {fileID: 0}
+    currentLevel: 0
     maxLevel: 5
     price: 1500
+    pricestep: 1000
     pulse: 1
   upgradeBtn: {fileID: 1695910579}
 --- !u!1 &1726982877
@@ -14217,6 +14297,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
+  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!114 &1762465783
 MonoBehaviour:
   m_ObjectHideFlags: 0

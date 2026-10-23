@@ -1,20 +1,48 @@
 ﻿using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.InputSystem;
 
 public class PopupUI : MonoBehaviour
 {
     public bool isOpen = false;
 
-    private void Update()
+    [Header("Input Action Asset")]
+    [SerializeField] private InputActionAsset inputActions;
+
+    private InputAction openMenuAction;
+
+    private void Awake()
     {
-        // 2. 플레이어가 ESC 키를 누르면 창이 닫히도록 처리
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (inputActions != null)
         {
-            ClosePopup();
+            openMenuAction = inputActions.FindAction("OpenMenu");
         }
     }
 
+    private void OnEnable()
+    {
+        if (openMenuAction != null)
+        {
+            openMenuAction.Enable();
+            // 💡 핵심: 키가 눌린 순간(performed) 실행될벤트를 등록합니다.
+            openMenuAction.performed += OnOpenMenuPerformed;
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (openMenuAction != null)
+        {
+            // 💡 메모리 누수 방지를 위해 비활성화될 때 이벤트를 꼭 해제해 줍니다.
+            openMenuAction.performed -= OnOpenMenuPerformed;
+            openMenuAction.Disable();
+        }
+    }
+
+    // 키가 눌린 순간에만 단 한 번 호출되는 함수
+    private void OnOpenMenuPerformed(InputAction.CallbackContext context)
+    {
+        ClosePopup();
+    }
     public void ClosePopup()
     {
 

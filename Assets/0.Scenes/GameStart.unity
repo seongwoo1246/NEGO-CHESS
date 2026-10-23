@@ -5376,6 +5376,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[2].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 4215313848047858693, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+      propertyPath: m_text
+      value: Esc
+      objectReference: {fileID: 0}
     - target: {fileID: 4393753017728223674, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
       propertyPath: onValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
@@ -5472,9 +5476,17 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 5694144082287505263, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+      propertyPath: openMenu.m_SingletonActionBindings.Array.data[0].m_Path
+      value: <Keyboard>/escape
+      objectReference: {fileID: 0}
     - target: {fileID: 5782309137349147466, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6355440087698142170, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6653963375113348027, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
       propertyPath: m_OnValueChanged.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
@@ -5496,8 +5508,13 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8927378367645293210, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 9184013864038313965, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+    - {fileID: 7629296252715754303, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

@@ -107,10 +107,8 @@ public class Characters : MonoBehaviour
     {
         await UniTask.Delay(System.TimeSpan.FromSeconds(2f));
 
-        MoveBestMove bestMove = FindBestMove(searchDepth);
-
-        // 연산 후 프레임 안정화를 위해 잠시 대기 (선택사항)
-        await UniTask.Yield(PlayerLoopTiming.Update);
+        
+        MoveBestMove bestMove = await FindBestMoveAsync(searchDepth);
 
         if (bestMove.isValid)
         {
@@ -129,36 +127,26 @@ public class Characters : MonoBehaviour
     }
 
     // 최적의 수를 찾는 탐색 함수 (미니맥스 + 알파-베타 가지치기)
-    private MoveBestMove FindBestMove(int depth)
+    private async UniTask<MoveBestMove> FindBestMoveAsync(int depth)
     {
-        int bestScore = -99999; // 내가 얻을 수 있는 가장 높은 점수 (초기엔 아주 낮게 설정)
+        int bestScore = -9999;
         MoveBestMove selectedMove = new MoveBestMove();
 
-        // [비유] 내 차례: 판 위에 있는 내 모든 말들을 살펴봅니다.
-        List<ChessPieceM> myPieces = GetAllMyPieces(); // 내 팀 기물들 모음
+        List<ChessPieceM> myPieces = GetAllMyPieces();
 
         foreach (var piece in myPieces)
         {
             List<Vector2Int> possibleMoves = new List<Vector2Int>();
-            piece.GetPossibleMoves(gameM.pieceGrid, possibleMoves); // 이 말이 갈 수 있는 칸들
+            piece.GetPossibleMoves(gameM.pieceGrid, possibleMoves);
 
             foreach (var targetPos in possibleMoves)
             {
                 Vector2Int startPos = piece.CurrentPos;
 
-                // --- [시뮬레이션 시작] ---
-                // '만약에 내가 이 말을 이 자리로 옮기면 어떻게 될까?' 가상으로 움직여봅니다.
                 SimulateMove(startPos, targetPos);
-
-                // 상대방 입장에서 가장 유리한 점수를 예측해봅니다 (재귀 호출)
-                // 알파(-100000), 베타(100000)는 가지치기(불필요한 생각 버리기)를 위한 최적화 도구입니다.
-                int score = Minimax(depth - 1, false, -100000, 100000);
-
-                // --- [시뮬레이션 취소] ---
-                // 가상 실험이 끝났으니 판을 원래대로 되돌려놓습니다.
+                int score = Minimax(depth - 1, false, -10000, 10000);
                 UndoMove(startPos, targetPos);
 
-                // 지금 가본 길이 기존에 찾았던 최고 점수보다 더 좋다면? 이 수를 찜합니다!
                 if (score > bestScore)
                 {
                     bestScore = score;
@@ -166,8 +154,13 @@ public class Characters : MonoBehaviour
                     selectedMove.to = targetPos;
                     selectedMove.isValid = true;
                 }
+
+                // 💡 [핵심] 한 번의 가상 시뮬레이프가 끝날 때마다 유니티에게 1프레임 양보!
+                // 이렇게 하면 연산이 깊어도 화면이 멈추지 않고 부드럽게 유지됩니다.
+                await UniTask.Yield();
             }
         }
+
         return selectedMove;
     }
 

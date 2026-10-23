@@ -11,10 +11,19 @@ public class HP : MonoBehaviour
     [SerializeField] private TextMeshProUGUI HpText;
     [SerializeField] public Slider hpBar;
     [SerializeField] private int currentHp;
-    public int maxHp = 100;
-    public int useHp = 20;
+    [Header("기본 스탯")]
+    [SerializeField] private int baseMaxHp = 100;
+    [SerializeField] private int baseUseHp = 20;
 
-  
+    // 업그레이드로 인해 추가된 수치 (나중에 업그레이드 시스템에서 이 값만 조작하면 됩니다!)
+    public int bonusMaxHp = 0;
+    public int bonusUseHp = 0;
+
+    // 💡 프로퍼티를 사용하면 외부에서는 계산된 최종 수치를 안전하게 읽어갈 수 있습니다.
+    public int maxHp => baseMaxHp + bonusMaxHp;
+    public int useHp => baseUseHp - bonusUseHp;
+
+
 
     // 값이 바뀔 때 현재 체력(int)을 인자로 전달해 주는 이벤트 선언
     public event Action<int> OnHpChanged;
@@ -53,12 +62,11 @@ public class HP : MonoBehaviour
     private void Start()
     {
         CheckOfflineHpRegen(5, 120f);
-        StartRegenerateHP(5, 120f).Forget();
-    }
-
-    private void OnEnable()
-    {
-       OnHpRatioChanged += UpdateHpBar;
+        if (Hp < maxHp)
+        {
+            StartRegenerateHP(5, 120f).Forget();
+        }
+        OnHpRatioChanged += UpdateHpBar;
         OnHpChanged += UpdateHpText;
     }
 
@@ -84,10 +92,21 @@ public class HP : MonoBehaviour
         }
     }
 
-    public void UseHp()
+    public bool TryStartGame()
     {
         // 프로퍼티(Hp)를 통해 값을 변경하므로 자동으로 이벤트가 발생함
-        Hp -= useHp;
+        if(Hp>=useHp)
+        {
+            Debug.Log("전투 가능");
+            Hp -= useHp;
+            return true;
+        }
+        else
+        {
+            Debug.Log("체력 부족");
+            return false;
+        }
+        
     }
 
     // 유니테스크를 이용한 일정 시간마다 체력 증가 로직
@@ -135,7 +154,7 @@ public class HP : MonoBehaviour
     {
         if (hpPanelRect != null)
         {
-            hpPanelRect.anchoredPosition = Vector2.zero;
+            hpPanelRect.anchoredPosition = new Vector2(-235, -53);
         }
     }
 
