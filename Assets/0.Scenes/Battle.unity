@@ -1057,11 +1057,11 @@ MonoBehaviour:
     checkmateBigText: "\uCCB4\uD06C \uBA54\uC774\uD2B8"
     checkSmallText: "\uC880 \uB354 \uD798\uC744 \uB0B4\uC138\uC694."
     checkmateSmallText: "\uB05D\uC785\uB2C8\uB2E4. \uC798\uAC00\uC138\uC694."
-  ResultPanel: {fileID: 0}
-  ResultText: {fileID: 0}
-  NegoText: {fileID: 0}
-  TimeText: {fileID: 0}
-  ResultMoneyText: {fileID: 0}
+  ResultPanel: {fileID: 1565709277}
+  ResultText: {fileID: 1843790223}
+  NegoText: {fileID: 663152802}
+  TimeText: {fileID: 706610493}
+  ResultMoneyText: {fileID: 1615644466}
   nextCharacterID: 1
 --- !u!4 &211198754
 Transform:
@@ -6651,7 +6651,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1565709278
 MonoBehaviour:
   m_ObjectHideFlags: 0

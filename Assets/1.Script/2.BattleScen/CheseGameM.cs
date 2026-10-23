@@ -91,6 +91,11 @@ public class CheseGameM : MonoBehaviour
 
     private void Start()
     {
+        positionHistory.Clear();
+
+        whiteTimer.TimerTime = 300;
+        blackTimer.TimerTime = 300;
+
         if (ScriptM.TryGet<SinglePoolSpawner>(out SinglePoolSpawner service))
         {
             spawner = service;
@@ -798,6 +803,13 @@ public class CheseGameM : MonoBehaviour
             TriggerCheckCutin(enemyCharacterId, false);
         }
 
+        if (CheckThreefoldRepetition(isWhiteTurn, pieceGrid))
+        {
+            // 앞서 만든 무승부 결과 함수 호출 (고정 1000원 지급)
+            ShowGameResultAsync(GameResultType.Draw, myNegoPower, whiteTimer.TimerTime).Forget();
+            return;
+        }
+
     }
 
     /// <summary>
@@ -829,10 +841,12 @@ public class CheseGameM : MonoBehaviour
                 if (pieceToDestroy.data.Color == PieceColor.white)
                 {
                     whiteKing = null;
+                    ShowGameResultAsync(GameResultType.Lose, myNegoPower, whiteTimer.TimerTime).Forget();
                 }
                 else if (pieceToDestroy.data.Color == PieceColor.black)
                 {
                     blackKing = null;
+                    ShowGameResultAsync(GameResultType.Win, myNegoPower, whiteTimer.TimerTime).Forget();
                 }
             }
         }
@@ -936,6 +950,12 @@ public class CheseGameM : MonoBehaviour
         if(isWhiteTurn)
         {
             StartTurnTimer(PieceColor.white);
+            if (CheckStalemate(true, pieceGrid))
+            {
+                // 무승부 처리 함수 호출 (고정 1000원 지급)
+                ShowGameResultAsync(GameResultType.Draw, myNegoPower, whiteTimer.TimerTime).Forget();
+                return;
+            }
         }
         else
         {
@@ -1463,77 +1483,183 @@ public class CheseGameM : MonoBehaviour
     public TextMeshProUGUI TimeText;
     public TextMeshProUGUI ResultMoneyText;
 
-    [Header("게임 설정 데이터")]
-    
-    [SerializeField] private int nextCharacterID = 1; // 승리 시 해제할 다음 캐릭터 인덱스 또는 ID
-
-    /// <label>게임 종료 판정 및 결과 UI 처리 함수 (UniTask 비동기)</label>
-    public async UniTaskVoid ShowGameResultAsync(bool isWin, int currentNegotiationPower, float remainingSeconds)
+    // 보드 상태별 반복 횟수를 저장하는 딕셔너리
+    private Dictionary<string, int> positionHistory = new Dictionary<string, int>();
+    /// <summary>
+    /// 게임 종료 결과 패널 출력 및 씬 이동 처리 (UniTask 비동기)
+    /// </summary>
+    public async UniTaskVoid ShowGameResultAsync(GameResultType resultType, float currentNegotiationPower, float remainingSeconds)
     {
-        // 1. 결과 패널 활성화
         if (ResultPanel != null)
         {
             ResultPanel.SetActive(true);
         }
 
-        // 2. 승리/패배 배율 설정 (이기면 x10, 지면 x2)
-        int multiplier = isWin ? 10 : 2;
+        float totalMoney = 0;
+        string resultTextStr = "";
 
-        // 3. 점수 계산 (협상력 환산금액 + 남은 시간 환산금액)
-        // 예시: 협상력 * 배율, 남은 시간(초) * 배율
-        int negoMoney = currentNegotiationPower * multiplier;
-        int timeMoney = Mathf.FloorToInt(remainingSeconds) * multiplier;
-        int totalMoney = negoMoney + timeMoney;
-
-        // 4. UI 텍스트 반영
-        if (ResultText != null)
+        // 결과 유형에 따른 분기 처리
+        switch (resultType)
         {
-            ResultText.text = isWin ? "승리" : "패배";
+            case GameResultType.Win:
+                int winMultiplier = 10;
+                float negoMoneyWin = currentNegotiationPower * winMultiplier;
+                int timeMoneyWin = Mathf.FloorToInt(remainingSeconds) * winMultiplier;
+                totalMoney = negoMoneyWin + timeMoneyWin;
+                resultTextStr = "승리";
+
+                if (NegoText != null) NegoText.text = $"현재 협상력 : {negoMoneyWin} (x{winMultiplier})";
+                if (TimeText != null) TimeText.text = $"현재 남은 시간 : {timeMoneyWin} (x{winMultiplier})";
+
+                // 승리 시 다음 캐릭터 잠금 해제 실행
+                UnlockNextCharacter(currentAI.characterId);
+                break;
+
+            case GameResultType.Lose:
+                int loseMultiplier = 5;
+                float negoMoneyLose = currentNegotiationPower * loseMultiplier;
+                int timeMoneyLose = Mathf.FloorToInt(remainingSeconds) * loseMultiplier;
+                totalMoney = negoMoneyLose + timeMoneyLose;
+                resultTextStr = "패배";
+
+                if (NegoText != null) NegoText.text = $"현재 협상력 : {negoMoneyLose} (x{loseMultiplier})";
+                if (TimeText != null) TimeText.text = $"현재 남은 시간 : {timeMoneyLose} (x{loseMultiplier})";
+                break;
+
+            case GameResultType.Draw:
+                // 무승부 시 고정 1000원 지급
+                totalMoney = 1000;
+                resultTextStr = "무승부";
+
+                if (NegoText != null) NegoText.text = "무승부 보너스 적용";
+                if (TimeText != null) TimeText.text = "무승부 보너스 적용";
+                break;
         }
 
-        if (NegoText != null)
-        {
-            NegoText.text = $"현재 협상력 : {negoMoney} (x{multiplier})";
-        }
+        // UI 텍스트 적용
+        if (ResultText != null) ResultText.text = resultTextStr;
+        if (ResultMoneyText != null) ResultMoneyText.text = $"획득한 돈 : {totalMoney} 원";
 
-        if (TimeText != null)
-        {
-            TimeText.text = $"현재 남은 시간 : {timeMoney} (x{multiplier})";
-        }
+        
+        singlePlayer.Gold += Mathf.FloorToInt(totalMoney);
 
-        if (ResultMoneyText != null)
-        {
-            ResultMoneyText.text = $"획득한 돈 : {totalMoney} 원";
-        }
-
-        // 5. SinglePlayer (또는 돈 관리 시스템)에 돈 반영 및 저장
-        singlePlayer.Gold += totalMoney;
-
-        // 6. 이긴 경우 다음 캐릭터 잠금 해제 처리
-        if (isWin)
-        {
-            UnlockNextCharacter();
-        }
-
-        // 7. UniTask를 이용해 정확히 5초 대기 (Time.timeScale 영향 받지 않음)
+        // 5초 대기 후 로비 씬으로 이동
         await UniTask.Delay(System.TimeSpan.FromSeconds(5f), ignoreTimeScale: true);
-
-        // 8. 로비 씬으로 이동
-        if(ScriptM.TryGet<ScenesM>(out ScenesM service))
+        if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
             service.LoadScene(SceneNumber.Lobby);
         }
     }
+   
+    
+     
 
-    /// <summary>
-    /// 다음 캐릭터 잠금 해제 로직 (PlayerPrefs 또는 데이터 매니저 연동)
-    /// </summary>
-    private void UnlockNextCharacter()
+/// <summary>
+/// 다음 캐릭터 잠금 해제 로직 (PlayerPrefs 또는 데이터 매니저 연동)
+/// </summary>
+private void UnlockNextCharacter(int currentDefeatedCharacterId)
     {
+        // 현재 깨부단 캐릭터 ID에 1을 더해 다음 캐릭터 ID를 구합니다. (예: 서오(0) 클리어 -> 레온(1) 해제)
+        int nextCharacterId = currentDefeatedCharacterId + 1;
 
-        Debug.Log($"[캐릭터 해제] {nextCharacterID}번 캐릭터의 잠금이 해제되었습니다!");
+        // PlayerPrefs를 이용해 저장 (예: "Character_Unlock_1" = 1)
+        string key = $"Character_Unlock_{nextCharacterId}";
+        PlayerPrefs.SetInt(key, 1);
+        PlayerPrefs.Save();
+
+        Debug.Log($"[캐릭터 해제] {currentDefeatedCharacterId}번 캐릭터를 클리어하여, {nextCharacterId}번 캐릭터의 잠금이 해제되었습니다!");
     }
 
+    /// <summary>
+    /// 특정 플레이어의 상태가 스테일메이트(체크가 아니면서 움직일 수 없는 상태)인지 판별하는 함수
+    /// </summary>
+    public bool CheckStalemate(bool isWhiteTurn, ChessPieceM[,] grid)
+    {
+        // 1. 현재 왕이 체크 상태라면 스테일메이트가 아님 (체크메이트 패배 국면)
+        if (IsKingInCheck(isWhiteTurn, grid))
+        {
+            return false;
+        }
+
+        // 2. 현재 턴인 플레이어의 모든 기물을 순회하며 합법적인 이동 경로가 단 하나라도 있는지 확인
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                ChessPieceM piece = grid[x, y];
+
+                // 내 팀 기물인 경우
+                if (piece != null && piece.isWhite == isWhiteTurn)
+                {
+                    List<Vector2Int> possibleMoves = new List<Vector2Int>();
+                    piece.GetPossibleMoves(grid, possibleMoves);
+
+                    // 만약 움직일 수 있는 경로가 단 하나라도 존재한다면 스테일메이트 아님
+                    if (possibleMoves.Count > 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        // 체크도 아닌데 움직일 수 있는 기물이 하나도 없다면 완벽한 스테일메이트(무승부) 성립!
+        return true;
+    }
+
+    /// <summary>
+    /// 현재 보드의 기물 배치와 턴 정보를 조합하여 고유한 상태 문자열 생성
+    /// </summary>
+    private string GetBoardStateString(bool isWhiteTurn, ChessPieceM[,] grid)
+    {
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+
+        // 누구 턴인지 먼저 추가
+        sb.Append(isWhiteTurn ? "W|" : "B|");
+
+        // 보드판을 순회하며 살아있는 기물들의 정보(위치, 타입, 색상)를 문자열로 직렬화
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                ChessPieceM piece = grid[x, y];
+                if (piece != null)
+                {
+                    sb.Append($"{x},{y},{piece.data.Type},{(piece.isWhite ? "W" : "B")};");
+                }
+            }
+        }
+
+        return sb.ToString();
+    }
+
+    /// <summary>
+    /// 매 이동 완료 시 호출하여 현재 국면이 3번 반복되었는지 검사
+    /// </summary>
+    public bool CheckThreefoldRepetition(bool isWhiteTurn, ChessPieceM[,] grid)
+    {
+        // 1. 현재 보드판의 상태 문자열 생성
+        string currentStateKey = GetBoardStateString(isWhiteTurn, grid);
+
+        // 2. 딕셔너리에 기록하고 등장 횟수 증가
+        if (positionHistory.ContainsKey(currentStateKey))
+        {
+            positionHistory[currentStateKey]++;
+        }
+        else
+        {
+            positionHistory[currentStateKey] = 1;
+        }
+
+        // 3. 동일한 국면이 3번 이상 나타났다면 삼중 반복 무승부 성립!
+        if (positionHistory[currentStateKey] >= 3)
+        {
+            Debug.Log("[무승부] 삼중 반복 무승부(Threefold Repetition)가 발생했습니다!");
+            return true;
+        }
+
+        return false;
+    }
     #endregion
 
 

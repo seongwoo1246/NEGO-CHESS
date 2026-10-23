@@ -92,3 +92,10 @@ public enum NegotiationType
     Promotion,
     Undo 
 }
+
+public enum GameResultType
+{ 
+    Win,
+    Lose,
+    Draw 
+}
