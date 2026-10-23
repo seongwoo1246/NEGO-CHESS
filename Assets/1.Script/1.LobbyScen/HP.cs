@@ -10,7 +10,6 @@ public class HP : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI HpText;
     [SerializeField] public Slider hpBar;
-    [SerializeField] private int currentHp;
     [Header("기본 스탯")]
     [SerializeField] private int baseMaxHp = 100;
     [SerializeField] private int baseUseHp = 20;
@@ -36,19 +35,19 @@ public class HP : MonoBehaviour
     // 프로퍼티를 통해 hp 값이 변경될 때 자동으로 이벤트가 발동되도록 설정
     public int Hp
     {
-        get => currentHp;
+        get => singlePlayer.currentHp;
         set
         {
             int clampedValue = Mathf.Clamp(value, 0, maxHp);
-            if (currentHp != clampedValue)
+            if (singlePlayer.currentHp != clampedValue)
             {
-                currentHp = clampedValue;
+                singlePlayer.currentHp = clampedValue;
 
                 // 값이 실제로 바뀔 때 이벤트 발행 (구독하고 있는 모든 곳에 알림)
-                OnHpChanged?.Invoke(currentHp);
+                OnHpChanged?.Invoke(singlePlayer.currentHp);
                 if (maxHp > 0)
                 {
-                    OnHpRatioChanged?.Invoke((float)currentHp / maxHp);
+                    OnHpRatioChanged?.Invoke((float)singlePlayer.currentHp / maxHp);
                 }
             }
         }
@@ -99,6 +98,10 @@ public class HP : MonoBehaviour
         {
             Debug.Log("전투 가능");
             Hp -= useHp;
+            if(ScriptM.TryGet<AchievementM>(out AchievementM service))
+            {
+                service.AddUseHp(useHp);
+            }
             return true;
         }
         else

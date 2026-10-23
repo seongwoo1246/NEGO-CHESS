@@ -25,7 +25,7 @@ public class CharacterM : MonoBehaviour
         characterName.text = $"{singlePlayer.playerName}";
         gender.text = $"{singlePlayer.gender}";
         icon.sprite = character.GetSprites(3)[0];
-        message.text = "";
+        message.text = PlayerPrefs.GetString("PlayerMessage", " ");
         // 각 버튼을 누르면 입력 모드를 바꾸고 입력 필드를 활성화
         nameBtn.onClick.AddListener(() => { currentEdit = EditMode.Name; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
         MessageBtn.onClick.AddListener(() => { currentEdit = EditMode.Message; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
@@ -65,6 +65,8 @@ public class CharacterM : MonoBehaviour
                 break;
             case EditMode.Message:
                 message.text = inputStr;
+                PlayerPrefs.SetString("PlayerMessage", message.text);
+                PlayerPrefs.Save();
                 Debug.Log($"메세지가 변경되었습니다.");
                 break;
             case EditMode.None:

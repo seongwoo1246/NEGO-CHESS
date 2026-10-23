@@ -1285,6 +1285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Setting
   ResetBtn: {fileID: 4175352729791182016}
+  GoToStratScene: {fileID: 1336219870902491307}
   SoundBtn: {fileID: 3392528733274859992}
   MasterMute: {fileID: 4393753017728223674}
   BGMMute: {fileID: 4029023523215784173}
@@ -1747,7 +1748,7 @@ GameObject:
   - component: {fileID: 4369255649951644653}
   - component: {fileID: 1336219870902491307}
   m_Layer: 5
-  m_Name: ToLobby
+  m_Name: ToStart
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5112,7 +5113,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uB85C\uBE44\uC774\uB3D9"
+  m_text: "\uC2DC\uC791\uC52C \uC774\uB3D9"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}

@@ -20,7 +20,6 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] private GameObject Panel;
 
     [Header("캐릭터 설정")]
-    [SerializeField] private bool isFristCahr = true;
     [SerializeField] private GameObject Player;
     [SerializeField] public TMP_InputField PlayerName;
     [SerializeField] public TMP_InputField PlayerMonth;
@@ -141,7 +140,7 @@ public class StartSceneM : MonoBehaviour
 
     private void InputData()
     {
-        if(isFristCahr == true)
+        if(singlePlayer.isFristPlay == true)
         {
             singlePlayer.playerName = PlayerName.text;
 
@@ -163,7 +162,7 @@ public class StartSceneM : MonoBehaviour
                 Texts.text = "예) 12일 = 12 식으로 적어주세요.";
             }
 
-            isFristCahr = false;
+            singlePlayer.isFristPlay = false;
         }
 
       

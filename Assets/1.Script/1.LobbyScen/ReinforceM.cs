@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 [System.Serializable]
@@ -10,7 +11,7 @@ public class Upgrade
     public int currentLevel =0 ;
     public int maxLevel;    // 최대 강화 횟수
     public int price;       // 업그레이드 비용
-    public int pricestep = 1000;
+    public int pricestep;
     public int pulse;       // 증가하는 수치 (체력 +10, 폰 +1 등)
 
     public int FinalPrice => price + (currentLevel * pricestep);
@@ -29,30 +30,17 @@ public class Upgrade
 
 public class ReinforceM : MonoBehaviour
 {
-    [SerializeField] private int currentGold;
+   
     [SerializeField] private TextMeshProUGUI GoldText;
 
-    [Header("체력관련")]
-    [SerializeField] private Upgrade MaxHp;
-    [SerializeField] private Upgrade UseHp;
-
-    [Header("코스트관련")]
-    [SerializeField] private Upgrade MaxCost;
-    
-    [Header("협상관련")]
-    [SerializeField] private Upgrade NegoUp;
-
-    [Header("체스 말 관련")]
-    [SerializeField] private Upgrade MaxPawnUp;
-    [SerializeField] private Upgrade MaxBishopUp;
-    [SerializeField] private Upgrade MaxKnightUp;
-    [SerializeField] private Upgrade MaxRookUp;
-    [SerializeField] private Upgrade MaxQueenUp;
+    [SerializeField] public List<Upgrade> upgradeList = new List<Upgrade>();
 
 
     private void Awake()
     {
         ScriptM.Register<ReinforceM>(this, UseSpace.Local);
+        InitAllUpgrades();
+        GoldText.text = $"현재 소유 금액 {singlePlayer.Gold}";
     }
 
     private void OnDisable()
@@ -60,6 +48,14 @@ public class ReinforceM : MonoBehaviour
         ScriptM.Unregister<ReinforceM>();
     }
 
+    public void InitAllUpgrades()
+    {
+        foreach (var upgrade in upgradeList)
+        {
+            // 각 업그레이드 초기화 로직 실행
+            upgrade.UpdateUI();
+        }
+    }
     public void TryUpgrade(Upgrade stat)
     {
         if (stat.currentLevel >= stat.maxLevel)
@@ -68,9 +64,9 @@ public class ReinforceM : MonoBehaviour
             return;
         }
 
-        if (currentGold >= stat.price)
+        if (singlePlayer.Gold >= stat.price)
         {
-            currentGold -= stat.price;
+            singlePlayer.Gold -= stat.price;
             stat.currentLevel++;
             ApplyStatEffect(stat);
             stat.UpdateUI();

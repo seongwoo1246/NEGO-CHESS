@@ -5,6 +5,7 @@ public class Setting : MonoBehaviour
 {
     [Header("버튼 및 토글")]
     [SerializeField] Button ResetBtn;
+    [SerializeField] Button GoToStratScene;
     [SerializeField] Button SoundBtn;
     [SerializeField] Toggle MasterMute;
     [SerializeField] Toggle BGMMute;
@@ -48,6 +49,11 @@ public class Setting : MonoBehaviour
                 SoundBtn.onClick.RemoveAllListeners();
                 SoundBtn.onClick.AddListener(OpenSound);
             }
+            if(GoToStratScene != null)
+            {
+                GoToStratScene.onClick.RemoveAllListeners();
+                GoToStratScene.onClick.AddListener(GoToStartScenes);
+            }
         }  
     }
 
@@ -84,4 +90,16 @@ public class Setting : MonoBehaviour
         setting.SetActive(false);
     }
 
+
+    public void GoToStartScenes()
+    {
+        if (ScriptM.TryGet<ScenesM>(out ScenesM service))
+        {
+            Sound.SetActive(false);
+            DisPlay.SetActive(true);
+            setting.SetActive(false);
+            ScriptM.ClearSceneLocalServices();
+            service.LoadScene(SceneNumber.GameStart);
+        }
+    }
 }

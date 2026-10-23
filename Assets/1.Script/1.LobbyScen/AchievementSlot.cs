@@ -20,7 +20,6 @@ public class AchievementSlot : MonoBehaviour
     [SerializeField] Slider hpbar;
     [SerializeField] TextMeshProUGUI hpbarText;
 
-
     private void OnEnable()
     {
         if(ScriptM.TryGet<AchievementM>(out AchievementM service))
@@ -33,6 +32,7 @@ public class AchievementSlot : MonoBehaviour
     }
     private void OnDisable()
     {
+        
         if (ScriptM.TryGet<AchievementM>(out AchievementM service))
         {
             service.OnReonWinChanged -= UpdateReonUI;

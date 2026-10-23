@@ -1062,7 +1062,9 @@ MonoBehaviour:
   NegoText: {fileID: 663152802}
   TimeText: {fileID: 706610493}
   ResultMoneyText: {fileID: 1615644466}
-  nextCharacterID: 1
+  panelCanvasGroup: {fileID: 6907024949058616601, guid: 7e7e257bbc6359b4fb5fe449e2f512c2, type: 3}
+  popupUIObject: {fileID: 4390896101365474396, guid: 7e7e257bbc6359b4fb5fe449e2f512c2, type: 3}
+  AchievementPanel: {fileID: 3254811879046958754, guid: 7e7e257bbc6359b4fb5fe449e2f512c2, type: 3}
 --- !u!4 &211198754
 Transform:
   m_ObjectHideFlags: 0

@@ -1540,6 +1540,17 @@ public class CheseGameM : MonoBehaviour
 
                 // 승리 시 다음 캐릭터 잠금 해제 실행
                 UnlockNextCharacter(currentAI.characterId);
+                if(ScriptM.TryGet<AchievementM>(out AchievementM achievement))
+                {
+                    switch(currentAI.characterId)
+                    {
+                        case 0: achievement.AddSeoWin(1); break;
+                        case 1: achievement.AddReonWin(1); break;
+                        case 2: achievement.AddCloeWin(1); break;
+                    }
+                }
+
+                
                 break;
 
             case GameResultType.Lose:
@@ -1560,6 +1571,8 @@ public class CheseGameM : MonoBehaviour
 
                 if (NegoText != null) NegoText.text = "무승부 보너스 적용";
                 if (TimeText != null) TimeText.text = "무승부 보너스 적용";
+
+                
                 break;
         }
 
@@ -1576,6 +1589,11 @@ public class CheseGameM : MonoBehaviour
         {
             service1.ShowPanel();
         }
+        if(ScriptM.TryGet<AchievementM>(out AchievementM service2))
+        {
+            service2.ReturnFromBattle();
+        }
+
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
             
@@ -1595,12 +1613,23 @@ private void UnlockNextCharacter(int currentDefeatedCharacterId)
         // 현재 깨부단 캐릭터 ID에 1을 더해 다음 캐릭터 ID를 구합니다. (예: 서오(0) 클리어 -> 레온(1) 해제)
         int nextCharacterId = currentDefeatedCharacterId + 1;
 
+
+
         // PlayerPrefs를 이용해 저장 (예: "Character_Unlock_1" = 1)
         string key = $"Character_Unlock_{nextCharacterId}";
         PlayerPrefs.SetInt(key, 1);
         PlayerPrefs.Save();
 
-        Debug.Log($"[캐릭터 해제] {currentDefeatedCharacterId}번 캐릭터를 클리어하여, {nextCharacterId}번 캐릭터의 잠금이 해제되었습니다!");
+        if(nextCharacterId==1)
+        {
+            if(ScriptM.TryGet<Reon>(out Reon reon))
+            reon.isUnlocked = true;
+        }
+        else if(nextCharacterId==2)
+        {
+            if (ScriptM.TryGet<Cloe>(out Cloe cloe))
+                cloe.isUnlocked = true;
+        }
     }
 
     /// <summary>
@@ -1640,8 +1669,9 @@ private void UnlockNextCharacter(int currentDefeatedCharacterId)
         return true;
     }
 
-  
+    
     #endregion
+
 
 
 

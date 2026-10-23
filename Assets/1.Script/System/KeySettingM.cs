@@ -1,4 +1,5 @@
 ﻿using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Debug = DebugM<KeySettingM>;
@@ -64,6 +65,8 @@ public class KeySettingM : MonoBehaviour
         SettingPopUp.SetActive(false);
 
     }
+
+   
 
     /// <summary>
     /// 모든 UI 버튼 텍스트를 현재 설정된 키 이름으로 갱신
