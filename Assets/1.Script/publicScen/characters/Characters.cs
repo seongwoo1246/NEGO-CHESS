@@ -1,8 +1,12 @@
 ﻿using Cysharp.Threading.Tasks;
 using Google.GData.Extensions;
 using System.Collections.Generic;
+using Unity.Mathematics;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static UnityEngine.Audio.ProcessorInstance;
+using static UnityEngine.GraphicsBuffer;
 
 [System.Serializable]
 public struct PieceSpawnInfo
@@ -27,13 +31,15 @@ public struct SimPieceData
     public PieceColor color;
     public Vector2Int pos;
     public bool hasMoved;
+    public bool movedTwoSquaresLastTurn;
 
-    public SimPieceData(pieceType type, PieceColor color, Vector2Int pos, bool hasMoved)
+    public SimPieceData(pieceType type, PieceColor color, Vector2Int pos, bool hasMoved, bool movedTwoSquaresLastTurn)
     {
         this.type = type;
         this.color = color;
         this.pos = pos;
         this.hasMoved = hasMoved;
+        this.movedTwoSquaresLastTurn = movedTwoSquaresLastTurn;
     }
 }
 
@@ -56,6 +62,10 @@ public class Characters : MonoBehaviour
 
     private CheseGameM gameM;
 
+    private bool allowCastling;
+    private bool allowEnPassant;
+    private bool allowPromotion;
+
     private void Awake()
     {
         ScriptM.Register<Characters>(this,UseSpace.Local);
@@ -64,6 +74,11 @@ public class Characters : MonoBehaviour
         {
             gameM = _gameM;
         }
+
+        allowCastling = gameM.canUseCastling;
+        allowEnPassant = gameM.canUseEnPassant;
+        allowPromotion = gameM.canUsePromotion;
+
     }
 
     private void OnDestroy()
@@ -105,10 +120,7 @@ public class Characters : MonoBehaviour
     // AI 이동 결정 함수 (가상 함수로 만들어 캐릭터마다 다르게 오버라이드 가능)
     public virtual async UniTask OnAITurnAsync()
     {
-        
-        await UniTask.Delay(System.TimeSpan.FromSeconds(2f));
 
-        
         MoveBestMove bestMove = await FindBestMoveAsync();
 
         if (bestMove.isValid)
@@ -143,11 +155,11 @@ public class Characters : MonoBehaviour
 
             // AI 기준 내 기물들을 찾아서 가능한 모든 수를 탐색
             List<SimPieceData> myPieces = GetSimPiecesByColor(boardCopy, myColor);
-
+            List<Vector2Int> moves = new List<Vector2Int>(32);
             foreach (var piece in myPieces)
             {
-                List<Vector2Int> moves = new List<Vector2Int>();
-                // 💡 주의: 순수 데이터 배열을 기반으로 갈 수 있는 좌표를 계산하는 함수 호출 필요
+
+                moves.Clear();
                 GetPossibleMovesDataOnly(boardCopy, piece.pos, moves);
 
                 foreach (var target in moves)
@@ -450,8 +462,10 @@ public class Characters : MonoBehaviour
         bool isPromotion = false;
         pieceType originalType = movingPiece.type;
 
-        // 1. 폰 프로모션 체크 (가상 승진)
-        if (movingPiece.type == pieceType.Pawn)
+        movingPiece.hasMoved = true;
+
+        // 폰 프로모션 체크 (가상 승진)
+        if (movingPiece.type == pieceType.Pawn&&(allowPromotion|| movingPiece.color != PieceColor.black))
         {
             if (to.y == 0 || to.y == 7)
             {
@@ -460,7 +474,29 @@ public class Characters : MonoBehaviour
             }
         }
 
-        // 2. 복원용 스택에 백업 정보 푸시 (순수 데이터만 저장하므로 백그라운드 안전!)
+        // 🏰 캐슬링 특수 이동 처리 (킹이 2칸 이동한 경우)
+        if (movingPiece.type == pieceType.King && math.abs(from.x - to.x) == 2&& !movingPiece.hasMoved && (allowCastling || movingPiece.color != PieceColor.black))
+        {
+            int row = to.y;
+            if (from.x > to.x) // 킹사이드 캐슬링 (오른쪽)
+            {
+                SimPieceData rook = boardState[7, row];
+                boardState[7, row] = new SimPieceData { type = pieceType.none };
+                rook.hasMoved = true;
+                boardState[5, row] = rook;
+                boardState[5, row].pos = new Vector2Int(5, row);
+            }
+            else // 퀸사이드 캐슬링 (왼쪽)
+            {
+                SimPieceData rook = boardState[0, row];
+                boardState[0, row] = new SimPieceData { type = pieceType.none };
+                rook.hasMoved = true;
+                boardState[3, row] = rook;
+                boardState[3, row].pos = new Vector2Int(3, row);
+            }
+        }
+
+        //  복원용 스택에 백업 정보 푸시 (순수 데이터만 저장하므로 백그라운드 안전!)
         undoStack.Push(new SimUndoData
         {
             from = from,
@@ -478,7 +514,7 @@ public class Characters : MonoBehaviour
     }
     private void UndoMoveDataOnly(SimPieceData[,] boardState, SimUndoData undoData)
     {
-        // 1. 이동했던 기물을 원래 자리로 복구
+        // 1. 이동했던 기물을 원래 출발 자리로 복구
         boardState[undoData.from.x, undoData.from.y] = undoData.movedPiece;
         boardState[undoData.from.x, undoData.from.y].pos = undoData.from;
 
@@ -488,8 +524,33 @@ public class Characters : MonoBehaviour
             boardState[undoData.from.x, undoData.from.y].type = undoData.originalType;
         }
 
-        // 3. 원래 그 자리에 있던 기물(잡혔던 기물) 복구
+        // 3. 원래 목적지에 있던 기물(잡혔던 기물 혹은 빈 칸) 복구
         boardState[undoData.to.x, undoData.to.y] = undoData.capturedPiece;
+
+        // 4. 🏰 캐슬링이었던 경우, 함께 움직였던 룩도 원래 자리로 되돌리기
+        // (킹이 2칸 이동했던 수였다면 룩의 위치를 원상복구합니다)
+        if (undoData.movedPiece.type == pieceType.King && math.abs(undoData.to.x - undoData.from.x) == 2)
+        {
+            int row = undoData.from.y;
+            if (undoData.to.x > undoData.from.x) // 킹사이드 캐슬링이었던 경우
+            {
+                // f열(5)에 있던 룩을 다시 원래 구석(7)으로 이동
+                SimPieceData rook = boardState[5, row];
+                boardState[5, row] = new SimPieceData { type = pieceType.none };
+                rook.hasMoved = false; // 캐슬링 전 상태로 권한 복구 (선택적)
+                boardState[7, row] = rook;
+                boardState[7, row].pos = new Vector2Int(7, row);
+            }
+            else // 퀸사이드 캐슬링이었던 경우
+            {
+                // d열(3)에 있던 룩을 다시 원래 구석(0)으로 이동
+                SimPieceData rook = boardState[3, row];
+                boardState[3, row] = new SimPieceData { type = pieceType.none };
+                rook.hasMoved = false; // 캐슬링 전 상태로 권한 복구 (선택적)
+                boardState[0, row] = rook;
+                boardState[0, row].pos = new Vector2Int(0, row);
+            }
+        }
     }
     private void ExecuteMove(Vector2Int from, Vector2Int to)
     { 
@@ -512,29 +573,19 @@ public class Characters : MonoBehaviour
                 if (piece != null)
                 {
                     // 실제 기물의 데이터를 복사해서 순수 데이터 구조체로 생성
-                    boardCopy[x, y] = new SimPieceData(piece.data.Type, piece.data.Color, new Vector2Int(x, y), true );
+                    boardCopy[x, y] = new SimPieceData(piece.data.Type, piece.data.Color, new Vector2Int(x, y), true ,false);
                 }
                 else
                 {
                     // 빈 칸은 기본값으로 처리 (type이 None이거나 비워두기)
-                    boardCopy[x, y] = new SimPieceData(pieceType.none, PieceColor.none, new Vector2Int(x, y), false);
+                    boardCopy[x, y] = new SimPieceData(pieceType.none, PieceColor.none, new Vector2Int(x, y), false, false);
                 }
             }
         }
         return boardCopy;
     }
 
-    private void GetPossibleMovesDataOnly(SimPieceData[,] boardState, Vector2Int fromPos, List<Vector2Int> outMoves)
-    {
-        SimPieceData piece = boardState[fromPos.x, fromPos.y];
-        if (piece.type == pieceType.none) return;
-
-        ChessPieceM realPiece = gameM.pieceGrid[fromPos.x, fromPos.y];
-        if (realPiece != null)
-        {
-            realPiece.GetPossibleMoves(gameM.pieceGrid, outMoves);
-        }
-    }
+ 
 
     private List<Vector2Int> GetAllEnemyAttackMovesDataOnly(bool isWhiteEnemy, SimPieceData[,] boardState)
     {
@@ -597,4 +648,323 @@ public class Characters : MonoBehaviour
         return new Vector2Int(-1, -1); // 못 찾은 경우 (이럴 일은 없지만 안전장치)
     }
     protected PieceColor myColor = PieceColor.black;
+
+    private void GetPossibleMovesDataOnly(SimPieceData[,] boardState, Vector2Int fromPos, List<Vector2Int> outMoves)
+    {
+        SimPieceData piece = boardState[fromPos.x, fromPos.y];
+        if (piece.type == pieceType.none) return;
+
+        // 💡 gameM.pieceGrid를 절대 보지 않고, 오직 순수 데이터 배열인 boardState만 이용!
+        switch (piece.type)
+        {
+            case pieceType.Pawn:
+
+                if (piece.type == pieceType.none) return;
+
+                // 백은 위로(+1), 흑은 아래로(-1) 전진 (보드 좌표 방향에 맞게 조절)
+                int direction = (piece.color == PieceColor.white) ? 1 : -1;
+
+                // 1. 앞으로 1칸 전진
+                int forwardY = fromPos.y + direction;
+                if (IsValidIndex(fromPos.x, forwardY) && boardState[fromPos.x, forwardY].type == pieceType.none)
+                {
+                    outMoves.Add(new Vector2Int(fromPos.x, forwardY));
+
+                    // 2. 처음 움직일 때 2칸 전진 (백은 y=1, 흑은 y=6 시작점 기준)
+                    bool isFirstMove = (piece.color == PieceColor.white && fromPos.y == 1) ||
+                                       (piece.color == PieceColor.black && fromPos.y == 6);
+
+                    int doubleForwardY = fromPos.y + (direction * 2);
+                    if (isFirstMove && IsValidIndex(fromPos.x, doubleForwardY) && boardState[fromPos.x, doubleForwardY].type == pieceType.none)
+                    {
+                        outMoves.Add(new Vector2Int(fromPos.x, doubleForwardY));
+                    }
+                }
+
+                // 3. 대각선 적 기물 포획
+                int[] dx = { -1, 1 };
+                foreach (int d in dx)
+                {
+                    int targetX = fromPos.x + d;
+                    int targetY = fromPos.y + direction;
+
+                    if (IsValidIndex(targetX, targetY))
+                    {
+                        SimPieceData targetPiece = boardState[targetX, targetY];
+                        // 빈 칸이 아니고, 색상이 다른 적 기물인 경우
+                        if (targetPiece.type != pieceType.none && targetPiece.color != piece.color)
+                        {
+                            outMoves.Add(new Vector2Int(targetX, targetY));
+                        }
+                    }
+
+                    // 4. 앙파상 (En Passant) 데이터 검사
+                    // 옆 칸에 적 폰이 있고, 직전에 2칸 움직인 기록(movedTwoSquaresLastTurn)이 있는 경우
+                    int sideX = targetX;
+                    int sideY = fromPos.y;
+                    if (IsValidIndex(sideX, sideY))
+                    {
+                        SimPieceData sidePiece = boardState[sideX, sideY];
+                        if (sidePiece.type == pieceType.Pawn && sidePiece.color != piece.color && sidePiece.movedTwoSquaresLastTurn)
+                        {
+                            int targetCaptureY = fromPos.y + direction;
+                            if (IsValidIndex(sideX, targetCaptureY))
+                            {
+                                outMoves.Add(new Vector2Int(sideX, targetCaptureY));
+                            }
+                        }
+                    }
+                }
+
+                // 💡 5. 프로모션(Promotion) 안내
+                // 순수 데이터 시뮬레이션에서는 도착 좌표 자체는 일반 전진/대각선과 똑같이 추가됩니다.
+                // 대신 가상 이동을 실행하는 `SimulateMoveDataOnly` 안에서 
+                // 폰이 맨 끝 행(백 y=7, 흑 y=0)에 도달했을 때 타입을 자동으로 `pieceType.Queen`으로 승격시켜 주면 됩니다!
+                break;
+
+            case pieceType.Knight:
+                Vector2Int[] knightMoves = new Vector2Int[]
+    {
+                    new Vector2Int(-1, 2), new Vector2Int(1, 2),   // 위쪽 L자
+                    new Vector2Int(-1, -2), new Vector2Int(1, -2), // 아래쪽 L자
+                    new Vector2Int(2, 1), new Vector2Int(2, -1),   // 오른쪽 L자
+                    new Vector2Int(-2, 1), new Vector2Int(-2, -1)  // 왼쪽 L자
+    };
+
+                foreach (Vector2Int move in knightMoves)
+                {
+                    int targetX = fromPos.x + move.x;
+                    int targetY = fromPos.y + move.y;
+
+                    // 1. 체스판 범위를 벗어나는지 검사
+                    if (IsValidIndex(targetX, targetY))
+                    {
+                        SimPieceData targetPiece = boardState[targetX, targetY];
+
+                        // 2. 빈 칸이거나(type == none) 색상이 다른 적 기물인 경우 이동 가능
+                        if (targetPiece.type == pieceType.none || targetPiece.color != piece.color)
+                        {
+                            outMoves.Add(new Vector2Int(targetX, targetY));
+                        }
+                    }
+                }
+                break;
+
+            case pieceType.Bishop:
+                {
+                    // 대각선 4방향 정의
+                    Vector2Int[] directions = new Vector2Int[]
+                    {
+                        new Vector2Int(1, 1),   // 우상단
+                        new Vector2Int(1, -1),  // 우하단
+                        new Vector2Int(-1, 1),  // 좌상단
+                        new Vector2Int(-1, -1)  // 좌하단
+                    };
+
+                    foreach (Vector2Int dir in directions)
+                    {
+                        int nextX = fromPos.x + dir.x;
+                        int nextY = fromPos.y + dir.y;
+
+                        // 보드 경계를 벗어나지 않을 때까지 대각선 탐색
+                        while (IsValidIndex(nextX, nextY))
+                        {
+                            SimPieceData targetPiece = boardState[nextX, nextY];
+
+                            // 1. 빈 칸인 경우 -> 이동 목록에 추가하고 계속 탐색
+                            if (targetPiece.type == pieceType.none)
+                            {
+                                outMoves.Add(new Vector2Int(nextX, nextY));
+                            }
+                            else
+                            {
+                                // 2. 적 기수인 경우 (색상이 다른 경우) -> 잡기 목록에 추가하고 해당 방향 탐색 종료
+                                if (targetPiece.color != piece.color)
+                                {
+                                    outMoves.Add(new Vector2Int(nextX, nextY));
+                                }
+                                // 3. 아군을 만났거나 적을 잡았으므로 길 막힘 -> 루프 탈출
+                                break;
+                            }
+
+                            // 다음 대각선 칸으로 전진
+                            nextX += dir.x;
+                            nextY += dir.y;
+                        }
+                    }
+                    break;
+                }
+
+            case pieceType.Rook:
+                {
+                    // 직선 4방향 정의 (상, 하, 우, 좌)
+                    Vector2Int[] directions = new Vector2Int[]
+                    {
+                        new Vector2Int(0, 1),   // 위
+                        new Vector2Int(0, -1),  // 아래
+                        new Vector2Int(1, 0),   // 오른쪽
+                        new Vector2Int(-1, 0)   // 왼쪽
+                    };
+
+                    foreach (Vector2Int dir in directions)
+                    {
+                        int nextX = fromPos.x + dir.x;
+                        int nextY = fromPos.y + dir.y;
+
+                        // 보드 경계를 벗어나지 않을 때까지 직선 탐색
+                        while (IsValidIndex(nextX, nextY))
+                        {
+                            SimPieceData targetPiece = boardState[nextX, nextY];
+
+                            // 1. 빈 칸인 경우 -> 이동 목록에 추가하고 계속 탐색
+                            if (targetPiece.type == pieceType.none)
+                            {
+                                outMoves.Add(new Vector2Int(nextX, nextY));
+                            }
+                            else
+                            {
+                                // 2. 적 기물인 경우 (색상이 다른 경우) -> 잡기 목록에 추가하고 해당 방향 탐색 종료
+                                if (targetPiece.color != piece.color)
+                                {
+                                    outMoves.Add(new Vector2Int(nextX, nextY));
+                                }
+                                // 3. 아군을 만났거나 적을 잡았으므로 길 막힘 -> 루프 탈출
+                                break;
+                            }
+
+                            // 다음 직선 칸으로 전진
+                            nextX += dir.x;
+                            nextY += dir.y;
+                        }
+                    }
+                    break;
+                }
+        
+
+            case pieceType.Queen:
+                {
+                    // 8방향 정의 (직선 4방향 + 대각선 4방향)
+                    Vector2Int[] directions = new Vector2Int[]
+                    {
+                        new Vector2Int(0, 1),   // 위
+                        new Vector2Int(0, -1),  // 아래
+                        new Vector2Int(1, 0),   // 오른쪽
+                        new Vector2Int(-1, 0),  // 왼쪽
+                        new Vector2Int(1, 1),   // 우상단
+                        new Vector2Int(1, -1),  // 우하단
+                        new Vector2Int(-1, 1),  // 좌상단
+                        new Vector2Int(-1, -1)  // 좌하단
+                    };
+
+                    foreach (Vector2Int dir in directions)
+                    {
+                        int nextX = fromPos.x + dir.x;
+                        int nextY = fromPos.y + dir.y;
+
+                        // 보드 경계를 벗어나지 않을 때까지 8방향 탐색
+                        while (IsValidIndex(nextX, nextY))
+                        {
+                            SimPieceData targetPiece = boardState[nextX, nextY];
+
+                            // 1. 빈 칸인 경우 -> 이동 목록에 추가하고 계속 탐색
+                            if (targetPiece.type == pieceType.none)
+                            {
+                                outMoves.Add(new Vector2Int(nextX, nextY));
+                            }
+                            else
+                            {
+                                // 2. 적 기물인 경우 (색상이 다른 경우) -> 잡기 목록에 추가하고 해당 방향 탐색 종료
+                                if (targetPiece.color != piece.color)
+                                {
+                                    outMoves.Add(new Vector2Int(nextX, nextY));
+                                }
+                                // 3. 아군을 만났거나 적을 잡았으므로 길 막힘 -> 루프 탈출
+                                break;
+                            }
+
+                            // 다음 칸으로 전진
+                            nextX += dir.x;
+                            nextY += dir.y;
+                        }
+                    }
+                    break;
+                }
+
+            case pieceType.King:
+
+                {
+                    // 8방향 1칸씩 이동
+                    Vector2Int[] directions = new Vector2Int[]
+                    {
+                        new Vector2Int(0, 1),   // 위
+                        new Vector2Int(0, -1),  // 아래
+                        new Vector2Int(1, 0),   // 오른쪽
+                        new Vector2Int(-1, 0),  // 왼쪽
+                        new Vector2Int(1, 1),   // 우상단
+                        new Vector2Int(1, -1),  // 우하단
+                        new Vector2Int(-1, 1),  // 좌상단
+                        new Vector2Int(-1, -1)  // 좌하단
+                    };
+
+                    foreach (Vector2Int dir in directions)
+                    {
+                        int targetX = fromPos.x + dir.x;
+                        int targetY = fromPos.y + dir.y;
+
+                        if (IsValidIndex(targetX, targetY))
+                        {
+                            SimPieceData targetPiece = boardState[targetX, targetY];
+                            // 빈 칸이거나 적 기물인 경우 이동 가능
+                            if (targetPiece.type == pieceType.none || targetPiece.color != piece.color)
+                            {
+                                outMoves.Add(new Vector2Int(targetX, targetY));
+                            }
+                        }
+                    }
+
+                    // 🏰 캐슬링 (Castling) 데이터 검사
+                    // 💡 주의: SimPieceData 구조체에 `bool hasMoved` 필드가 정의되어 있어야 합니다!
+                    if (!piece.hasMoved)
+                    {
+                        int row = fromPos.y; // 백은 보통 y=0, 흑은 y=7
+
+                        // 1. 킹사이드 캐슬링 (오른쪽 룩 방향)
+                        // 룩이 존재하고 아직 안 움직였으며, 킹과 룩 사이의 칸(5, 6번 열)이 비어있는지 확인
+                        SimPieceData kingsideRook = boardState[7, row];
+                        if (kingsideRook.type == pieceType.Rook && !kingsideRook.hasMoved)
+                        {
+                            if (boardState[5, row].type == pieceType.none && boardState[6, row].type == pieceType.none)
+                            {
+                                // 캐슬링 시 킹이 이동할 최종 목표 칸 (x = 6)
+                                outMoves.Add(new Vector2Int(6, row));
+                            }
+                        }
+
+                        // 2. 퀸사이드 캐슬링 (왼쪽 룩 방향)
+                        // 룩이 존재하고 아직 안 움직였으며, 사이의 칸(1, 2, 3번 열)이 비어있는지 확인
+                        SimPieceData queensideRook = boardState[0, row];
+                        if (queensideRook.type == pieceType.Rook && !queensideRook.hasMoved)
+                        {
+                            if (boardState[1, row].type == pieceType.none &&
+                                boardState[2, row].type == pieceType.none &&
+                                boardState[3, row].type == pieceType.none)
+                            {
+                                // 캐슬링 시 킹이 이동할 최종 목표 칸 (x = 2)
+                                outMoves.Add(new Vector2Int(2, row));
+                            }
+                        }
+                    }
+                    break;
+                }
+
+
+        }
+    
+    }
+        private bool IsValidIndex(int x, int y)
+    {
+        
+        return x >= 0 && x < 8 && y >= 0 && y < 8;
+    }
 }
+
