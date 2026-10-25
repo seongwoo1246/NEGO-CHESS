@@ -24,7 +24,7 @@ public class CharacterM : MonoBehaviour
         birthDay.text = $"{singlePlayer.birthMonth}-{singlePlayer.birthDay}";
         characterName.text = $"{singlePlayer.playerName}";
         gender.text = $"{singlePlayer.gender}";
-        icon.sprite = character.GetSprites(3)[0];
+        icon.sprite = singlePlayer.icon;
         message.text = PlayerPrefs.GetString("PlayerMessage", " ");
         // 각 버튼을 누르면 입력 모드를 바꾸고 입력 필드를 활성화
         nameBtn.onClick.AddListener(() => { currentEdit = EditMode.Name; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
@@ -35,6 +35,7 @@ public class CharacterM : MonoBehaviour
                 singlePlayer.gender = "여";
                 gender.text = singlePlayer.gender;
                 icon.sprite = character.GetSprites(3)[0];
+                singlePlayer.icon = icon.sprite;
                 singlePlayer.isGirl = false ;
             }
             else
@@ -42,6 +43,7 @@ public class CharacterM : MonoBehaviour
                 singlePlayer.gender = "남";
                 gender.text = singlePlayer.gender;
                 icon.sprite = character.GetSprites(3)[1];
+                singlePlayer.icon = icon.sprite;
                 singlePlayer.isGirl = true;
             }
             });

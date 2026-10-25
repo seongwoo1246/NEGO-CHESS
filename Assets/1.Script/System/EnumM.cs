@@ -43,7 +43,8 @@ public enum pieceType
     Bishop,
     Rook,
     Queen,
-    King
+    King,
+    none
 }
 
 // 화면 모드 종류 정의 (UI 드롭다운 인덱스와 매핑하기 용이)

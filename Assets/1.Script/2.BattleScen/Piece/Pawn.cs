@@ -56,38 +56,35 @@ public class Pawn : ChessPieceM
 
             if (ScriptM.TryGet<CheseGameM>(out CheseGameM gameM))
             {
-                if (!gameM.canUseEnPassant) return;
-                if (!gameM.canUsePromotion) return;
-
-
-
-                // 4. 앙파상(En Passant) 검사 예시 수정
-                int sidex = targetX; // 옆 칸의 X
-                int sideY = CurrentPos.y; // 내 폰과 같은 행(Y)에 있는 적 폰을 검사
-
-                // 검사와 접근하는 좌표를 정확히 통일해야 합니다!
-                if (IsValidIndex(sidex, sideY))
+                // 1. 앙파상 규칙 켜져 있는지 체크 (블록으로 감싸서 조건 불일치 시 앙파상만 건너뜀)
+                if (gameM.canUseEnPassant || this.data.Color != PieceColor.black)
                 {
-                    if (board[sidex, sideY] != null && !IsSameTeam(board[sidex, sideY]))
+                    int sidex = targetX;
+                    int sideY = CurrentPos.y;
+
+                    if (IsValidIndex(sidex, sideY))
                     {
-                        Pawn enemyPawn = board[sidex, sideY].GetComponent<Pawn>();
-
-                        if (enemyPawn != null && enemyPawn.movedTwoSquaresLastTurn)
+                        if (board[sidex, sideY] != null && !IsSameTeam(board[sidex, sideY]))
                         {
-                            // 앙파상으로 이동할 최종 목표 칸 (적 기물 뒤쪽 대각선 칸)
-                            int targetCaptureY = CurrentPos.y + direction;
-
-                            if (IsValidIndex(sidex, targetCaptureY))
+                            Pawn enemyPawn = board[sidex, sideY].GetComponent<Pawn>();
+                            if (enemyPawn != null && enemyPawn.movedTwoSquaresLastTurn)
                             {
-                                possibleMoves.Add(new Vector2Int(sidex, targetCaptureY));
+                                int targetCaptureY = CurrentPos.y + direction;
+                                if (IsValidIndex(sidex, targetCaptureY))
+                                {
+                                    possibleMoves.Add(new Vector2Int(sidex, targetCaptureY));
+                                }
                             }
                         }
                     }
                 }
 
+                // 2. 프로모션 체크 (앙파상과 완전히 독립적으로 실행됨!)
+                if (!gameM.canUsePromotion && this.data.Color == PieceColor.black) return;
+
                 if (CanPromote(CurrentPos.y))
-                { 
-                    if(isWhite)
+                {
+                    if (isWhite)
                     {
                         gameM.RequestPromotion(this, CurrentPos.x, CurrentPos.y, false);
                     }
@@ -95,7 +92,6 @@ public class Pawn : ChessPieceM
                     {
                         gameM.RequestPromotion(this, CurrentPos.x, CurrentPos.y, true);
                     }
-                   
                 }
             }
         }

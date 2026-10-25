@@ -39,6 +39,9 @@ public class StartSceneM : MonoBehaviour
 
     private void Start()
     {
+        // 시작할 때 저장한 데이터 불러오기
+        singlePlayer.ApplySaveData(SaveM.Load());
+
         characterData.InitializeDictionary();
 
         if (GameStartBtn != null)
@@ -102,6 +105,7 @@ public class StartSceneM : MonoBehaviour
 
    private void ExitGame()
     {
+        SaveM.Save(singlePlayer.CreateSaveData());
         Application.Quit();
     }
 

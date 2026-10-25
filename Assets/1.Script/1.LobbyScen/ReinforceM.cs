@@ -30,14 +30,16 @@ public class Upgrade
 
 public class ReinforceM : MonoBehaviour
 {
-   
+    public static ReinforceM Instance;
+
     [SerializeField] private TextMeshProUGUI GoldText;
 
     [SerializeField] public List<Upgrade> upgradeList = new List<Upgrade>();
 
 
     private void Awake()
-    {
+    { 
+        if(Instance == null) { Instance = this; }
         ScriptM.Register<ReinforceM>(this, UseSpace.Local);
         InitAllUpgrades();
         GoldText.text = $"현재 소유 금액 {singlePlayer.Gold}";

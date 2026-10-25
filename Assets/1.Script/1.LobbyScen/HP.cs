@@ -60,13 +60,18 @@ public class HP : MonoBehaviour
 
     private void Start()
     {
+        OnHpRatioChanged += UpdateHpBar;
+        OnHpChanged += UpdateHpText;
+
+        InitHp();
+
         CheckOfflineHpRegen(5, 120f);
         if (Hp < maxHp)
         {
             StartRegenerateHP(5, 120f).Forget();
         }
-        OnHpRatioChanged += UpdateHpBar;
-        OnHpChanged += UpdateHpText;
+       
+      
     }
 
     private void OnDisable()
@@ -74,6 +79,18 @@ public class HP : MonoBehaviour
         OnHpChanged -= UpdateHpText;
         OnHpRatioChanged -= UpdateHpBar;
         
+    }
+
+    public void InitHp()
+    {
+        // 강제로 현재 체력 값을 다시 세팅하거나 이벤트에 현재 값을 직접 쏴줍니다.
+        int current = singlePlayer.currentHp;
+
+        OnHpChanged?.Invoke(current);
+        if (maxHp > 0)
+        {
+            OnHpRatioChanged?.Invoke((float)current / maxHp);
+        }
     }
 
     private void UpdateHpText(int currentHp)

@@ -40,9 +40,9 @@ public class King : ChessPieceM
                 }
             }
         }
-
+        if(ScriptM.TryGet<CheseGameM>(out CheseGameM gameM)) 
         // 캐슬링(Castling) 조건 검사 (안전성 검사 생략 버전)
-        if (!hasMoved)
+        if (!hasMoved&&gameM.canUseCastling|| !hasMoved && this.data.Color != PieceColor.black)
         {
             int y = CurrentPos.y;
 

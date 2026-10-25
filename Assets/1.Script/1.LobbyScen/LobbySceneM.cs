@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class LobbySceneM : MonoBehaviour
@@ -10,6 +11,8 @@ public class LobbySceneM : MonoBehaviour
     [SerializeField] Button AchievementBtn;
     [SerializeField] Button CharacterBtn;
     [SerializeField] Button SettingBtn;
+    [SerializeField] Button SaveBtn;
+    [SerializeField] Button LoadBtn;
    
     [Header("판넬들")]
     [SerializeField] GameObject BattlePanel;
@@ -17,6 +20,8 @@ public class LobbySceneM : MonoBehaviour
     [SerializeField] GameObject AchievementPanel;
     [SerializeField] GameObject CharacterPanel;
     [SerializeField] GameObject SettingPanel;
+
+    [SerializeField] TextMeshProUGUI SaveText;
 
 
     private void Start()
@@ -54,7 +59,26 @@ public class LobbySceneM : MonoBehaviour
 
     }
    
+    public void SaveData()
+    {
+        SaveM.Save(singlePlayer.CreateSaveData());
+        SaveText.text = $"오늘까지의 일은 적어두도록 하겠습니다. {singlePlayer.playerName}";
+        if (ScriptM.TryGet<DialogueController>(out DialogueController dialogueController))
+        {
+            dialogueController.ShowDialogue(SaveText.text);
+        }
+        
+    }
 
-
+    public void LoadData()
+    {
+        
+        singlePlayer.ApplySaveData(SaveM.Load());
+        SaveText.text = $"적었던 내용이 여기 있습니다.";
+        if (ScriptM.TryGet<DialogueController>(out DialogueController dialogueController))
+        {
+            dialogueController.ShowDialogue(SaveText.text);
+        }
+    }
 
 }

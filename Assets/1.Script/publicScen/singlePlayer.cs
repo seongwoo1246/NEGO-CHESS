@@ -50,7 +50,7 @@ public static class singlePlayer
     #endregion
 
     #region 저장과 불러오기를 하기 위한 부분
-    public static SaveData CreateSaveData(List<Upgrade> upgrades)
+    public static SaveData CreateSaveData()
     { 
         SaveData data = new SaveData();
         data.gold = Gold;
@@ -69,7 +69,7 @@ public static class singlePlayer
         data.fristPlay = isFristPlay;
 
         data.upgradeSaveList.Clear();
-        foreach (var upgrade in upgrades)
+        foreach (var upgrade in ReinforceM.Instance.upgradeList)
         {
             if (upgrade != null)
             {
@@ -86,7 +86,7 @@ public static class singlePlayer
         return data;
     }
 
-    public static void ApplySaveData(SaveData data, List<Upgrade> upgrades)
+    public static void ApplySaveData(SaveData data)
     {
         // 1. 기본 데이터 복구 (골드, 승리 횟수, 체력 등)
         Gold =data.gold;
@@ -108,7 +108,7 @@ public static class singlePlayer
         foreach (var savedUpgrade in data.upgradeSaveList)
         {
             // 내 업그레이드 리스트에서 저장된 타입과 일치하는 항목 찾기
-            Upgrade target = upgrades.Find(u => u.upgradeType == savedUpgrade.upgradeType);
+            Upgrade target =ReinforceM.Instance.upgradeList.Find(u => u.upgradeType == savedUpgrade.upgradeType);
 
             if (target != null)
             {

@@ -784,7 +784,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::HP
   HpText: {fileID: 612876663}
   hpBar: {fileID: 420995744}
-  currentHp: 100
   baseMaxHp: 100
   baseUseHp: 20
   bonusMaxHp: 0
@@ -5731,11 +5730,14 @@ MonoBehaviour:
   AchievementBtn: {fileID: 1913217081}
   CharacterBtn: {fileID: 1589536042}
   SettingBtn: {fileID: 1085069878}
+  SaveBtn: {fileID: 1783419043}
+  LoadBtn: {fileID: 1621685715}
   BattlePanel: {fileID: 1762465777}
   ReinforcePanel: {fileID: 1643193987}
   AchievementPanel: {fileID: 2384556931380543317}
   CharacterPanel: {fileID: 673974959}
   SettingPanel: {fileID: 1053177362}
+  SaveText: {fileID: 612238781}
 --- !u!4 &876598984
 Transform:
   m_ObjectHideFlags: 0
@@ -16081,13 +16083,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AchievementM
   LockedReon: {fileID: 6893320951589797106}
   LockedCloe: {fileID: 1211597113037093309}
-  seoWin: 0
   MaxSeoWin: 50
-  reonWin: 0
   MaxReonWin: 50
-  cloeWin: 0
   MaxCloeWin: 50
-  useHp: 0
   MaxUseHp: 3000
   panelCanvasGroup: {fileID: 6045626569430863086}
   popupUIObject: {fileID: 3518251874928580011}

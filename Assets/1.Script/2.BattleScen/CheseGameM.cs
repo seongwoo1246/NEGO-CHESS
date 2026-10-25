@@ -202,11 +202,8 @@ public class CheseGameM : MonoBehaviour
         // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
         if (isSpawnMode && selectedPieceData != null)
         {
-            if (!IsValidSpawnZone(x, y, selectedPieceData.Value.Color))
-            {
-                Debug.Log("자신의 진영(앞쪽 2줄)에만 기물을 소환할 수 있습니다!");
-                return;
-            }
+            if (!IsValidSpawnZone(x, y, selectedPieceData.Value.Color)) return;
+            
             // 소환 실행
             GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
             SpawnPiece(prefabToSpawn, x, y);
@@ -224,6 +221,7 @@ public class CheseGameM : MonoBehaviour
 
         if (!isMovedone)
         {
+            
             
             // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
             if (selectedPos == null)
@@ -835,17 +833,20 @@ public class CheseGameM : MonoBehaviour
 
             RefreshButtonUI();
 
-            if (pieceToDestroy.data.Type == pieceType.King)
+            if(isSpawnMode == false)
             {
-                if (pieceToDestroy.data.Color == PieceColor.white)
+                if (pieceToDestroy.data.Type == pieceType.King)
                 {
-                    whiteKing = null;
-                    ShowGameResultAsync(GameResultType.Lose, myNegoPower, whiteTimer.TimerTime).Forget();
-                }
-                else if (pieceToDestroy.data.Color == PieceColor.black)
-                {
-                    blackKing = null;
-                    ShowGameResultAsync(GameResultType.Win, myNegoPower, whiteTimer.TimerTime).Forget();
+                    if (pieceToDestroy.data.Color == PieceColor.white)
+                    {
+                        whiteKing = null;
+                        ShowGameResultAsync(GameResultType.Lose, myNegoPower, whiteTimer.TimerTime).Forget();
+                    }
+                    else if (pieceToDestroy.data.Color == PieceColor.black)
+                    {
+                        blackKing = null;
+                        ShowGameResultAsync(GameResultType.Win, myNegoPower, whiteTimer.TimerTime).Forget();
+                    }
                 }
             }
         }
@@ -1208,8 +1209,11 @@ public class CheseGameM : MonoBehaviour
     {
         if (isAi)
         {
-            // 💡 AI인 경우 UI를 띄우지 않고 곧바로 여왕(Queen)으로 자동 승진 처리!
-            ExecuteAIPromotion(pawn, x, y);
+            if(canUsePromotion)
+            {
+                ExecuteAIPromotion(pawn, x, y);
+            }
+           
         }
         else
         {
