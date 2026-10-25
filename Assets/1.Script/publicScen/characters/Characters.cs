@@ -1,12 +1,8 @@
 ﻿using Cysharp.Threading.Tasks;
-using Google.GData.Extensions;
 using System.Collections.Generic;
 using Unity.Mathematics;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using static UnityEngine.Audio.ProcessorInstance;
-using static UnityEngine.GraphicsBuffer;
 
 [System.Serializable]
 public struct PieceSpawnInfo
@@ -179,7 +175,7 @@ public class Characters : MonoBehaviour
                     }
 
                     // 다음 자식 노드 탐색 (depth는 원하는 깊이로 설정, 예: 3 또는 4)
-                    int eval = Minimax(boardCopy, depth: 3, false, -99999, 99999, localUndoStack);
+                    int eval = Minimax(boardCopy, searchDepth, false, -99999, 99999, localUndoStack);
 
                     // 가상 이동 되돌리기
                     SimUndoData undoData = localUndoStack.Pop();
@@ -213,10 +209,10 @@ public class Characters : MonoBehaviour
         {
             int maxEval = -99999;
             List<SimPieceData> myPieces = GetSimPiecesByColor(boardState, myColor);
-
+            List<Vector2Int> moves = new List<Vector2Int>();
             foreach (var piece in myPieces)
             {
-                List<Vector2Int> moves = new List<Vector2Int>();
+                moves.Clear();
                 GetPossibleMovesDataOnly(boardState, piece.pos, moves);
                 
                 foreach (var target in moves)
@@ -233,6 +229,7 @@ public class Characters : MonoBehaviour
                         UndoMoveDataOnly(boardState, invalidUndo);
                         continue;
                     }
+                  
                     int eval = Minimax(boardState, depth - 1, false, alpha, beta, undoStack);
 
                     SimUndoData undoData = undoStack.Pop();
@@ -250,16 +247,26 @@ public class Characters : MonoBehaviour
         {
             int minEval = 99999;
             List<SimPieceData> enemyPieces = GetAllEnemyPiecesDataOnly(boardState);
-
+            List<Vector2Int> moves = new List<Vector2Int>();
             foreach (var piece in enemyPieces)
             {
-                List<Vector2Int> moves = new List<Vector2Int>();
+                moves.Clear();
                 GetPossibleMovesDataOnly(boardState, piece.pos, moves);
 
                 foreach (var target in moves)
                 {
                     Vector2Int start = piece.pos;
                     SimulateMoveDataOnly(boardState, start, target, undoStack);
+                    PieceColor currentTurnColor = isMaximizing ? myColor : ((myColor == PieceColor.white) ? PieceColor.black : PieceColor.white);
+
+                    if (IsKingInCheckDataOnly(boardState, currentTurnColor))
+                    {
+                        // 킹이 위험해지는 수라면(=체크를 무시하거나 자살 수인 경우), 
+                        // 이 수는 무효이므로 되돌리고(Undo) 이번 탐색은 건너뜁니다!
+                        SimUndoData invalidUndo = undoStack.Pop();
+                        UndoMoveDataOnly(boardState, invalidUndo);
+                        continue;
+                    }
 
                     int eval = Minimax(boardState, depth - 1, true, alpha, beta, undoStack);
 
@@ -449,7 +456,6 @@ public class Characters : MonoBehaviour
         public bool wasPromotion;
         public pieceType originalType;
     }
-   
 
     private void SimulateMoveDataOnly(SimPieceData[,] boardState, Vector2Int from, Vector2Int to, Stack<SimUndoData> undoStack)
     {
@@ -584,8 +590,6 @@ public class Characters : MonoBehaviour
         }
         return boardCopy;
     }
-
- 
 
     private List<Vector2Int> GetAllEnemyAttackMovesDataOnly(bool isWhiteEnemy, SimPieceData[,] boardState)
     {
@@ -961,7 +965,7 @@ public class Characters : MonoBehaviour
         }
     
     }
-        private bool IsValidIndex(int x, int y)
+    private bool IsValidIndex(int x, int y)
     {
         
         return x >= 0 && x < 8 && y >= 0 && y < 8;
