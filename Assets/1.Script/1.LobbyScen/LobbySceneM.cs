@@ -10,7 +10,6 @@ public class LobbySceneM : MonoBehaviour
     [SerializeField] Button ReinforceBtn;
     [SerializeField] Button AchievementBtn;
     [SerializeField] Button CharacterBtn;
-    [SerializeField] Button SettingBtn;
     [SerializeField] Button SaveBtn;
     [SerializeField] Button LoadBtn;
    
@@ -19,7 +18,6 @@ public class LobbySceneM : MonoBehaviour
     [SerializeField] GameObject ReinforcePanel;
     [SerializeField] GameObject AchievementPanel;
     [SerializeField] GameObject CharacterPanel;
-    [SerializeField] GameObject SettingPanel;
 
     [SerializeField] TextMeshProUGUI SaveText;
 
@@ -30,7 +28,6 @@ public class LobbySceneM : MonoBehaviour
         if (ReinforceBtn != null) ReinforceBtn.onClick.AddListener(ActiveSelfReinforce);
         if (AchievementBtn != null) AchievementBtn.onClick.AddListener(ActiveSelfAchievement);
         if (CharacterBtn != null) CharacterBtn.onClick.AddListener(ActiveSelfCharacter);
-        if (SettingBtn != null) SettingBtn.onClick.AddListener(ActiveSelfSetting);
     }
 
     public void ActiveSelfBattle()
@@ -53,11 +50,7 @@ public class LobbySceneM : MonoBehaviour
         CharacterPanel.SetActive(!CharacterPanel.activeSelf);
 
     }
-    public void ActiveSelfSetting()
-    {
-        SettingPanel.SetActive(!SettingPanel.activeSelf);
-
-    }
+  
    
     public void SaveData()
     {

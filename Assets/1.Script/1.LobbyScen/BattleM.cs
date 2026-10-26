@@ -40,7 +40,6 @@ public class BattleM : MonoBehaviour
             if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM) )//&& hp.TryStartGame())(검사 끝나면 되돌리기)
             {
                 PrepareForBattle();
-                ScriptM.ClearSceneLocalServices();
                 scenesM.LoadScene(SceneNumber.Battle);
             }
         }

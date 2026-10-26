@@ -106,7 +106,7 @@ public class AchievementM : MonoBehaviour
 
         AchievementPanel.SetActive(false);
 
-        Debug.Log("로비 복귀 완료: 패널 및 팝업 복구");
+        
     }
 
     private void Awake()
@@ -119,14 +119,6 @@ public class AchievementM : MonoBehaviour
         if (LockedReon != null) LockedReon.SetActive(!isReonUnlocked); // 해제되었다면 자물쇠 비활성화(!isReonUnlocked -> false)
         if (LockedCloe != null) LockedCloe.SetActive(!isCloeUnlocked);
     }
-
-    private void OnDisable()
-    {
-        ScriptM.Unregister<AchievementM>();
-    }
-
-    
-
     public void AddSeoWin(int amount)
     {
         SeoWin += amount;

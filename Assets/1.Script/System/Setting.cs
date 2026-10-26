@@ -18,6 +18,7 @@ public class Setting : MonoBehaviour
 
     private void Awake()
     {
+        
         if (ScriptM.TryGet<SoundM>(out SoundM service))
         {
             if (MasterMute != null)
@@ -96,8 +97,8 @@ public class Setting : MonoBehaviour
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
             Sound.SetActive(false);
-            DisPlay.SetActive(true);
-            setting.SetActive(false);
+            DisPlay.SetActive(false);
+            setting.SetActive(true);
             ScriptM.ClearSceneLocalServices();
             service.LoadScene(SceneNumber.GameStart);
         }

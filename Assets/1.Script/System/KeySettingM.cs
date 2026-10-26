@@ -1,10 +1,11 @@
 ﻿using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Debug = DebugM<KeySettingM>;
 public class KeySettingM : MonoBehaviour
 {
+    public static KeySettingM Instance;
+
     [Header("Input Action Asset 참조")]
     [SerializeField] private InputActionAsset inputActions;
     [Header("UI 교체를 위한 텍스트들")]
@@ -33,9 +34,30 @@ public class KeySettingM : MonoBehaviour
 
     private const string BINDING_SAVE_KEY = "CustomKeyBindings";
 
+    public event System.Action OnTurnoverTriggered;
+    public event System.Action OnNegotiationTriggered;
+    public event System.Action OnGiveUpTriggered;
+    public event System.Action OnOpenMenuTriggered;
+    public event System.Action OnReadyTriggered;
+    public event System.Action OnGameStartTriggered;
+
+    private InputAction turnoverAction;
+    private InputAction negotiationAction;
+    private InputAction giveUpAction;
+    private InputAction openMenuAction;
+    private InputAction readyAction;
+    private InputAction gameStartAction;
+
+    private void OnTurnover(InputAction.CallbackContext context) => OnTurnoverTriggered?.Invoke();
+    private void OnNegotiation(InputAction.CallbackContext context) => OnNegotiationTriggered?.Invoke();
+    private void OnGiveUp(InputAction.CallbackContext context) => OnGiveUpTriggered?.Invoke();
+    private void OnOpenMenu(InputAction.CallbackContext context) => OnOpenMenuTriggered?.Invoke();
+    private void OnReady(InputAction.CallbackContext context) => OnReadyTriggered?.Invoke();
+    private void OnGameStart(InputAction.CallbackContext context) => OnGameStartTriggered?.Invoke();
+
     private void Awake()
     {
-        ScriptM.Register<KeySettingM>(this, UseSpace.Local);
+        Instance=this;
 
         if (turnoverT != null) defaultTurnoverText = turnoverT.text;
         if (negotiationT != null) defaultNegotiationText = negotiationT.text;
@@ -44,8 +66,48 @@ public class KeySettingM : MonoBehaviour
         if (readyT != null) defaultReadyText = readyT.text;
         if (gameStartT != null) defaultGameStartText = gameStartT.text;
 
+        if (inputActions != null)
+        {
+            // 액션 맵과 각 액션 이름은 사용 중이신 Input Action 에셋 설정에 맞게 수정해주세요.
+            var map = inputActions.FindActionMap("Player");
+            if (map != null)
+            {
+                turnoverAction = map.FindAction("Turnover");
+                negotiationAction = map.FindAction("Negotiation");
+                giveUpAction = map.FindAction("GiveUp");
+                openMenuAction = map.FindAction("OpenMenu");
+                readyAction = map.FindAction("Ready");
+                gameStartAction = map.FindAction("GameStart");
+            }
+        }
+
         // 게임 시작 시 기존에 저장된 키 세팅이 있다면 불러오기
         LoadKeyBindings();
+    }
+    private void OnEnable()
+    {
+        if (inputActions != null) inputActions.Enable();
+
+        // 각 입력이 수행(performed)되었을 때 이벤트 호출 연결
+        if (turnoverAction != null) turnoverAction.performed += OnTurnover;
+        if (negotiationAction != null) negotiationAction.performed += OnNegotiation;
+        if (giveUpAction != null) giveUpAction.performed += OnGiveUp;
+        if (openMenuAction != null) openMenuAction.performed += OnOpenMenu;
+        if (readyAction != null) readyAction.performed += OnReady;
+        if (gameStartAction != null) gameStartAction.performed += OnGameStart;
+    }
+
+    private void OnDisable()
+    {
+        if (inputActions != null) inputActions.Disable();
+
+        // 메모리 누수 방지를 위한 이벤트 해제
+        if (turnoverAction != null) turnoverAction.performed -= OnTurnover;
+        if (negotiationAction != null) negotiationAction.performed -= OnNegotiation;
+        if (giveUpAction != null) giveUpAction.performed -= OnGiveUp;
+        if (openMenuAction != null) openMenuAction.performed -= OnOpenMenu;
+        if (readyAction != null) readyAction.performed -= OnReady;
+        if (gameStartAction != null) gameStartAction.performed -= OnGameStart;
     }
 
     public void OpenSetting()
@@ -59,8 +121,8 @@ public class KeySettingM : MonoBehaviour
     public void ExitSetting()
     {
         Sound.SetActive(false);
-        DisPlay.SetActive(true);
-        Setting.SetActive(false);
+        DisPlay.SetActive(false);
+        Setting.SetActive(true);
         SettingPanal.SetActive(false);
         SettingPopUp.SetActive(false);
 

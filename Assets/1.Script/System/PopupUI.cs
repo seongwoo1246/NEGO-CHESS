@@ -1,61 +1,39 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PopupUI : MonoBehaviour
 {
     public bool isOpen = false;
 
-    [Header("Input Action Asset")]
-    [SerializeField] private InputActionAsset inputActions;
-
-    private InputAction openMenuAction;
-
-    private void Awake()
-    {
-        if (inputActions != null)
-        {
-            openMenuAction = inputActions.FindAction("OpenMenu");
-        }
-    }
-
     private void OnEnable()
     {
-        if (openMenuAction != null)
+        if (KeySettingM.Instance != null)
         {
-            openMenuAction.Enable();
-            // 💡 핵심: 키가 눌린 순간(performed) 실행될벤트를 등록합니다.
-            openMenuAction.performed += OnOpenMenuPerformed;
+            KeySettingM.Instance.OnOpenMenuTriggered -= OnOpenMenuPerformed;
+            KeySettingM.Instance.OnOpenMenuTriggered += OnOpenMenuPerformed;
         }
     }
 
     private void OnDisable()
     {
-        if (openMenuAction != null)
+        if (KeySettingM.Instance != null)
         {
-            // 💡 메모리 누수 방지를 위해 비활성화될 때 이벤트를 꼭 해제해 줍니다.
-            openMenuAction.performed -= OnOpenMenuPerformed;
-            openMenuAction.Disable();
+            KeySettingM.Instance.OnOpenMenuTriggered -= OnOpenMenuPerformed;
         }
     }
 
     // 키가 눌린 순간에만 단 한 번 호출되는 함수
-    private void OnOpenMenuPerformed(InputAction.CallbackContext context)
+    public void OnOpenMenuPerformed()
     {
-        ClosePopup();
-    }
-    public void ClosePopup()
-    {
+        isOpen = !isOpen;
 
-        if (isOpen == true)
+        if (isOpen)
         {
-            gameObject.SetActive(false);
-            isOpen = false;
+            gameObject.SetActive(true);
         }
         else
         {
-            gameObject.SetActive(true);
-            isOpen = true;
+            gameObject.SetActive(false);
         }
-        
     }
+   
 }

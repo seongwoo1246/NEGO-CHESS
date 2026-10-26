@@ -10,14 +10,10 @@ public class StartSceneM : MonoBehaviour
 
     [Header("게임 관련 버튼")]
     [SerializeField] private Button GameStartBtn;
-    [SerializeField] private Button GameSettingBtn;
     [SerializeField] private Button GameExitBtn;
     [SerializeField] private Button SingleBtn;
     [SerializeField] private Button MultiBtn;
-
-    [Header("설정창")]
-    [SerializeField] private GameObject Setting;
-    [SerializeField] private GameObject Panel;
+    
 
     [Header("캐릭터 설정")]
     [SerializeField] private GameObject Player;
@@ -48,12 +44,6 @@ public class StartSceneM : MonoBehaviour
         {
             GameStartBtn.onClick.RemoveAllListeners();
             GameStartBtn.onClick.AddListener(SelectMode);
-        }
-
-        if(GameSettingBtn != null)
-        {
-            GameSettingBtn.onClick.RemoveAllListeners();
-            GameSettingBtn.onClick.AddListener(OpenSetting);
         }
 
         if(GameExitBtn  != null)
@@ -91,17 +81,12 @@ public class StartSceneM : MonoBehaviour
     private void SelectMode()
     {
         GameStartBtn.gameObject.SetActive(false);
-        GameSettingBtn.gameObject.SetActive(false);
         GameExitBtn.gameObject.SetActive(false);
         SingleBtn.gameObject.SetActive(true);
         MultiBtn.gameObject.SetActive(true);
     }
 
-    private void OpenSetting()
-    {
-        Panel.SetActive(true);
-        Setting.SetActive(true);
-    }
+   
 
    private void ExitGame()
     {
@@ -114,7 +99,6 @@ public class StartSceneM : MonoBehaviour
         if(ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
         {
             GameStartBtn.gameObject.SetActive(true);
-            GameSettingBtn.gameObject.SetActive(true);
             GameExitBtn.gameObject.SetActive(true);
             SingleBtn.gameObject.SetActive(false);
             MultiBtn.gameObject.SetActive(false);
@@ -134,7 +118,6 @@ public class StartSceneM : MonoBehaviour
         if(ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
         {
             GameStartBtn.gameObject.SetActive(true);
-            GameSettingBtn.gameObject.SetActive(true);
             GameExitBtn.gameObject.SetActive(true);
             SingleBtn.gameObject.SetActive(false);
             MultiBtn.gameObject.SetActive(false);

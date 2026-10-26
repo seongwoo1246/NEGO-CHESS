@@ -81,14 +81,17 @@ public struct Cutin
 
 public class CheseGameM : MonoBehaviour
 {
+
+     
     private void Awake()
     {
-        ScriptM.Register<CheseGameM>(this, UseSpace.Local);
-        
+        ScriptM.Register<CheseGameM>(this, UseSpace.Local);  
     }
 
     private void Start()
     {
+        
+
         positionHistory.Clear();
 
         UpdateNegotiationPowers();
@@ -111,7 +114,9 @@ public class CheseGameM : MonoBehaviour
             activeCharacter.SetupBoard(this); // 자식(Seo 등)이 각자 기물 배치 진행
         }
 
-       
+        canUseEnPassant = true;
+        canUseCastling = true;
+        canUsePromotion = true;
 
         if (ResetBtn != null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
         if (ReadyBtn != null) { ReadyBtn.onClick.AddListener(SetReady); }
@@ -131,12 +136,51 @@ public class CheseGameM : MonoBehaviour
         RefreshButtonUI();
     }
 
-    private void OnDestroy()
+    private void OnEnable()
     {
-        ScriptM.Unregister<CheseGameM>();
+        
+            
+        if(KeySettingM.Instance != null)
+        {
+            // 확실하게 이벤트 연결
+            KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover; // 중복 방지
+            KeySettingM.Instance.OnTurnoverTriggered += HandleTurnover;
+
+            KeySettingM.Instance.OnNegotiationTriggered -= HandleNegotiation;
+            KeySettingM.Instance.OnNegotiationTriggered += HandleNegotiation;
+
+            KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
+            KeySettingM.Instance.OnGiveUpTriggered += HandleGiveUp;
+        }
+
+           
+
+       
     }
 
+    private void OnDisable()
+    {
+        try
+        {
+            // inputManager가 존재하고, 실제로 유효한 상태일 때만 이벤트 해제 시도
+            if (KeySettingM.Instance != null)
+            {
+                KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
+                KeySettingM.Instance.OnNegotiationTriggered -= HandleNegotiation;
+                KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
+            }
+
+            ScriptM.Unregister<CheseGameM>();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"OnDisable 해제 중 예외 발생 (무시 가능): {e.Message}");
+        }
+    }
+   
   
+   
+
 
     #region 준비단계에 필요한 것들
     [Header("준비단계에 필요한 것")]
@@ -573,6 +617,15 @@ public class CheseGameM : MonoBehaviour
     public List<Cutin> cutins = new List<Cutin>(); // 체크 및 체크메이트시 활용
 
     #endregion
+
+    public void HandleTurnover()
+    {
+        TurnEnd();
+    }
+    public void HandleNegotiation()
+    {
+        ActiveSelfNegoPanel();
+    }
 
     public void ActiveSelfSetting()
     {
@@ -1516,6 +1569,11 @@ public class CheseGameM : MonoBehaviour
 
     // 보드 상태별 반복 횟수를 저장하는 딕셔너리
     private Dictionary<string, int> positionHistory = new Dictionary<string, int>();
+
+    public void HandleGiveUp()
+    {
+        ShowGameResultAsync(GameResultType.Giveup, 0, 0).Forget();
+    }
     /// <summary>
     /// 게임 종료 결과 패널 출력 및 씬 이동 처리 (UniTask 비동기)
     /// </summary>
@@ -1576,8 +1634,14 @@ public class CheseGameM : MonoBehaviour
                 if (NegoText != null) NegoText.text = "무승부 보너스 적용";
                 if (TimeText != null) TimeText.text = "무승부 보너스 적용";
 
-                
                 break;
+            case GameResultType.Giveup:
+                resultTextStr = "항복";
+                totalMoney = 0;
+                if (NegoText != null) NegoText.text = "대국을 포기했습니다.";
+                if (TimeText != null) TimeText.text = "곧 있다가 로비로 이동합니다.";
+                break;
+                
         }
 
         // UI 텍스트 적용
@@ -1673,6 +1737,10 @@ private void UnlockNextCharacter(int currentDefeatedCharacterId)
         return true;
     }
 
+    public void GiveUp()
+    {
+
+    }
     
     #endregion
 

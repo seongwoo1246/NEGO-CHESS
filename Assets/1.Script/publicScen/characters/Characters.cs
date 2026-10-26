@@ -117,24 +117,28 @@ public class Characters : MonoBehaviour
     // AI 이동 결정 함수 (가상 함수로 만들어 캐릭터마다 다르게 오버라이드 가능)
     public virtual async UniTask OnAITurnAsync()
     {
-        // 유니티 오브젝트 보드를 순수 데이터 배열로 복사 (New 1회 발생, 턴 시작 시 단 한 번만)
         SimPieceData[,] boardCopy = CreateBoardDataCopy();
 
-        // 비동기로 미니맥스 실행 (UI 멈춤 방지)
-        Task.Run(async () =>
+        Vector2Int bestStart = default;
+        Vector2Int bestTarget = default;
+        int bestEval = -9999;
+        bool foundMove = false;
+
+        // 🔥 핵심: 최대 탐색 깊이(예: 5단계)만큼 버퍼를 미리 딱 1번만 생성합니다. (Zero-GC!)
+        const int maxDepth = 5;
+        List<Vector2Int>[] depthBuffers = new List<Vector2Int>[maxDepth + 1];
+        for (int i = 0; i <= maxDepth; i++)
+        {
+            depthBuffers[i] = new List<Vector2Int>(32);
+        }
+
+        await Task.Run(() =>
         {
             Stack<SimUndoData> localUndoStack = new Stack<SimUndoData>();
-            List<Vector2Int> sharedMovesBuffer = new List<Vector2Int>(32); // 탐색용 버퍼 재사용
-
-            int bestEval = -9999;
-            Vector2Int bestStart = default;
-            Vector2Int bestTarget = default;
-            bool foundMove = false;
-
             int width = boardCopy.GetLength(0);
             int height = boardCopy.GetLength(1);
 
-            // 최상위 Maximizing 루트 (내 기물 찾기)
+            // 내 차례(Maximizing) 탐색
             for (int x = 0; x < width; x++)
             {
                 for (int y = 0; y < height; y++)
@@ -142,10 +146,12 @@ public class Characters : MonoBehaviour
                     SimPieceData piece = boardCopy[x, y];
                     if (piece.type == pieceType.none || piece.color != myColor) continue;
 
-                    sharedMovesBuffer.Clear();
-                    GetPossibleMovesDataOnly(boardCopy, piece.pos, sharedMovesBuffer);
+                    // 현재 depth(예: 3)에 해당하는 버퍼 가져오기
+                    List<Vector2Int> moves = depthBuffers[3];
+                    moves.Clear();
+                    GetPossibleMovesDataOnly(boardCopy, piece.pos, moves);
 
-                    foreach (var target in sharedMovesBuffer)
+                    foreach (var target in moves)
                     {
                         SimulateMoveDataOnly(boardCopy, piece.pos, target, localUndoStack);
 
@@ -155,8 +161,8 @@ public class Characters : MonoBehaviour
                             continue;
                         }
 
-                        // 깊이(Depth) 설정 (예: 3단계 탐색)
-                        int eval = Minimax(boardCopy, searchDepth, false, -9999, 9999, localUndoStack, sharedMovesBuffer);
+                        // 재귀 호출 시 다음 depth(2)의 버퍼를 전달!
+                        int eval = Minimax(boardCopy, 2, false, -9999, 9999, localUndoStack, depthBuffers);
 
                         UndoMoveDataOnly(boardCopy, localUndoStack.Pop());
 
@@ -170,29 +176,36 @@ public class Characters : MonoBehaviour
                     }
                 }
             }
-
-            // 최적의 수를 찾았다면 메인 스레드에서 실제 기물 이동 수행
-            if (foundMove)
-            {
-               await ExecuteMove(bestStart, bestTarget);
-            }
         });
+
+        if (foundMove)
+        {
+            ExecuteMove(bestStart, bestTarget);
+            gameM.TurnEnd();
+        }
     }
 
-    
+
 
     // 미니맥스 알고리즘 (나와 상대방의 수를 번갈아가며 시뮬레이션하는 두뇌)
-    private int Minimax(SimPieceData[,] boardState, int depth, bool isMaximizing, int alpha, int beta, Stack<SimUndoData> undoStack, List<Vector2Int> sharedMovesBuffer)
+    private int Minimax(SimPieceData[,] boardState, int depth, bool isMaximizing, int alpha, int beta, Stack<SimUndoData> undoStack, List<Vector2Int>[] depthBuffers)
     {
         int width = boardState.GetLength(0);
         int height = boardState.GetLength(1);
 
         if (depth == 0)
         {
-            return EvaluateBoardDataOnly(boardState); // 순수 데이터 기반 평가 함수
+            return EvaluateBoardDataOnly(boardState);
         }
 
-        PieceColor enemyColor = (myColor == PieceColor.white) ? PieceColor.black : PieceColor.white;
+        // 적 AI는 항상 검정색(Black)이라고 고정 가정
+        PieceColor enemyColor = PieceColor.black;
+
+        // 현재 내 색상 판별 (Maximizing 여부에 따라)
+        PieceColor turnColor = isMaximizing ? myColor : enemyColor;
+
+        // 🔥 핵심: 현재 내 재귀 깊이(depth) 전용 버퍼를 가져옴 (부모와 자식이 절대 충돌 안 함!)
+        List<Vector2Int> moves = depthBuffers[depth];
 
         if (isMaximizing)
         {
@@ -203,22 +216,22 @@ public class Characters : MonoBehaviour
                 for (int y = 0; y < height; y++)
                 {
                     SimPieceData piece = boardState[x, y];
-                    if (piece.type == pieceType.none || piece.color != myColor) continue;
+                    if (piece.type == pieceType.none || piece.color != turnColor) continue;
 
-                    sharedMovesBuffer.Clear();
-                    GetPossibleMovesDataOnly(boardState, piece.pos, sharedMovesBuffer);
+                    moves.Clear();
+                    GetPossibleMovesDataOnly(boardState, piece.pos, moves);
 
-                    foreach (var target in sharedMovesBuffer)
+                    foreach (var target in moves)
                     {
                         SimulateMoveDataOnly(boardState, piece.pos, target, undoStack);
 
-                        if (IsKingInCheckDataOnly(boardState, myColor))
+                        if (IsKingInCheckDataOnly(boardState, turnColor))
                         {
                             UndoMoveDataOnly(boardState, undoStack.Pop());
                             continue;
                         }
 
-                        int eval = Minimax(boardState, depth - 1, false, alpha, beta, undoStack, sharedMovesBuffer);
+                        int eval = Minimax(boardState, depth - 1, false, alpha, beta, undoStack, depthBuffers);
                         UndoMoveDataOnly(boardState, undoStack.Pop());
 
                         maxEval = Mathf.Max(maxEval, eval);
@@ -239,22 +252,22 @@ public class Characters : MonoBehaviour
                 for (int y = 0; y < height; y++)
                 {
                     SimPieceData piece = boardState[x, y];
-                    if (piece.type == pieceType.none || piece.color != enemyColor) continue;
+                    if (piece.type == pieceType.none || piece.color != turnColor) continue;
 
-                    sharedMovesBuffer.Clear();
-                    GetPossibleMovesDataOnly(boardState, piece.pos, sharedMovesBuffer);
+                    moves.Clear();
+                    GetPossibleMovesDataOnly(boardState, piece.pos, moves);
 
-                    foreach (var target in sharedMovesBuffer)
+                    foreach (var target in moves)
                     {
                         SimulateMoveDataOnly(boardState, piece.pos, target, undoStack);
 
-                        if (IsKingInCheckDataOnly(boardState, enemyColor))
+                        if (IsKingInCheckDataOnly(boardState, turnColor))
                         {
                             UndoMoveDataOnly(boardState, undoStack.Pop());
                             continue;
                         }
 
-                        int eval = Minimax(boardState, depth - 1, true, alpha, beta, undoStack, sharedMovesBuffer);
+                        int eval = Minimax(boardState, depth - 1, true, alpha, beta, undoStack, depthBuffers);
                         UndoMoveDataOnly(boardState, undoStack.Pop());
 
                         minEval = Mathf.Min(minEval, eval);
@@ -345,9 +358,6 @@ public class Characters : MonoBehaviour
         // 타겟 칸이 그 공격 범위 안에 포함되어 있는지 확인 후 바로 반환
         return enemyMoves.Contains(targetPos);
     }
-
-    // 내 팀의 모든 살아있는 기물들을 찾아 리스트로 반환하는 함수 override
-    
 
     private struct SimUndoData
     {
@@ -606,7 +616,7 @@ public class Characters : MonoBehaviour
                     // 옆 칸에 적 폰이 있고, 직전에 2칸 움직인 기록(movedTwoSquaresLastTurn)이 있는 경우
                     int sideX = targetX;
                     int sideY = fromPos.y;
-                    if (IsValidIndex(sideX, sideY))
+                    if (IsValidIndex(sideX, sideY)&& allowEnPassant)
                     {
                         SimPieceData sidePiece = boardState[sideX, sideY];
                         if (sidePiece.type == pieceType.Pawn && sidePiece.color != piece.color && sidePiece.movedTwoSquaresLastTurn)
@@ -878,34 +888,84 @@ public class Characters : MonoBehaviour
         int y = piece.pos.y;
         int x = piece.pos.x;
 
+        // 1. 폰 (Pawn) 위치 보너스 (Y=7에서 시작해 Y=0으로 전진할수록 높은 점수)
         if (piece.type == pieceType.Pawn)
         {
             int[,] blackPawnTable = {
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 200, 250, 300, 400, 400, 300, 250, 200 },
-            { 100, 130, 160, 200, 200, 160, 130, 100 },
-            { 50, 70, 100, 130, 130, 100, 70, 50 },
-            { 20, 30, 50, 70, 70, 50, 30, 20 },
-            { 10, 15, 25, 40, 40, 25, 15, 10 },
-            { 5, 5, 10, 20, 20, 10, 5, 5 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 }
+            {   0,   0,   0,   0,   0,   0,   0,   0 }, // y = 0 (상대 진영 끝/승진 칸) -> 가장 높은 가치
+            { 200, 250, 300, 400, 400, 300, 250, 200 }, // y = 1
+            { 100, 130, 160, 200, 200, 160, 130, 100 }, // y = 2
+            {  50,  70, 100, 130, 130, 100,  70,  50 }, // y = 3
+            {  20,  30,  50,  70,  70,  50,  30,  20 }, // y = 4
+            {  10,  15,  25,  40,  40,  25,  15,  10 }, // y = 5
+            {   5,   5,  10,  20,  20,  10,   5,   5 }, // y = 6 (시작 위치 근처)
+            {   0,   0,   0,   0,   0,   0,   0,   0 }  // y = 7 (검정색 맨 처음 시작 줄)
         };
             return blackPawnTable[y, x];
         }
 
+        // 2. 나이트 & 비숍 (Minor Pieces) 위치 보너스 (중앙 장악 지향)
         if (piece.type == pieceType.Knight || piece.type == pieceType.Bishop)
         {
             int[,] blackMinorTable = {
-            { -10,-5,-5,-5,-5,-5,-5,-10 },
-            { -5, 0, 0, 0, 0, 0, 0, -5 },
-            { -5, 0,15,20,20,15, 0, -5 },
-            { -5, 5,20,25,25,20, 5, -5 },
-            { -5, 5,20,25,25,20, 5, -5 },
-            { -5, 0,15,20,20,15, 0, -5 },
-            { -5, 0, 5, 5, 5, 5, 0, -5 },
-            { -10,-5,-5,-5,-5,-5,-5,-10 }
+            { -10,  -5,  -5,  -5,  -5,  -5,  -5, -10 }, // y = 0
+            {  -5,   0,   0,   0,   0,   0,   0,  -5 }, // y = 1
+            {  -5,   0,  15,  20,  20,  15,   0,  -5 }, // y = 2
+            {  -5,   5,  20,  25,  25,  20,   5,  -5 }, // y = 3
+            {  -5,   5,  20,  25,  25,  20,   5,  -5 }, // y = 4
+            {  -5,   0,  15,  20,  20,  15,   0,  -5 }, // y = 5
+            {  -5,   0,   5,   5,   5,   5,   0,  -5 }, // y = 6
+            { -10,  -5,  -5,  -5,  -5,  -5,  -5, -10 }  // y = 7
         };
             return blackMinorTable[y, x];
+        }
+
+        // 3. 룩 (Rook) 위치 보너스
+        if (piece.type == pieceType.Rook)
+        {
+            int[,] blackRookTable = {
+            {   0,   0,   0,   5,   5,   0,   0,   0 }, // y = 0
+            {  -5,   0,   0,   0,   0,   0,   0,  -5 }, // y = 1
+            {  -5,   0,   0,   0,   0,   0,   0,  -5 }, // y = 2
+            {  -5,   0,   0,   0,   0,   0,   0,  -5 }, // y = 3
+            {  -5,   0,   0,   0,   0,   0,   0,  -5 }, // y = 4
+            {  -5,   0,   0,   0,   0,   0,   0,  -5 }, // y = 5
+            {   5,  10,  10,  10,  10,  10,  10,   5 }, // y = 6
+            {   0,   0,   0,   0,   0,   0,   0,   0 }  // y = 7
+        };
+            return blackRookTable[y, x];
+        }
+
+        // 4. 여왕 / 퀸 (Queen) 위치 보너스
+        if (piece.type == pieceType.Queen)
+        {
+            int[,] blackQueenTable = {
+            { -20, -10, -10,  -5,  -5, -10, -10, -20 }, // y = 0
+            { -10,   0,   5,   0,   0,   0,   0, -10 }, // y = 1
+            { -10,   5,   5,   5,   5,   5,   0, -10 }, // y = 2
+            {   0,   0,   5,   5,   5,   5,   0,  -5 }, // y = 3
+            {  -5,   0,   5,   5,   5,   5,   0,  -5 }, // y = 4
+            { -10,   0,   5,   5,   5,   5,   0, -10 }, // y = 5
+            { -10,   0,   0,   0,   0,   0,   0, -10 }, // y = 6
+            { -20, -10, -10,  -5,  -5, -10, -10, -20 }  // y = 7
+        };
+            return blackQueenTable[y, x]; 
+        }
+
+        // 5. 킹 (King) 위치 보너스 (초중반에는 안전한 자기 진영 $Y=7$ 근처 선호)
+        if (piece.type == pieceType.King)
+        {
+            int[,] blackKingTable = {
+            { -30, -40, -40, -50, -50, -40, -40, -30 }, // y = 0 (적진 쪽으로 나가면 위험)
+            { -30, -40, -40, -50, -50, -40, -40, -30 }, // y = 1
+            { -30, -40, -40, -50, -50, -40, -40, -30 }, // y = 2
+            { -20, -30, -30, -40, -40, -30, -30, -20 }, // y = 3
+            { -10, -20, -20, -20, -20, -20, -20, -10 }, // y = 4
+            {  20,  20,   0,   0,   0,   0,  20,  20 }, // y = 5
+            {  20,  30,  10,   0,   0,  10,  30,  20 }, // y = 6
+            {  20,  30,  10,   0,   0,  10,  30,  20 }  // y = 7 (시작 위치 백랭크 쪽 안전지대)
+        };
+            return blackKingTable[y, x];
         }
 
         return 0;
@@ -947,95 +1007,6 @@ public class Characters : MonoBehaviour
 
     }
 
-    private List<SimPieceData> GetSimPiecesByColor(SimPieceData[,] boardState, PieceColor color)
-    {
-        List<SimPieceData> pieces = new List<SimPieceData>();
-        int width = boardState.GetLength(0);
-        int height = boardState.GetLength(1);
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                SimPieceData piece = boardState[x, y];
-                if (piece.type != pieceType.none && piece.color == color)
-                {
-                    pieces.Add(piece);
-                }
-            }
-        }
-        return pieces;
-    }
-    // 상대 팀의 모든 살아있는 기물들을 반환하는 함수 override
-    private List<SimPieceData> GetAllEnemyPiecesDataOnly(SimPieceData[,] boardState)
-    {
-
-        PieceColor enemyColor = (myColor == PieceColor.white) ? PieceColor.black : PieceColor.white;
-        return GetSimPiecesByColor(boardState, enemyColor);
-    }
-
-    // 최적의 수를 찾는 탐색 함수 (미니맥스 + 알파-베타 가지치기)
-    public async UniTask<MoveBestMove> FindBestMoveAsync()
-    {
-
-        // 1. 현재 메인 보드의 상태를 순수 데이터 2D 배열로 복사 (메인 스레드에서 수행)
-        SimPieceData[,] boardCopy = CreateBoardDataCopy();
-
-        // 2. 백그라운드 스레드에서 미니맥스 실행 (화면 멈춤 없음!)
-        MoveBestMove bestMove = await UniTask.RunOnThreadPool(() =>
-        {
-
-            Stack<SimUndoData> localUndoStack = new Stack<SimUndoData>();
-
-            int bestEval = -99999;
-            MoveBestMove selectedMove = new MoveBestMove { isValid = false }; // 유효한 수 체크 변수 이름에 맞춰 조정
-
-            // AI 기준 내 기물들을 찾아서 가능한 모든 수를 탐색
-            List<SimPieceData> myPieces = GetSimPiecesByColor(boardCopy, myColor);
-            List<Vector2Int> moves = new List<Vector2Int>(32);
-            foreach (var piece in myPieces)
-            {
-
-                moves.Clear();
-                GetPossibleMovesDataOnly(boardCopy, piece.pos, moves);
-
-                foreach (var target in moves)
-                {
-                    Vector2Int start = piece.pos;
-
-                    // 가상 이동 실행 (순수 데이터만 변경 + 스택에 백업)
-                    SimulateMoveDataOnly(boardCopy, start, target, localUndoStack);
-
-                    PieceColor currentTurnColor = myColor;
-                    if (IsKingInCheckDataOnly(boardCopy, currentTurnColor))
-                    {
-                        SimUndoData invalidUndo = localUndoStack.Pop();
-                        UndoMoveDataOnly(boardCopy, invalidUndo);
-
-                        continue; // 킹이 위험해지므로 이 수는 무시하고 다음 수 탐색
-                    }
-
-                    // 다음 자식 노드 탐색 (depth는 원하는 깊이로 설정, 예: 3 또는 4)
-                    int eval = Minimax(boardCopy, searchDepth, false, -99999, 99999, localUndoStack);
-
-                    // 가상 이동 되돌리기
-                    SimUndoData undoData = localUndoStack.Pop();
-                    UndoMoveDataOnly(boardCopy, undoData);
-
-                    if (eval > bestEval)
-                    {
-                        bestEval = eval;
-                        selectedMove.from = start;
-                        selectedMove.to = target;
-                        selectedMove.isValid = true;
-                    }
-                }
-            }
-
-            return selectedMove;
-        });
-
-        return bestMove;
-    }
+   
 }
 

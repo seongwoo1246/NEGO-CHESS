@@ -98,7 +98,8 @@ public enum GameResultType
 { 
     Win,
     Lose,
-    Draw 
+    Draw,
+    Giveup
 }
 
 public enum UpgradeType
