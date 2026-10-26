@@ -1,5 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -116,178 +117,160 @@ public class Characters : MonoBehaviour
     // AI 이동 결정 함수 (가상 함수로 만들어 캐릭터마다 다르게 오버라이드 가능)
     public virtual async UniTask OnAITurnAsync()
     {
-
-        MoveBestMove bestMove = await FindBestMoveAsync();
-
-        if (bestMove.isValid)
-        {
-            
-            ExecuteMove(bestMove.from, bestMove.to);
-
-            // 💡 AI 행동 완료 후 안전하게 턴 종료 호출
-            if (gameM != null)
-            {
-                
-                gameM.TurnEnd();
-            }
-        }
-    }
-
-    // 최적의 수를 찾는 탐색 함수 (미니맥스 + 알파-베타 가지치기)
-    public async UniTask<MoveBestMove> FindBestMoveAsync()
-    {
-        
-        // 1. 현재 메인 보드의 상태를 순수 데이터 2D 배열로 복사 (메인 스레드에서 수행)
+        // 유니티 오브젝트 보드를 순수 데이터 배열로 복사 (New 1회 발생, 턴 시작 시 단 한 번만)
         SimPieceData[,] boardCopy = CreateBoardDataCopy();
 
-        // 2. 백그라운드 스레드에서 미니맥스 실행 (화면 멈춤 없음!)
-        MoveBestMove bestMove = await UniTask.RunOnThreadPool(() =>
+        // 비동기로 미니맥스 실행 (UI 멈춤 방지)
+        Task.Run(async () =>
         {
-           
             Stack<SimUndoData> localUndoStack = new Stack<SimUndoData>();
+            List<Vector2Int> sharedMovesBuffer = new List<Vector2Int>(32); // 탐색용 버퍼 재사용
 
-            int bestEval = -99999;
-            MoveBestMove selectedMove = new MoveBestMove { isValid = false }; // 유효한 수 체크 변수 이름에 맞춰 조정
+            int bestEval = -9999;
+            Vector2Int bestStart = default;
+            Vector2Int bestTarget = default;
+            bool foundMove = false;
 
-            // AI 기준 내 기물들을 찾아서 가능한 모든 수를 탐색
-            List<SimPieceData> myPieces = GetSimPiecesByColor(boardCopy, myColor);
-            List<Vector2Int> moves = new List<Vector2Int>(32);
-            foreach (var piece in myPieces)
+            int width = boardCopy.GetLength(0);
+            int height = boardCopy.GetLength(1);
+
+            // 최상위 Maximizing 루트 (내 기물 찾기)
+            for (int x = 0; x < width; x++)
             {
-
-                moves.Clear();
-                GetPossibleMovesDataOnly(boardCopy, piece.pos, moves);
-
-                foreach (var target in moves)
+                for (int y = 0; y < height; y++)
                 {
-                    Vector2Int start = piece.pos;
+                    SimPieceData piece = boardCopy[x, y];
+                    if (piece.type == pieceType.none || piece.color != myColor) continue;
 
-                    // 가상 이동 실행 (순수 데이터만 변경 + 스택에 백업)
-                    SimulateMoveDataOnly(boardCopy, start, target, localUndoStack);
+                    sharedMovesBuffer.Clear();
+                    GetPossibleMovesDataOnly(boardCopy, piece.pos, sharedMovesBuffer);
 
-                    PieceColor currentTurnColor = myColor;
-                    if (IsKingInCheckDataOnly(boardCopy, currentTurnColor))
+                    foreach (var target in sharedMovesBuffer)
                     {
-                        SimUndoData invalidUndo = localUndoStack.Pop();
-                        UndoMoveDataOnly(boardCopy, invalidUndo);
-                        
-                        continue; // 킹이 위험해지므로 이 수는 무시하고 다음 수 탐색
-                    }
+                        SimulateMoveDataOnly(boardCopy, piece.pos, target, localUndoStack);
 
-                    // 다음 자식 노드 탐색 (depth는 원하는 깊이로 설정, 예: 3 또는 4)
-                    int eval = Minimax(boardCopy, searchDepth, false, -99999, 99999, localUndoStack);
+                        if (IsKingInCheckDataOnly(boardCopy, myColor))
+                        {
+                            UndoMoveDataOnly(boardCopy, localUndoStack.Pop());
+                            continue;
+                        }
 
-                    // 가상 이동 되돌리기
-                    SimUndoData undoData = localUndoStack.Pop();
-                    UndoMoveDataOnly(boardCopy, undoData);
+                        // 깊이(Depth) 설정 (예: 3단계 탐색)
+                        int eval = Minimax(boardCopy, searchDepth, false, -9999, 9999, localUndoStack, sharedMovesBuffer);
 
-                    if (eval > bestEval)
-                    {
-                        bestEval = eval;
-                        selectedMove.from = start;
-                        selectedMove.to = target;
-                        selectedMove.isValid = true;
+                        UndoMoveDataOnly(boardCopy, localUndoStack.Pop());
+
+                        if (eval > bestEval)
+                        {
+                            bestEval = eval;
+                            bestStart = piece.pos;
+                            bestTarget = target;
+                            foundMove = true;
+                        }
                     }
                 }
             }
-            
-            return selectedMove;
+
+            // 최적의 수를 찾았다면 메인 스레드에서 실제 기물 이동 수행
+            if (foundMove)
+            {
+               await ExecuteMove(bestStart, bestTarget);
+            }
         });
-        
-        return bestMove;
     }
 
+    
+
     // 미니맥스 알고리즘 (나와 상대방의 수를 번갈아가며 시뮬레이션하는 두뇌)
-    private int Minimax(SimPieceData[,] boardState, int depth, bool isMaximizing, int alpha, int beta, Stack<SimUndoData> undoStack)
+    private int Minimax(SimPieceData[,] boardState, int depth, bool isMaximizing, int alpha, int beta, Stack<SimUndoData> undoStack, List<Vector2Int> sharedMovesBuffer)
     {
+        int width = boardState.GetLength(0);
+        int height = boardState.GetLength(1);
+
         if (depth == 0)
         {
             return EvaluateBoardDataOnly(boardState); // 순수 데이터 기반 평가 함수
         }
 
+        PieceColor enemyColor = (myColor == PieceColor.white) ? PieceColor.black : PieceColor.white;
+
         if (isMaximizing)
         {
-            int maxEval = -99999;
-            List<SimPieceData> myPieces = GetSimPiecesByColor(boardState, myColor);
-            List<Vector2Int> moves = new List<Vector2Int>();
-            foreach (var piece in myPieces)
+            int maxEval = -9999;
+
+            for (int x = 0; x < width; x++)
             {
-                moves.Clear();
-                GetPossibleMovesDataOnly(boardState, piece.pos, moves);
-                
-                foreach (var target in moves)
+                for (int y = 0; y < height; y++)
                 {
-                    Vector2Int start = piece.pos;
-                    SimulateMoveDataOnly(boardState, start, target, undoStack);
-                    PieceColor currentTurnColor = isMaximizing ? myColor : ((myColor == PieceColor.white) ? PieceColor.black : PieceColor.white);
+                    SimPieceData piece = boardState[x, y];
+                    if (piece.type == pieceType.none || piece.color != myColor) continue;
 
-                    if (IsKingInCheckDataOnly(boardState, currentTurnColor))
+                    sharedMovesBuffer.Clear();
+                    GetPossibleMovesDataOnly(boardState, piece.pos, sharedMovesBuffer);
+
+                    foreach (var target in sharedMovesBuffer)
                     {
-                        // 킹이 위험해지는 수라면(=체크를 무시하거나 자살 수인 경우), 
-                        // 이 수는 무효이므로 되돌리고(Undo) 이번 탐색은 건너뜁니다!
-                        SimUndoData invalidUndo = undoStack.Pop();
-                        UndoMoveDataOnly(boardState, invalidUndo);
-                        continue;
+                        SimulateMoveDataOnly(boardState, piece.pos, target, undoStack);
+
+                        if (IsKingInCheckDataOnly(boardState, myColor))
+                        {
+                            UndoMoveDataOnly(boardState, undoStack.Pop());
+                            continue;
+                        }
+
+                        int eval = Minimax(boardState, depth - 1, false, alpha, beta, undoStack, sharedMovesBuffer);
+                        UndoMoveDataOnly(boardState, undoStack.Pop());
+
+                        maxEval = Mathf.Max(maxEval, eval);
+                        alpha = Mathf.Max(alpha, eval);
+                        if (beta <= alpha) break;
                     }
-                  
-                    int eval = Minimax(boardState, depth - 1, false, alpha, beta, undoStack);
-
-                    SimUndoData undoData = undoStack.Pop();
-                    UndoMoveDataOnly(boardState, undoData);
-
-                    maxEval = Mathf.Max(maxEval, eval);
-                    alpha = Mathf.Max(alpha, eval);
                     if (beta <= alpha) break;
                 }
-                if (beta <= alpha) break;
             }
             return maxEval;
         }
         else
         {
-            int minEval = 99999;
-            List<SimPieceData> enemyPieces = GetAllEnemyPiecesDataOnly(boardState);
-            List<Vector2Int> moves = new List<Vector2Int>();
-            foreach (var piece in enemyPieces)
+            int minEval = 9999;
+
+            for (int x = 0; x < width; x++)
             {
-                moves.Clear();
-                GetPossibleMovesDataOnly(boardState, piece.pos, moves);
-
-                foreach (var target in moves)
+                for (int y = 0; y < height; y++)
                 {
-                    Vector2Int start = piece.pos;
-                    SimulateMoveDataOnly(boardState, start, target, undoStack);
-                    PieceColor currentTurnColor = isMaximizing ? myColor : ((myColor == PieceColor.white) ? PieceColor.black : PieceColor.white);
+                    SimPieceData piece = boardState[x, y];
+                    if (piece.type == pieceType.none || piece.color != enemyColor) continue;
 
-                    if (IsKingInCheckDataOnly(boardState, currentTurnColor))
+                    sharedMovesBuffer.Clear();
+                    GetPossibleMovesDataOnly(boardState, piece.pos, sharedMovesBuffer);
+
+                    foreach (var target in sharedMovesBuffer)
                     {
-                        // 킹이 위험해지는 수라면(=체크를 무시하거나 자살 수인 경우), 
-                        // 이 수는 무효이므로 되돌리고(Undo) 이번 탐색은 건너뜁니다!
-                        SimUndoData invalidUndo = undoStack.Pop();
-                        UndoMoveDataOnly(boardState, invalidUndo);
-                        continue;
+                        SimulateMoveDataOnly(boardState, piece.pos, target, undoStack);
+
+                        if (IsKingInCheckDataOnly(boardState, enemyColor))
+                        {
+                            UndoMoveDataOnly(boardState, undoStack.Pop());
+                            continue;
+                        }
+
+                        int eval = Minimax(boardState, depth - 1, true, alpha, beta, undoStack, sharedMovesBuffer);
+                        UndoMoveDataOnly(boardState, undoStack.Pop());
+
+                        minEval = Mathf.Min(minEval, eval);
+                        beta = Mathf.Min(beta, eval);
+                        if (beta <= alpha) break;
                     }
-
-                    int eval = Minimax(boardState, depth - 1, true, alpha, beta, undoStack);
-
-                    SimUndoData undoData = undoStack.Pop();
-                    UndoMoveDataOnly(boardState, undoData);
-
-                    minEval = Mathf.Min(minEval, eval);
-                    beta = Mathf.Min(beta, eval);
                     if (beta <= alpha) break;
                 }
-                if (beta <= alpha) break;
             }
             return minEval;
         }
     }
 
-    // ⚖️ 판의 유불리를 점수로 환산해주는 평가 함수 (기물 가치 점수)
     private int EvaluateBoardDataOnly(SimPieceData[,] boardState)
     {
-        int score = 0;
-
+        int totalEvaluation = 0;
         int width = boardState.GetLength(0);
         int height = boardState.GetLength(1);
 
@@ -298,25 +281,42 @@ public class Characters : MonoBehaviour
                 SimPieceData piece = boardState[x, y];
                 if (piece.type == pieceType.none) continue;
 
+                // 1. 기본 기물 가치 합산
                 int pieceValue = GetPieceValue(piece.type);
-                int positionalBonus = GetBlackPositionBonusDataOnly(piece);
-                int safetyPenalty = EvaluateCurrentPiecesSafetyDataOnly(boardState, piece, new Vector2Int(x, y));
 
-                int totalscore = pieceValue + positionalBonus + safetyPenalty;
-
-                // AI 색상 기준(myColor)에 따라 아군은 더하고 적군은 뺌
-                if (piece.color == myColor)
+                // 2. 위치 보너스 합산 (색상별 분기 처리 추가)
+                int positionBonus = 0;
+                if (piece.color == PieceColor.black)
                 {
-                    score += totalscore;
+                    positionBonus = GetBlackPositionBonusDataOnly(piece);
                 }
                 else
                 {
-                    score -= totalscore;
+                    // 백 기물인 경우 테이블 대칭 적용 (예: y축 반전)
+                    SimPieceData flippedPiece = piece;
+                    flippedPiece.pos = new Vector2Int(piece.pos.x, 7 - piece.pos.y);
+                    positionBonus = GetBlackPositionBonusDataOnly(flippedPiece);
+                }
+
+                // 3. 안전도 페널티 적용
+                int safetyPenalty = EvaluateCurrentPiecesSafetyDataOnly(boardState, piece, piece.pos);
+
+                // 최종 기물 점수 계산
+                int finalPieceScore = pieceValue + positionBonus + safetyPenalty;
+
+                // 내 팀이면 플러스, 적 팀이면 마이너스 (Maximizing 기준)
+                if (piece.color == myColor)
+                {
+                    totalEvaluation += finalPieceScore;
+                }
+                else
+                {
+                    totalEvaluation -= finalPieceScore;
                 }
             }
         }
 
-        return score;
+        return totalEvaluation;
     }
 
     // 기물 종류별 점수표
@@ -334,45 +334,6 @@ public class Characters : MonoBehaviour
         }
     }
 
-    // 3. [위치 보너스] 순수 데이터(SimPieceData)를 받도록 수정
-    private int GetBlackPositionBonusDataOnly(SimPieceData piece)
-    {
-        int y = piece.pos.y;
-        int x = piece.pos.x;
-
-        if (piece.type == pieceType.Pawn)
-        {
-            int[,] blackPawnTable = {
-            { 0, 0, 0, 0, 0, 0, 0, 0 },
-            { 200, 250, 300, 400, 400, 300, 250, 200 },
-            { 100, 130, 160, 200, 200, 160, 130, 100 },
-            { 50, 70, 100, 130, 130, 100, 70, 50 },
-            { 20, 30, 50, 70, 70, 50, 30, 20 },
-            { 10, 15, 25, 40, 40, 25, 15, 10 },
-            { 5, 5, 10, 20, 20, 10, 5, 5 },
-            { 0, 0, 0, 0, 0, 0, 0, 0 }
-        };
-            return blackPawnTable[y, x];
-        }
-
-        if (piece.type == pieceType.Knight || piece.type == pieceType.Bishop)
-        {
-            int[,] blackMinorTable = {
-            { -10,-5,-5,-5,-5,-5,-5,-10 },
-            { -5, 0, 0, 0, 0, 0, 0, -5 },
-            { -5, 0,15,20,20,15, 0, -5 },
-            { -5, 5,20,25,25,20, 5, -5 },
-            { -5, 5,20,25,25,20, 5, -5 },
-            { -5, 0,15,20,20,15, 0, -5 },
-            { -5, 0, 5, 5, 5, 5, 0, -5 },
-            { -10,-5,-5,-5,-5,-5,-5,-10 }
-        };
-            return blackMinorTable[y, x];
-        }
-
-        return 0;
-    }
-
     // 5. [공격 받는지 체크] 순수 데이터 배열을 순회하며 적 기물이 해당 칸을 타격할 수 있는지 검사
     private bool IsSquareAttackedDataOnly(SimPieceData[,] boardState, Vector2Int targetPos, PieceColor attackerColor)
     {
@@ -385,64 +346,8 @@ public class Characters : MonoBehaviour
         return enemyMoves.Contains(targetPos);
     }
 
-    // 미니맥스 탐색 중 기물 이동 후 점수를 평가할 때 또는 이동 우선순위를 매길 때 적용
-    // 4. [기물 안전도 평가] 순수 데이터 버전
-    private int EvaluateCurrentPiecesSafetyDataOnly(SimPieceData[,] boardState, SimPieceData piece, Vector2Int currentPos)
-    {
-        int safetyPenalty = 0;
-        PieceColor enemyColor = (piece.color == PieceColor.white) ? PieceColor.black : PieceColor.white;
-
-        // 해당 칸이 적에게 공격받고 있는지 확인
-        bool isAttacked = IsSquareAttackedDataOnly(boardState, currentPos, enemyColor);
-
-        if (isAttacked)
-        {
-            // 아군이 이 칸을 지켜주고 있는지 확인
-            bool isDefended = IsSquareAttackedDataOnly(boardState, currentPos, piece.color);
-
-            int pieceCost = GetPieceValue(piece.type);
-
-            if (!isDefended)
-            {
-                safetyPenalty -= pieceCost; // 방어가 없으면 기물 가치만큼 큰 페널티
-            }
-            else
-            {
-                safetyPenalty -= (pieceCost / 2); // 교환 국면이면 절반 페널티
-            }
-        }
-
-        return safetyPenalty;
-    }
-
     // 내 팀의 모든 살아있는 기물들을 찾아 리스트로 반환하는 함수 override
-    private List<SimPieceData> GetSimPiecesByColor(SimPieceData[,] boardState, PieceColor color)
-    {
-        List<SimPieceData> pieces = new List<SimPieceData>();
-        int width = boardState.GetLength(0);
-        int height = boardState.GetLength(1);
-
-        for (int x = 0; x < width; x++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                SimPieceData piece = boardState[x, y];
-                if (piece.type != pieceType.none && piece.color == color)
-                {
-                    pieces.Add(piece);
-                }
-            }
-        }
-        return pieces;
-    }
-
-    // 상대 팀의 모든 살아있는 기물들을 반환하는 함수 override
-    private List<SimPieceData> GetAllEnemyPiecesDataOnly(SimPieceData[,] boardState)
-    {
-        
-        PieceColor enemyColor = (myColor == PieceColor.white) ? PieceColor.black : PieceColor.white;
-        return GetSimPiecesByColor(boardState, enemyColor);
-    }
+    
 
     private struct SimUndoData
     {
@@ -557,11 +462,6 @@ public class Characters : MonoBehaviour
                 boardState[0, row].pos = new Vector2Int(0, row);
             }
         }
-    }
-    private void ExecuteMove(Vector2Int from, Vector2Int to)
-    { 
-        gameM.MovePiece(from.x,from.y,to.x,to.y);
-        
     }
 
     private SimPieceData[,] CreateBoardDataCopy()
@@ -969,6 +869,173 @@ public class Characters : MonoBehaviour
     {
         
         return x >= 0 && x < 8 && y >= 0 && y < 8;
+    }
+
+
+    // 3. [위치 보너스] 순수 데이터(SimPieceData)를 받도록 수정
+    private int GetBlackPositionBonusDataOnly(SimPieceData piece)
+    {
+        int y = piece.pos.y;
+        int x = piece.pos.x;
+
+        if (piece.type == pieceType.Pawn)
+        {
+            int[,] blackPawnTable = {
+            { 0, 0, 0, 0, 0, 0, 0, 0 },
+            { 200, 250, 300, 400, 400, 300, 250, 200 },
+            { 100, 130, 160, 200, 200, 160, 130, 100 },
+            { 50, 70, 100, 130, 130, 100, 70, 50 },
+            { 20, 30, 50, 70, 70, 50, 30, 20 },
+            { 10, 15, 25, 40, 40, 25, 15, 10 },
+            { 5, 5, 10, 20, 20, 10, 5, 5 },
+            { 0, 0, 0, 0, 0, 0, 0, 0 }
+        };
+            return blackPawnTable[y, x];
+        }
+
+        if (piece.type == pieceType.Knight || piece.type == pieceType.Bishop)
+        {
+            int[,] blackMinorTable = {
+            { -10,-5,-5,-5,-5,-5,-5,-10 },
+            { -5, 0, 0, 0, 0, 0, 0, -5 },
+            { -5, 0,15,20,20,15, 0, -5 },
+            { -5, 5,20,25,25,20, 5, -5 },
+            { -5, 5,20,25,25,20, 5, -5 },
+            { -5, 0,15,20,20,15, 0, -5 },
+            { -5, 0, 5, 5, 5, 5, 0, -5 },
+            { -10,-5,-5,-5,-5,-5,-5,-10 }
+        };
+            return blackMinorTable[y, x];
+        }
+
+        return 0;
+    }
+
+    // 미니맥스 탐색 중 기물 이동 후 점수를 평가할 때 또는 이동 우선순위를 매길 때 적용
+    // 4. [기물 안전도 평가] 순수 데이터 버전
+    private int EvaluateCurrentPiecesSafetyDataOnly(SimPieceData[,] boardState, SimPieceData piece, Vector2Int currentPos)
+    {
+        int safetyPenalty = 0;
+        PieceColor enemyColor = (piece.color == PieceColor.white) ? PieceColor.black : PieceColor.white;
+
+        // 해당 칸이 적에게 공격받고 있는지 확인
+        bool isAttacked = IsSquareAttackedDataOnly(boardState, currentPos, enemyColor);
+
+        if (isAttacked)
+        {
+            // 아군이 이 칸을 지켜주고 있는지 확인
+            bool isDefended = IsSquareAttackedDataOnly(boardState, currentPos, piece.color);
+
+            int pieceCost = GetPieceValue(piece.type);
+
+            if (!isDefended)
+            {
+                safetyPenalty -= pieceCost; // 방어가 없으면 기물 가치만큼 큰 페널티
+            }
+            else
+            {
+                safetyPenalty -= (pieceCost / 2); // 교환 국면이면 절반 페널티
+            }
+        }
+
+        return safetyPenalty;
+    }
+
+    private void ExecuteMove(Vector2Int from, Vector2Int to)
+    {
+        gameM.MovePiece(from.x, from.y, to.x, to.y);
+
+    }
+
+    private List<SimPieceData> GetSimPiecesByColor(SimPieceData[,] boardState, PieceColor color)
+    {
+        List<SimPieceData> pieces = new List<SimPieceData>();
+        int width = boardState.GetLength(0);
+        int height = boardState.GetLength(1);
+
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                SimPieceData piece = boardState[x, y];
+                if (piece.type != pieceType.none && piece.color == color)
+                {
+                    pieces.Add(piece);
+                }
+            }
+        }
+        return pieces;
+    }
+    // 상대 팀의 모든 살아있는 기물들을 반환하는 함수 override
+    private List<SimPieceData> GetAllEnemyPiecesDataOnly(SimPieceData[,] boardState)
+    {
+
+        PieceColor enemyColor = (myColor == PieceColor.white) ? PieceColor.black : PieceColor.white;
+        return GetSimPiecesByColor(boardState, enemyColor);
+    }
+
+    // 최적의 수를 찾는 탐색 함수 (미니맥스 + 알파-베타 가지치기)
+    public async UniTask<MoveBestMove> FindBestMoveAsync()
+    {
+
+        // 1. 현재 메인 보드의 상태를 순수 데이터 2D 배열로 복사 (메인 스레드에서 수행)
+        SimPieceData[,] boardCopy = CreateBoardDataCopy();
+
+        // 2. 백그라운드 스레드에서 미니맥스 실행 (화면 멈춤 없음!)
+        MoveBestMove bestMove = await UniTask.RunOnThreadPool(() =>
+        {
+
+            Stack<SimUndoData> localUndoStack = new Stack<SimUndoData>();
+
+            int bestEval = -99999;
+            MoveBestMove selectedMove = new MoveBestMove { isValid = false }; // 유효한 수 체크 변수 이름에 맞춰 조정
+
+            // AI 기준 내 기물들을 찾아서 가능한 모든 수를 탐색
+            List<SimPieceData> myPieces = GetSimPiecesByColor(boardCopy, myColor);
+            List<Vector2Int> moves = new List<Vector2Int>(32);
+            foreach (var piece in myPieces)
+            {
+
+                moves.Clear();
+                GetPossibleMovesDataOnly(boardCopy, piece.pos, moves);
+
+                foreach (var target in moves)
+                {
+                    Vector2Int start = piece.pos;
+
+                    // 가상 이동 실행 (순수 데이터만 변경 + 스택에 백업)
+                    SimulateMoveDataOnly(boardCopy, start, target, localUndoStack);
+
+                    PieceColor currentTurnColor = myColor;
+                    if (IsKingInCheckDataOnly(boardCopy, currentTurnColor))
+                    {
+                        SimUndoData invalidUndo = localUndoStack.Pop();
+                        UndoMoveDataOnly(boardCopy, invalidUndo);
+
+                        continue; // 킹이 위험해지므로 이 수는 무시하고 다음 수 탐색
+                    }
+
+                    // 다음 자식 노드 탐색 (depth는 원하는 깊이로 설정, 예: 3 또는 4)
+                    int eval = Minimax(boardCopy, searchDepth, false, -99999, 99999, localUndoStack);
+
+                    // 가상 이동 되돌리기
+                    SimUndoData undoData = localUndoStack.Pop();
+                    UndoMoveDataOnly(boardCopy, undoData);
+
+                    if (eval > bestEval)
+                    {
+                        bestEval = eval;
+                        selectedMove.from = start;
+                        selectedMove.to = target;
+                        selectedMove.isValid = true;
+                    }
+                }
+            }
+
+            return selectedMove;
+        });
+
+        return bestMove;
     }
 }
 
