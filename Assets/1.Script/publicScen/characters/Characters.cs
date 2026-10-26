@@ -146,8 +146,8 @@ public class Characters : MonoBehaviour
                     SimPieceData piece = boardCopy[x, y];
                     if (piece.type == pieceType.none || piece.color != myColor) continue;
 
-                    // 현재 depth(예: 3)에 해당하는 버퍼 가져오기
-                    List<Vector2Int> moves = depthBuffers[3];
+                    
+                    List<Vector2Int> moves = depthBuffers[searchDepth];
                     moves.Clear();
                     GetPossibleMovesDataOnly(boardCopy, piece.pos, moves);
 
@@ -161,8 +161,8 @@ public class Characters : MonoBehaviour
                             continue;
                         }
 
-                        // 재귀 호출 시 다음 depth(2)의 버퍼를 전달!
-                        int eval = Minimax(boardCopy, 2, false, -9999, 9999, localUndoStack, depthBuffers);
+                        Debug.Log("1");
+                        int eval = Minimax(boardCopy, searchDepth-1, false, -9999, 9999, localUndoStack, depthBuffers);
 
                         UndoMoveDataOnly(boardCopy, localUndoStack.Pop());
 
@@ -198,8 +198,8 @@ public class Characters : MonoBehaviour
             return EvaluateBoardDataOnly(boardState);
         }
 
-        // 적 AI는 항상 검정색(Black)이라고 고정 가정
-        PieceColor enemyColor = PieceColor.black;
+       
+        PieceColor enemyColor = PieceColor.white;
 
         // 현재 내 색상 판별 (Maximizing 여부에 따라)
         PieceColor turnColor = isMaximizing ? myColor : enemyColor;
@@ -215,19 +215,39 @@ public class Characters : MonoBehaviour
             {
                 for (int y = 0; y < height; y++)
                 {
-                    SimPieceData piece = boardState[x, y];
+                    SimPieceData piece = boardState[x, y]; Debug.Log("2");
                     if (piece.type == pieceType.none || piece.color != turnColor) continue;
+
 
                     moves.Clear();
                     GetPossibleMovesDataOnly(boardState, piece.pos, moves);
+                    Debug.Log("3");
+                    // 만약 이 기물이 움직일 수 있는 곳이 아예 없다면 시간 낭비 말고 즉시 패스!
+                    if (moves.Count == 0)  continue;
+
+                    // 🌟 [핵심] 세계 표준 체스 AI의 이동 정렬 기법 (MVV-LVA)
+                    // 상대 기물을 잡는 수를 최우선으로 배치하여 알파-베타 가지치기(Pruning)율을 극대화합니다.
+                    moves.Sort((a, b) =>
+                    {
+                        SimPieceData targetA = boardState[a.x, a.y];
+                        SimPieceData targetB = boardState[b.x, b.y];
+
+                        // 폰으로 퀸을 잡는 등 '가장 가치 있는 적을 가장 싼 기물로 잡는 수'에 더 높은 점수 부여
+                        int scoreA = (targetA.type != pieceType.none) ? (GetPieceValue(targetA.type) * 10 - GetPieceValue(piece.type)) : 0;
+                        int scoreB = (targetB.type != pieceType.none) ? (GetPieceValue(targetB.type) * 10 - GetPieceValue(piece.type)) : 0;
+                        Debug.Log("4");
+                        // 점수가 높은 이동이 리스트의 맨 앞(먼저 탐색할 곳)으로 오도록 내림차순 정렬
+                        return scoreB.CompareTo(scoreA);
+                    });
 
                     foreach (var target in moves)
                     {
                         SimulateMoveDataOnly(boardState, piece.pos, target, undoStack);
 
+                        // 내 왕이 위험해지는 자살 수는 빠르게 필터링
                         if (IsKingInCheckDataOnly(boardState, turnColor))
                         {
-                            UndoMoveDataOnly(boardState, undoStack.Pop());
+                            UndoMoveDataOnly(boardState, undoStack.Pop()); Debug.Log("5");
                             continue;
                         }
 
@@ -236,11 +256,14 @@ public class Characters : MonoBehaviour
 
                         maxEval = Mathf.Max(maxEval, eval);
                         alpha = Mathf.Max(alpha, eval);
+
+                        // 🌟 알파-베타 가지치기: 더 볼 필요도 없는 최악의 수는 즉시 브레이크!
                         if (beta <= alpha) break;
                     }
                     if (beta <= alpha) break;
                 }
             }
+            Debug.Log("6");
             return maxEval;
         }
         else
@@ -251,32 +274,55 @@ public class Characters : MonoBehaviour
             {
                 for (int y = 0; y < height; y++)
                 {
-                    SimPieceData piece = boardState[x, y];
+                    SimPieceData piece = boardState[x, y]; Debug.Log("7");
                     if (piece.type == pieceType.none || piece.color != turnColor) continue;
 
+                    
                     moves.Clear();
                     GetPossibleMovesDataOnly(boardState, piece.pos, moves);
+
+                    Debug.Log("8");
+                    // 🌟 움직일 수 있는 경로가 아예 없다면 즉시 패스하여 불필요한 연산 방지
+                    if (moves.Count == 0) continue;
+
+                    // 🌟 [MVV-LVA 정렬 적용] 상대방 입장에서도 가치 있는 기물을 잡는 수를 우선 탐색
+                    moves.Sort((a, b) =>
+                    {
+                        SimPieceData targetA = boardState[a.x, a.y];
+                        SimPieceData targetB = boardState[b.x, b.y];
+
+                        int scoreA = (targetA.type != pieceType.none) ? (GetPieceValue(targetA.type) * 10 - GetPieceValue(piece.type)) : 0;
+                        int scoreB = (targetB.type != pieceType.none) ? (GetPieceValue(targetB.type) * 10 - GetPieceValue(piece.type)) : 0;
+                        Debug.Log("9");
+                        return scoreB.CompareTo(scoreA); // 내림차순 정렬
+                    });
 
                     foreach (var target in moves)
                     {
                         SimulateMoveDataOnly(boardState, piece.pos, target, undoStack);
 
+                        // 왕이 위험해지는 자살 수는 빠르게 필터링
                         if (IsKingInCheckDataOnly(boardState, turnColor))
                         {
+                            Debug.Log("10");
                             UndoMoveDataOnly(boardState, undoStack.Pop());
                             continue;
                         }
 
+                        // 다음 깊이로 탐색 전개 (MIN 차례이므로 다음은 true / alpha, beta 전달)
                         int eval = Minimax(boardState, depth - 1, true, alpha, beta, undoStack, depthBuffers);
                         UndoMoveDataOnly(boardState, undoStack.Pop());
 
                         minEval = Mathf.Min(minEval, eval);
                         beta = Mathf.Min(beta, eval);
+
+                        // 🌟 알파-베타 가지치기: 더 탐색할 필요가 없다면 즉시 탈출
                         if (beta <= alpha) break;
                     }
                     if (beta <= alpha) break;
                 }
             }
+            Debug.Log("11");
             return minEval;
         }
     }
@@ -302,13 +348,6 @@ public class Characters : MonoBehaviour
                 if (piece.color == PieceColor.black)
                 {
                     positionBonus = GetBlackPositionBonusDataOnly(piece);
-                }
-                else
-                {
-                    // 백 기물인 경우 테이블 대칭 적용 (예: y축 반전)
-                    SimPieceData flippedPiece = piece;
-                    flippedPiece.pos = new Vector2Int(piece.pos.x, 7 - piece.pos.y);
-                    positionBonus = GetBlackPositionBonusDataOnly(flippedPiece);
                 }
 
                 // 3. 안전도 페널티 적용
@@ -505,7 +544,7 @@ public class Characters : MonoBehaviour
     {
         List<Vector2Int> attackMoves = new List<Vector2Int>();
         if (boardState == null) return attackMoves;
-
+        List<Vector2Int> pieceMoves = new List<Vector2Int>();
         int width = boardState.GetLength(0);
         int height = boardState.GetLength(1);
 
@@ -519,7 +558,7 @@ public class Characters : MonoBehaviour
                 if (piece.type != pieceType.none && (piece.color == PieceColor.white) == isWhiteEnemy)
                 {
                     // 해당 기물의 가상 이동 가능 경로를 구해서 리스트에 추가
-                    List<Vector2Int> pieceMoves = new List<Vector2Int>();
+                    
                     GetPossibleMovesDataOnly(boardState, new Vector2Int(x, y), pieceMoves);
 
                     attackMoves.AddRange(pieceMoves);
@@ -582,6 +621,13 @@ public class Characters : MonoBehaviour
                 int forwardY = fromPos.y + direction;
                 if (IsValidIndex(fromPos.x, forwardY) && boardState[fromPos.x, forwardY].type == pieceType.none)
                 {
+                    bool isPromotion = (piece.color == PieceColor.white && forwardY == 7) ||
+                       (piece.color == PieceColor.black && forwardY == 0);
+
+                    if (isPromotion)
+                    {
+                        piece.type = pieceType.Queen;
+                    }
                     outMoves.Add(new Vector2Int(fromPos.x, forwardY));
 
                     // 2. 처음 움직일 때 2칸 전진 (백은 y=1, 흑은 y=6 시작점 기준)
@@ -616,7 +662,7 @@ public class Characters : MonoBehaviour
                     // 옆 칸에 적 폰이 있고, 직전에 2칸 움직인 기록(movedTwoSquaresLastTurn)이 있는 경우
                     int sideX = targetX;
                     int sideY = fromPos.y;
-                    if (IsValidIndex(sideX, sideY)&& allowEnPassant)
+                    if (IsValidIndex(sideX, sideY) && allowEnPassant)
                     {
                         SimPieceData sidePiece = boardState[sideX, sideY];
                         if (sidePiece.type == pieceType.Pawn && sidePiece.color != piece.color && sidePiece.movedTwoSquaresLastTurn)
@@ -629,11 +675,6 @@ public class Characters : MonoBehaviour
                         }
                     }
                 }
-
-                // 💡 5. 프로모션(Promotion) 안내
-                // 순수 데이터 시뮬레이션에서는 도착 좌표 자체는 일반 전진/대각선과 똑같이 추가됩니다.
-                // 대신 가상 이동을 실행하는 `SimulateMoveDataOnly` 안에서 
-                // 폰이 맨 끝 행(백 y=7, 흑 y=0)에 도달했을 때 타입을 자동으로 `pieceType.Queen`으로 승격시켜 주면 됩니다!
                 break;
 
             case pieceType.Knight:
