@@ -94,8 +94,6 @@ public class CheseGameM : MonoBehaviour
 
         positionHistory.Clear();
 
-        UpdateNegotiationPowers();
-
         whiteTimer.TimerTime = 300;
         blackTimer.TimerTime = 300;
 
@@ -236,7 +234,6 @@ public class CheseGameM : MonoBehaviour
     // 타일 선택시 호출하는 함수
     public void OnTileClicked(int x, int y)
     {
-        Debug.Log("보드 클릭 함수 호출");
 
         // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
         if (isSpawnMode && selectedPieceData != null)
@@ -278,16 +275,9 @@ public class CheseGameM : MonoBehaviour
                 // 클릭한 칸이 이동 가능한 위치 중 하나라면 -> 네트워크 이동 또는 실제 이동 실행
                 if (currentPossibleMoves.Contains(targetPos))
                 {
-                    if (ScriptM.TryGet<NetworkChessPieceM>(out var netPieceM))
-                    {
-                        if (netPieceM != null) 
-                        netPieceM.RPC_RequestMove(selectedPos.Value.x, selectedPos.Value.y, x, y);
-                    }
-                    else
-                    {
-                        MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
-                        isMovedone = true;
-                    }
+                    MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                    isMovedone = true;
+                    
                     DeselectPiece();
                 }
                 // 다른 내 기물을 다시 클릭한 경우 -> 새로운 기물로 선택 교체
@@ -520,7 +510,7 @@ public class CheseGameM : MonoBehaviour
         ReadyPanel.SetActive(false);
         CharacterPanel.SetActive(true);
         gamePanel.SetActive(true);
-
+        UpdateNegotiationPowers();
         StartTurnTimer(PieceColor.white);
         ShowMyCheckMessage(" 안녕하세요. 한 수 부탁드립니다.");
     }
@@ -1730,11 +1720,6 @@ private void UnlockNextCharacter(int currentDefeatedCharacterId)
 
         // 체크도 아닌데 움직일 수 있는 기물이 하나도 없다면 완벽한 스테일메이트(무승부) 성립!
         return true;
-    }
-
-    public void GiveUp()
-    {
-
     }
     
     #endregion

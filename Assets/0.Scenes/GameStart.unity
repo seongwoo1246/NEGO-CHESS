@@ -4651,7 +4651,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
-  inputActions: {fileID: 0}
 --- !u!224 &1988915577
 RectTransform:
   m_ObjectHideFlags: 0

@@ -1,6 +1,5 @@
 ﻿
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 
 
@@ -13,7 +12,7 @@ public class Seo : Characters
         characterId = 0;
         searchDepth = 4;
         isUnlocked = false;
-        Debug.Log("서오 캐릭터가 코드로 기본 데이터를 성공적으로 세팅했습니다!");
+       
     }
 
     private void OnDestroy()
