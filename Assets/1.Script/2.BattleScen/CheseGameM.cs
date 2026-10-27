@@ -160,9 +160,8 @@ public class CheseGameM : MonoBehaviour
 
     private void OnDisable()
     {
-        try
-        {
-            // inputManager가 존재하고, 실제로 유효한 상태일 때만 이벤트 해제 시도
+       
+            
             if (KeySettingM.Instance != null)
             {
                 KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
@@ -171,11 +170,7 @@ public class CheseGameM : MonoBehaviour
             }
 
             ScriptM.Unregister<CheseGameM>();
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogWarning($"OnDisable 해제 중 예외 발생 (무시 가능): {e.Message}");
-        }
+        
     }
    
   
@@ -567,8 +562,8 @@ public class CheseGameM : MonoBehaviour
     public bool canUsePromotion = true;   // 프로모션 가능 여부 (협상 성공 시 false로 변경)
 
     [Header("타이머들")]
-    [SerializeField] private PlayerTimerData whiteTimer;
-    [SerializeField] private PlayerTimerData blackTimer;
+    [SerializeField] public PlayerTimerData whiteTimer;
+    [SerializeField] public PlayerTimerData blackTimer;
     private CancellationTokenSource timerCts;
     private bool isTimerRunning = false;
 
@@ -592,8 +587,8 @@ public class CheseGameM : MonoBehaviour
     private Characters currentAI;
 
     // 협상과 도발 관련 변수
-    private float characterNegoPower;
-    private float myNegoPower;
+    public float characterNegoPower;
+    public float myNegoPower;
 
     // 왕의 위치를 찾기 위해 미리 변수 캐싱하기
     private ChessPieceM whiteKing;
@@ -1455,9 +1450,9 @@ public class CheseGameM : MonoBehaviour
         // 현재 턴에 해당하는 타이머 데이터 가져오기
         PlayerTimerData activeTimerData = (currentTurn == PieceColor.white) ? whiteTimer : blackTimer;
 
-        if(activeTimerData.TimerTime == 0)
+        if(activeTimerData.TimerTime <= 5)
         {
-            activeTimerData.TimerTime += 5f;
+            activeTimerData.TimerTime = 5f;
         }
 
         try

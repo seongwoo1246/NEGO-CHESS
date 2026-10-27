@@ -2658,6 +2658,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: SettingUI
       objectReference: {fileID: 0}
+    - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
+      propertyPath: popupUIObject
+      value: 
+      objectReference: {fileID: 1105632489}
+    - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
+      propertyPath: panelCanvasGroup
+      value: 
+      objectReference: {fileID: 1105632490}
     - target: {fileID: 6363547721590777478, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
       propertyPath: m_LocalPosition.x
       value: 960
@@ -4181,7 +4189,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
-  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!224 &673974964
 RectTransform:
   m_ObjectHideFlags: 0
@@ -7353,6 +7360,22 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+--- !u!114 &1105632489 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 33304238617160561, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 1105632488}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
+--- !u!225 &1105632490 stripped
+CanvasGroup:
+  m_CorrespondingSourceObject: {fileID: 5460954398416274788, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 1105632488}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1136131942
 GameObject:
   m_ObjectHideFlags: 0
@@ -11512,7 +11535,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
-  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!224 &1643193992
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12768,7 +12790,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
-  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!114 &1762465783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16549,7 +16570,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
-  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!114 &3709050621877343444
 MonoBehaviour:
   m_ObjectHideFlags: 0

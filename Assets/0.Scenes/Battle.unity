@@ -1019,6 +1019,8 @@ MonoBehaviour:
   MyText: {fileID: 1892735185}
   myTextCanvasGroup: {fileID: 1892735187}
   characterTextCanvasGroup: {fileID: 525650080}
+  characterNegoPower: 0
+  myNegoPower: 0
   activePieces: []
   characterList:
   - {fileID: 875613383}
@@ -1734,6 +1736,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: SettingUI
       objectReference: {fileID: 0}
+    - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
+      propertyPath: popupUIObject
+      value: 
+      objectReference: {fileID: 2060983166}
+    - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
+      propertyPath: panelCanvasGroup
+      value: 
+      objectReference: {fileID: 2060983167}
     - target: {fileID: 6363547721590777478, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
       propertyPath: m_LocalPosition.x
       value: 960
@@ -8969,6 +8979,22 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+--- !u!114 &2060983166 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 33304238617160561, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 2060983165}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
+--- !u!225 &2060983167 stripped
+CanvasGroup:
+  m_CorrespondingSourceObject: {fileID: 5460954398416274788, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+  m_PrefabInstance: {fileID: 2060983165}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &7523142265409074855 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2124086797739577143, guid: 8b391d523f2477a45a241ddc1df4b28d, type: 3}
