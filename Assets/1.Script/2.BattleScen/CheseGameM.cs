@@ -248,8 +248,7 @@ public class CheseGameM : MonoBehaviour
             AddSpawnedCount(selectedPieceData.Value.Type);
             RefreshButtonUI();
 
-            // 소환 모드 해제
-            isSpawnMode = false;
+           
             selectedPieceData = null;
             ClearTileHighlights();
             return;
@@ -507,6 +506,8 @@ public class CheseGameM : MonoBehaviour
             return;
         }
 
+        // 소환 모드 해제
+        isSpawnMode = false;
         ReadyPanel.SetActive(false);
         CharacterPanel.SetActive(true);
         gamePanel.SetActive(true);

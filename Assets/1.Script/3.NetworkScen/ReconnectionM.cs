@@ -21,6 +21,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
 
     private void Awake()
     {
+        DontDestroyOnLoad(gameObject);
         //네크워크 관련된 항목이 아닌 서비스 가입 만을 위한 것이여서 Spawned가 아닌 Awake로 한다.
         ScriptM.Register<ReconnectionM>(this, UseSpace.Network);
     }

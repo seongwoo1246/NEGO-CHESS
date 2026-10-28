@@ -5,7 +5,12 @@ using UnityEngine;
 /// <summary>
 /// 메세지 혹은 정보 전달이 필요할 때 사용할 인터페이스
 /// </summary>
-public interface IGameMessage { };
+public interface IGameMessage 
+{
+    int TargetId { get; set; }
+    float Amount { get; set; }
+    bool IsLocalOnly { get; set; }
+};
 
 public interface IPieceSpawner
 {
