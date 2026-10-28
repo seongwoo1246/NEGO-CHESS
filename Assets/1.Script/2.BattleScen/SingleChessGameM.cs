@@ -10,8 +10,6 @@ public class SingleChessGameM : MonoBehaviour
 {
     private void Start()
     {
-        positionHistory.Clear();
-
         whiteTimer.TimerTime = 300;
         blackTimer.TimerTime = 300;
 
@@ -426,8 +424,7 @@ public class SingleChessGameM : MonoBehaviour
     private CancellationTokenSource timerCts;
     private bool isTimerRunning = false;
 
-    [Header("대사를 위한 텍스트")]
-    public TextMeshProUGUI MyText;
+   
     [Header("프로모션 관련 대기 상태")]
     private Vector2Int pendingPromotionPos;
     private ChessPieceM pendingPromotionPawn;
@@ -938,8 +935,7 @@ public class SingleChessGameM : MonoBehaviour
     public TextMeshProUGUI TimeText;
    
 
-    // 보드 상태별 반복 횟수를 저장하는 딕셔너리
-    private Dictionary<string, int> positionHistory = new Dictionary<string, int>();
+   
 
     public void HandleGiveUp()
     {
