@@ -12,6 +12,7 @@ public class BattleM : MonoBehaviour
     public GameObject reonLock;
     public GameObject cloeLock;
 
+
     private void Start()
     {
 
@@ -67,7 +68,11 @@ public class BattleM : MonoBehaviour
         }
 
         AchievementPanel.SetActive(true);
-
-        Debug.Log("배틀 씬 이동 준비 완료: 패널 숨김 및 팝업 잠금");
     }
+
+
+
+
 }
+
+

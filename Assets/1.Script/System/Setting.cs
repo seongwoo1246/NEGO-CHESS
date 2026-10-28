@@ -16,7 +16,7 @@ public class Setting : MonoBehaviour
     [SerializeField] private GameObject Sound;
     [SerializeField] private GameObject setting;
 
-    private void Awake()
+    private void Start()
     {
         
         if (ScriptM.TryGet<SoundM>(out SoundM service))
@@ -55,33 +55,15 @@ public class Setting : MonoBehaviour
                 GoToStratScene.onClick.RemoveAllListeners();
                 GoToStratScene.onClick.AddListener(GoToStartScenes);
             }
-        }  
-    }
 
-
-    private void OnEnable()
-    {
-        if (ScriptM.TryGet<SoundM>(out SoundM service))
-        {
-            // 1. 슬라이더 스크립트에 선언된 정적(static) 이벤트와 매니저 함수를 연결
-            VolumeSlider.OnMasterVolumeChanged += service.SetMasterVolume;
-            VolumeSlider.OnBGMVolumeChanged += service.SetBGMVolume;
-            VolumeSlider.OnSFXVolumeChanged += service.SetSFXVolume;
-        }
-      
-    }
-
-
-    private void OnDisable()
-    {
-        if (ScriptM.TryGet<SoundM>(out SoundM service))
-        {
-            // 2. 메모리 누수 및 중복 구독 방지를 위해 반드시 해제
             VolumeSlider.OnMasterVolumeChanged -= service.SetMasterVolume;
             VolumeSlider.OnBGMVolumeChanged -= service.SetBGMVolume;
             VolumeSlider.OnSFXVolumeChanged -= service.SetSFXVolume;
-        }
-           
+            
+            VolumeSlider.OnMasterVolumeChanged += service.SetMasterVolume;
+            VolumeSlider.OnBGMVolumeChanged += service.SetBGMVolume;
+            VolumeSlider.OnSFXVolumeChanged += service.SetSFXVolume;
+        }  
     }
 
     public void OpenSound()

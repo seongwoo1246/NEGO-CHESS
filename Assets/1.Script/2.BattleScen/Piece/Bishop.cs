@@ -7,6 +7,7 @@ public class Bishop : ChessPieceM
     private void Reset()
     {
         data = new PieceData(pieceType.Bishop, PieceColor.white, 5,2, "Bishop");
+        data_B = new PieceData(pieceType.Bishop, PieceColor.black, 5,2, "Bishop");
     }
 
     public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)

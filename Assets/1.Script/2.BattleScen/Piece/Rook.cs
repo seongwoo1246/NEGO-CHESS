@@ -9,6 +9,7 @@ public class Rook : ChessPieceM
     private void Reset()
     {
         data = new PieceData(pieceType.Rook, PieceColor.white, 5,2, "Rook");
+        data_B = new PieceData(pieceType.Rook, PieceColor.black, 5, 2, "Rook");
     }
     
     public override void  GetPossibleMoves(ChessPieceM[,] board,List<Vector2Int> possibleMoves)

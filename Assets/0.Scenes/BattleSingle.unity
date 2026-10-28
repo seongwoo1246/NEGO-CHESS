@@ -5129,7 +5129,19 @@ MonoBehaviour:
   ReadyBtn_W: {fileID: 1061879448}
   ResetBtn_B: {fileID: 941739250}
   ReadyBtn_B: {fileID: 565557110}
-  pieceButtonUIs: []
+  pieceButtonUIs:
+  - {fileID: 675717838}
+  - {fileID: 45260811}
+  - {fileID: 1753795621}
+  - {fileID: 1258962153}
+  - {fileID: 1241277530}
+  - {fileID: 249332107}
+  - {fileID: 171395581}
+  - {fileID: 1658432127}
+  - {fileID: 1970978512}
+  - {fileID: 581192499}
+  - {fileID: 936110516}
+  - {fileID: 1061490218}
   SettingBtn: {fileID: 1298201875}
   TimerBtn: {fileID: 1103174901}
   QueenBtn_W: {fileID: 898168624}
@@ -5147,7 +5159,6 @@ MonoBehaviour:
     timerText: {fileID: 1810788440}
   blackTimer:
     timerText: {fileID: 1898835214}
-  MyText: {fileID: 0}
   activePieces: []
   ResultPanel: {fileID: 1565709277}
   ResultText: {fileID: 1843790223}

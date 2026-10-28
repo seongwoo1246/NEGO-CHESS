@@ -28,6 +28,7 @@ public class LobbySceneM : MonoBehaviour
         if (ReinforceBtn != null) ReinforceBtn.onClick.AddListener(ActiveSelfReinforce);
         if (AchievementBtn != null) AchievementBtn.onClick.AddListener(ActiveSelfAchievement);
         if (CharacterBtn != null) CharacterBtn.onClick.AddListener(ActiveSelfCharacter);
+        if (PracticeBtn != null) PracticeBtn.onClick.AddListener(GoToPractice);
     }
 
     public void ActiveSelfBattle()
@@ -74,4 +75,13 @@ public class LobbySceneM : MonoBehaviour
         }
     }
 
+
+    public void GoToPractice()
+    {
+        if (ScriptM.TryGet<HP>(out HP hp))
+            hp.HidePanel();
+
+        if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
+            scenesM.LoadScene(SceneNumber.BattleSingle);
+    }
 }

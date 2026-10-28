@@ -13,6 +13,7 @@ public class Pawn : ChessPieceM
     private void Reset()
     {
         data = new PieceData(pieceType.Pawn, PieceColor.white, 1,8,"pawn");
+        data_B = new PieceData(pieceType.Pawn, PieceColor.black, 1, 8, "pawn");
     }
 
     public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
@@ -57,7 +58,7 @@ public class Pawn : ChessPieceM
             if (ScriptM.TryGet<CheseGameM>(out CheseGameM gameM))
             {
                 // 1. 앙파상 규칙 켜져 있는지 체크 (블록으로 감싸서 조건 불일치 시 앙파상만 건너뜀)
-                if (gameM.canUseEnPassant || this.data.Color != PieceColor.black)
+                if ((gameM.canUseEnPassant && this.data_B.Color != PieceColor.white) || this.data.Color != PieceColor.black)
                 {
                     int sidex = targetX;
                     int sideY = CurrentPos.y;

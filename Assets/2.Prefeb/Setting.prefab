@@ -1432,7 +1432,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
-  inputActions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!114 &5956447988046310518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5171,7 +5170,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
   isOpen: 0
-  inputActions: {fileID: 0}
 --- !u!114 &3187085634051516267
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9603,7 +9601,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
         m_TargetAssemblyTypeName: settingUi, Assembly-CSharp
         m_MethodName: open
         m_Mode: 1

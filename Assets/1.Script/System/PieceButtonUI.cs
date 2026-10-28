@@ -17,8 +17,13 @@ public class PieceButtonUI : MonoBehaviour
 
     void OnClickThisButton()
     {
+        
         if(ScriptM.TryGet<CheseGameM>(out CheseGameM gameM))
         gameM.OnClickPieceButton(pieceData);
+
+        else if (ScriptM.TryGet<SingleChessGameM>(out SingleChessGameM single))
+        single.OnClickPieceButton(pieceData);
+
     }
 
 

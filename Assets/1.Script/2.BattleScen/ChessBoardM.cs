@@ -49,17 +49,17 @@ public class ChessBoardM : MonoBehaviour
     public void InitializeBoard()
     {
         spawnedTiles = new GameObject[boardSize, boardSize];
-        if (ScriptM.TryGet<CheseGameM>(out CheseGameM game))
-    {
-            for (int x = 0; x < boardSize; x++)
-        {
-            for (int y = 0; y < boardSize; y++)
-            {
-                // 1. 앞서 만드신 GetworldPosition 함수를 통해 해당 그리드의 월드 좌표를 가져옴
-                Vector3 worldPos = GetWorldPosition(x, y);
 
-                // 2. 오브젝트 풀러(`SinglePoolSpawner`)를 통해 타일 소환
-               
+        
+            for (int x = 0; x < boardSize; x++)
+            {
+                for (int y = 0; y < boardSize; y++)
+                {
+                    // 1. 앞서 만드신 GetworldPosition 함수를 통해 해당 그리드의 월드 좌표를 가져옴
+                    Vector3 worldPos = GetWorldPosition(x, y);
+
+                    // 2. 오브젝트 풀러(`SinglePoolSpawner`)를 통해 타일 소환
+
                     GameObject tile = spawner.Spawn(BoardSlot, worldPos, Quaternion.identity);
                     SpriteRenderer sr = tile.GetComponent<SpriteRenderer>();
 
@@ -82,11 +82,11 @@ public class ChessBoardM : MonoBehaviour
                     // 4. 나중을 위해 배열에 저장
                     spawnedTiles[x, y] = tile;
 
+
                 }
             }
-        }
 
-        
+         
     }
 
     /// <summary>
@@ -158,7 +158,11 @@ public class ChessBoardM : MonoBehaviour
                     if (ScriptM.TryGet<CheseGameM>(out CheseGameM gameM))
                     {
                         gameM.OnTileClicked(gridPos.x, gridPos.y);
-                        Debug.Log($"{gridPos.x}{gridPos.y}");
+                        
+                    }
+                    if(ScriptM.TryGet<SingleChessGameM>(out SingleChessGameM Single))
+                    {
+                        Single.OnTileClicked(gridPos.x, gridPos.y);
                     }
 
                 }

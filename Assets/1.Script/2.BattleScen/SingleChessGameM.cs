@@ -8,6 +8,10 @@ using UnityEngine.UI;
 
 public class SingleChessGameM : MonoBehaviour
 {
+    private void Awake()
+    {
+        ScriptM.Register<SingleChessGameM>(this, UseSpace.Local);
+    }
     private void Start()
     {
         whiteTimer.TimerTime = 300;
@@ -20,8 +24,8 @@ public class SingleChessGameM : MonoBehaviour
 
 
         if (ResetBtn_W != null) { ResetBtn_W.onClick.AddListener(ResetAllPieces); }
-        if (ReadyBtn_B != null) { ReadyBtn_B.onClick.AddListener(SetReady); }
-        if (ResetBtn_W != null) { ResetBtn_W.onClick.AddListener(ResetAllPieces); }
+        if (ReadyBtn_W != null) { ReadyBtn_W.onClick.AddListener(SetReady); }
+        if (ResetBtn_B != null) { ResetBtn_B.onClick.AddListener(ResetAllPieces_B); }
         if (ReadyBtn_B != null) { ReadyBtn_B.onClick.AddListener(SetReady_B); }
         if (SettingBtn != null) SettingBtn.onClick.AddListener(ActiveSelfSetting);
         if (QueenBtn_W != null) QueenBtn_W.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase, pieceType.Queen));
@@ -56,6 +60,7 @@ public class SingleChessGameM : MonoBehaviour
             KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
             KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
         }
+        ScriptM.Unregister<SingleChessGameM>();
     }
 
     #region 준비단계에 필요한 것들
@@ -123,41 +128,34 @@ public class SingleChessGameM : MonoBehaviour
         // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
         if (isSpawnMode && selectedPieceData != null)
         {
-            if (!IsValidSpawnZone(x, y, selectedPieceData.Value.Color))
+            if (IsValidSpawnZone(x, y, selectedPieceData.Value.Color))
             {
                 GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
-                SpawnPiece(prefabToSpawn, x, y);
+                
+                if(selectedPieceData.Value.Color == PieceColor.white)
+                {
+                    SpawnPiece(prefabToSpawn, x, y);
+                }
+                else
+                {
+                    SpawnPiece(prefabToSpawn, x, y,PieceColor.black);
+                }
+                    
+                
 
                 // 카운트 증가 및 UI 갱신
                 AddSpawnedCount(selectedPieceData.Value.Type);
                 RefreshButtonUI();
 
-                // 소환 모드 해제
-                isSpawnMode = false;
+                
                 selectedPieceData = null;
                 ClearTileHighlights();
             }
-            else
-            {
-                GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
-                SpawnPiece(prefabToSpawn, x, y);
-
-                // 카운트 증가 및 UI 갱신
-                AddSpawnedCount(selectedPieceData.Value.Type);
-                RefreshButtonUI();
-
-                // 소환 모드 해제
-                isSpawnMode = false;
-                selectedPieceData = null;
-                ClearTileHighlights();
-            }    
+               
                 return;
         }
-
-       
-
-
-            // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
+        
+        // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
             if (selectedPos == null)
             {
                 // 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
@@ -372,6 +370,24 @@ public class SingleChessGameM : MonoBehaviour
         // 3. 선택 상태 초기화
         DeselectPiece();
     }
+    public void ResetAllPieces_B()
+    {
+        // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 5; y < 8; y++)
+            {
+                
+                DestroyPiece(x, y);
+            }
+        }
+
+        // 2. UI 갱신은 모든 기물이 다 지워진 후 맨 마지막에 딱 한 번만 호출!
+        RefreshButtonUI();
+
+        // 3. 선택 상태 초기화
+        DeselectPiece();
+    }
 
     private void SetReady()
     {
@@ -380,7 +396,8 @@ public class SingleChessGameM : MonoBehaviour
             Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
             return;
         }
-
+        spawnedPieceCounts.Clear();
+        RefreshButtonUI();
         ReadyPanel_W.SetActive(false);
         ReadyPanel_B.SetActive(true);
     }
@@ -391,13 +408,14 @@ public class SingleChessGameM : MonoBehaviour
             Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
             return;
         }
+        // 소환 모드 해제
+        isSpawnMode = false;
         ReadyPanel_B.SetActive(false);
         gamePanel.SetActive(true);
         StartTurnTimer(PieceColor.white);
     }
     #endregion
-   
-    
+
     #region 게임중 필요한 것들
 
     #region 선언부
@@ -649,6 +667,15 @@ public class SingleChessGameM : MonoBehaviour
 
         // 방금 움직인 기물이 흰색이면 플레이어의 턴(행동)입니다!
         bool isMyTurn = pieceToMove.isWhite;
+
+        if (isMyTurn && pieceToMove.CurrentPos.y == 7)
+        {
+            RequestPromotion(pieceToMove, pieceToMove.CurrentPos.x, pieceToMove.CurrentPos.y, false);
+        }
+        else if(!isMyTurn && pieceToMove.CurrentPos.y == 0)
+        {
+            RequestPromotion(pieceToMove, pieceToMove.CurrentPos.x, pieceToMove.CurrentPos.y, true);
+        }
 
     }
 
@@ -989,7 +1016,10 @@ public class SingleChessGameM : MonoBehaviour
 
         // 5초 대기 후 로비 씬으로 이동
         await UniTask.Delay(System.TimeSpan.FromSeconds(5f), ignoreTimeScale: true);
-       
+        if (ScriptM.TryGet<HP>(out HP service1))
+        {
+            service1.ShowPanel();
+        }
 
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {

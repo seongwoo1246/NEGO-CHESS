@@ -68,6 +68,7 @@ public abstract class ChessPieceM : MonoBehaviour
 {
     [Header("piece Info")]
     public PieceData data; // 기물의 기본 데이터 
+    public PieceData data_B; // 기물의 기본 데이터 
 
     public bool isWhite;
     public Vector2Int CurrentPos {  get;  set; }

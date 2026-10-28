@@ -347,7 +347,7 @@ public class CheseGameM : MonoBehaviour
                     }
                 }
             }
-        Debug.Log($"{pieceData.pieceName} 선택됨! 타일을 누르세요.");
+        
     }
 
 
