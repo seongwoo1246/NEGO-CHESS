@@ -1,6 +1,6 @@
-﻿//using Fusion;
-//using UnityEngine;
-////메세지 생길시 이런 식으로 활용한다.
+﻿using Fusion;
+using UnityEngine;
+//메세지 생길시 이런 식으로 활용한다.
 
 
 //public class NetworkMessageBridge : NetworkBehaviour

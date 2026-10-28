@@ -29,6 +29,8 @@ public class LobbySceneM : MonoBehaviour
         if (AchievementBtn != null) AchievementBtn.onClick.AddListener(ActiveSelfAchievement);
         if (CharacterBtn != null) CharacterBtn.onClick.AddListener(ActiveSelfCharacter);
         if (PracticeBtn != null) PracticeBtn.onClick.AddListener(GoToPractice);
+        if (SaveBtn != null) SaveBtn.onClick.AddListener(SaveData);
+        if (LoadBtn != null) LoadBtn.onClick.AddListener(LoadData);
     }
 
     public void ActiveSelfBattle()
