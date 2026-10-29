@@ -83,15 +83,13 @@ public class NetworkGameM : NetworkBehaviour
         }
         else if (color == PieceColor.black && BlackPlayer == PlayerRef.None)
         {
-            if (color == PieceColor.white && WhitePlayer == PlayerRef.None)
+            if (WhitePlayer == requestPlayer)
             {
-                if (WhitePlayer == requestPlayer)
-                {
-                    WhitePlayer = PlayerRef.None;
-                }
-                BlackPlayer = requestPlayer;
-                Debug.Log($"{requestPlayer}님이 흑을 선택했습니다.");
+                WhitePlayer = PlayerRef.None;
             }
+            BlackPlayer = requestPlayer;
+            Debug.Log($"{requestPlayer}님이 흑을 선택했습니다.");
+            
         }
         else
         {

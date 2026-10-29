@@ -4,7 +4,16 @@ using UnityEngine;
 // 멀티플레이 전용 네트워크 래퍼 클래스
 public class NetworkChessPieceM : NetworkBehaviour
 {
- 
+
+    // 기물이 이동했을 때 뿌려줄 메시지
+    public struct PieceMovedMessage : IGameMessage
+    {
+        public int FromX;
+        public int FromY;
+        public int ToX;
+        public int ToY;
+        public bool IsCaptured; // 적을 잡았는지 여부
+    }
 
     private void Awake()
     {
