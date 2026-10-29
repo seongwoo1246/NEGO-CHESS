@@ -114,3 +114,14 @@ public enum UpgradeType
     SpawnRook,
     SpawnQueen,
 }
+
+public enum RoomTeam : byte { Black = 0, White = 1 }
+
+/// <summary>방의 진행 단계 (UI 안내 문구를 고를 때 사용)</summary>
+public enum RoomPhase
+{
+    WaitingForPlayers, // 사람이 덜 모임
+    WaitingForReady,   // 다 모였고, 준비를 기다리는 중
+    Countdown,         // 모두 준비 → 카운트다운 중
+    Starting           // 게임 시작 확정
+}

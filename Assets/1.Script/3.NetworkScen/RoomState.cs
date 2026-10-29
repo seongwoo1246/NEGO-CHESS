@@ -5,16 +5,7 @@ using Fusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public enum RoomTeam : byte { Black = 0, White = 1 }
 
-/// <summary>방의 진행 단계 (UI 안내 문구를 고를 때 사용)</summary>
-public enum RoomPhase
-{
-    WaitingForPlayers, // 사람이 덜 모임
-    WaitingForReady,   // 다 모였고, 준비를 기다리는 중
-    Countdown,         // 모두 준비 → 카운트다운 중
-    Starting           // 게임 시작 확정
-}
 
 /// <summary>네트워크로 동기화되는 "플레이어 한 명의 방 안 정보"</summary>
 public struct RoomPlayerData : INetworkStruct
@@ -94,7 +85,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
     public void Initialize(string roomName, int maxPlayers)
     {
         RoomName = roomName;
-        MaxPlayers = Mathf.Clamp(maxPlayers, 2, 8);
+        MaxPlayers = Mathf.Clamp(maxPlayers, 1, 2);
     }
 
     public override void Spawned()

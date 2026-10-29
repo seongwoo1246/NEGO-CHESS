@@ -35,6 +35,7 @@ public class RoomListItemView : MonoBehaviour
         _item = item;
         _onJoin = onJoin;
 
+       
         nameText.text = item.RoomName;
         countText.text = $"{item.PlayerCount}/{item.MaxPlayers}";
         if (lockIcon != null) lockIcon.SetActive(item.HasPassword);
