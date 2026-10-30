@@ -73,6 +73,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
 
     // ───────────── 내 컴퓨터에서만 쓰는 값 ─────────────
     private bool _gameStartHandled;
+
     private int _lastSignature = int.MinValue;
     private readonly List<PlayerRef> _removeBuffer = new List<PlayerRef>(4);
 
@@ -270,6 +271,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
         if (GameStarted && !_gameStartHandled)
         {
             _gameStartHandled = true;
+            MatchRoster.Capture(this);
             GameStarting?.Invoke();
             LoadGameSceneIfAllowed();
         }

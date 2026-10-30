@@ -117,7 +117,7 @@ public class NetworkLauncher : MonoBehaviour
     public const string KeyRoomName = "roomName";
     public const string KeyPasswordHash = "pw";
 
-    private const string LastSessionKey = "LastSessionName";
+    public const string LastSessionKey = "LastSessionName";
 
     [Header("연결")]
     [Tooltip("RoomState 프리팹 (NetworkObject + RoomState가 붙은 프리팹)")]
@@ -135,6 +135,8 @@ public class NetworkLauncher : MonoBehaviour
     private static string LocalCustomAuthToken => SystemInfo.deviceUniqueIdentifier;
 
     public bool IsInRoom => _runner != null && _runner.IsRunning;
+
+    private GameObject _sessionObject;
 
     // ───────────── 방 만들기 ─────────────
 
@@ -312,9 +314,10 @@ public class NetworkLauncher : MonoBehaviour
     {
         var reconnectService = new GameObject("ReconnectionM").AddComponent<ReconnectionM>();
         ScriptM.Register(reconnectService);
-
-        _runner = gameObject.AddComponent<NetworkRunner>();
-        _sceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>();
+        _sessionObject = new GameObject("NetworkSession");
+        DontDestroyOnLoad(_sessionObject);
+        _runner = _sessionObject.AddComponent<NetworkRunner>();
+        _sceneManager = _sessionObject.AddComponent<NetworkSceneManagerDefault>();
 
         reconnectService.InitRunner(_runner, sessionId, GameMode.Shared);
     }
@@ -324,30 +327,30 @@ public class NetworkLauncher : MonoBehaviour
     {
         if (_runner != null)
         {
-            // destroyGameObject:false → 이 스크립트가 붙은 오브젝트까지 같이 지워지는 것을 막아요!
-            await _runner.Shutdown(destroyGameObject: false);
-            Destroy(_runner);
+            var runner = _runner;
             _runner = null;
+            await runner.Shutdown(destroyGameObject: true);
         }
-
-        if (_sceneManager != null)
-        {
-            Destroy(_sceneManager);
-            _sceneManager = null;
-        }
+        if (_sessionObject != null) { Destroy(_sessionObject); _sessionObject = null; }
+        _sceneManager = null;
 
         CleanupNetworkServices();
     }
 
     // 멀티플레이 종료 또는 로비 퇴장 시 호출
-    public void CleanupNetworkServices()
+    public static void CleanupNetworkServices()
     {
+        // ReconnectionM이 이미 파괴되었거나 null인지 안전하게 확인 후 처리
         if (ScriptM.TryGet<ReconnectionM>(out var reconnectService))
         {
-            ScriptM.Unregister<ReconnectionM>();
-            Destroy(reconnectService.gameObject);
+
+            // 유니티 오브젝트는 null 체크를 해도 파괴된 경우 우회할 때가 있으므로 아래처럼 체크합니다.
+            if (reconnectService != null && reconnectService.gameObject != null)
+            {
+                Destroy(reconnectService.gameObject);
+            }
         }
-        // 전역이 아닌 모든 서비스를 해제한다.
+
         ScriptM.ClearSceneLocalServices();
     }
 }

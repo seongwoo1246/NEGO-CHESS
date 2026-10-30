@@ -125,3 +125,32 @@ public enum RoomPhase
     Countdown,         // 모두 준비 → 카운트다운 중
     Starting           // 게임 시작 확정
 }
+
+/// <summary>한 수를 둔 뒤 판이 어떤 상태인지 (규칙 코드가 판정해서 알려 줍니다)</summary>
+public enum ChessOutcome
+{
+    Ongoing,    // 계속 진행
+    Checkmate,  // 체크메이트 (방금 둔 쪽이 이김)
+    Stalemate,  // 스테일메이트 (무승부)
+    Draw        // 그 밖의 무승부 (3회 반복, 기물 부족 등)
+}
+
+/// <summary>게임이 끝난 이유 (결과 화면 문구에 사용)</summary>
+public enum GameEndReason
+{
+    None,
+    Checkmate,
+    Stalemate,
+    Draw,
+    Resign,      // 기권
+    Timeout,     // 시간 초과
+    Disconnect   // 상대가 나감
+}
+
+/// <summary>대국이 끝난 뒤 각자 고른 선택</summary>
+public enum PostGameChoice
+{
+    None,
+    Rematch,  // 같은 상대와 다시 (기물 배치부터)
+    Lobby     // 로비로
+}
