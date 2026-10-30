@@ -25,10 +25,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
         //네크워크 관련된 항목이 아닌 서비스 가입 만을 위한 것이여서 Spawned가 아닌 Awake로 한다.
         ScriptM.Register<ReconnectionM>(this, UseSpace.Network);
     }
-    private void OnDestroy()
-    {
-        ScriptM.Unregister<ReconnectionM>();
-    }
+    
     public void InitRunner(NetworkRunner runner, string sessionName, GameMode mode)
     {
         _runner = runner;
@@ -52,7 +49,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
                 shutdownReason == ShutdownReason.Error)
             {
                 //UniTaskVoid를 여기서 호출 (오브젝트 파괴시 진행중이던 비동기 작업을 취소하게 하기 위한 안전장치
-                ReconnectAsync(null,this.GetCancellationTokenOnDestroy()).Forget();
+                ReconnectAsync(null).Forget();
             }
         }
         
@@ -147,74 +144,74 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnObjectExitAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
     {
-        throw new NotImplementedException();
+       
     }
 
     public void OnObjectEnterAOI(NetworkRunner runner, NetworkObject obj, PlayerRef player)
     {
-        throw new NotImplementedException();
+        
     }
 
   
 
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token)
     {
-        throw new NotImplementedException();
+       
     }
 
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason)
     {
-        throw new NotImplementedException();
+        
     }
 
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message)
     {
-        throw new NotImplementedException();
+       
     }
 
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ReliableKey key, ArraySegment<byte> data)
     {
-        throw new NotImplementedException();
+       
     }
 
     public void OnReliableDataProgress(NetworkRunner runner, PlayerRef player, ReliableKey key, float progress)
     {
-        throw new NotImplementedException();
+       
     }
 
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input)
     {
-        throw new NotImplementedException();
+      
     }
 
     public void OnConnectedToServer(NetworkRunner runner)
     {
-        throw new NotImplementedException();
+      
     }
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList)
     {
-        throw new NotImplementedException();
+      
     }
 
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
     {
-        throw new NotImplementedException();
+      
     }
 
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
     {
-        throw new NotImplementedException();
+     
     }
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
-        throw new NotImplementedException();
+       
     }
 
     public void OnSceneLoadStart(NetworkRunner runner)
     {
-        throw new NotImplementedException();
+       
     }
 
     #endregion  

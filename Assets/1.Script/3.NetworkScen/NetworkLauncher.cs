@@ -142,43 +142,55 @@ public class NetworkLauncher : MonoBehaviour
     {
         if (!request.Validate(out string error)) return UniTask.FromResult(RoomResult.Fail(error));
         if (!roomStatePrefab.IsValid) return UniTask.FromResult(RoomResult.Fail("RoomState 프리팹이 연결되지 않았어요. (개발자 설정 필요)"));
+       
 
         return RunExclusiveAsync(async () =>
         {
-            string sessionId = Guid.NewGuid().ToString("N");
-
-            var properties = new Dictionary<string, SessionProperty> { [KeyRoomName] = request.RoomName };
-            if (request.HasPassword)
+            if (ScriptM.TryGet<NetWorkLobbyUi>(out NetWorkLobbyUi ui))
+                if (ui != null) ui.SetConnecting(true);
+            try
             {
-                properties[KeyPasswordHash] = RoomCreateRequest.HashPassword(sessionId, request.Password);
+                string sessionId = Guid.NewGuid().ToString("N");
+
+                var properties = new Dictionary<string, SessionProperty> { [KeyRoomName] = request.RoomName };
+                if (request.HasPassword)
+                {
+                    properties[KeyPasswordHash] = RoomCreateRequest.HashPassword(sessionId, request.Password);
+                }
+
+                bool started = await StartSessionAsync(new StartGameArgs
+                {
+                    SessionName = sessionId,
+                    PlayerCount = request.MaxPlayers,
+                    IsVisible = true,
+                    IsOpen = true,
+                    SessionProperties = properties
+                });
+                if (!started)
+                {
+                  
+                    await ShutdownSessionAsync();
+                    return RoomResult.Fail("방을 만들지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요.");
+                }
+
+                // 방 공용 게시판(RoomState)은 방을 만든 사람이 딱 한 번 만듭니다.
+                _runner.Spawn(roomStatePrefab, onBeforeSpawned: (runner, spawned) =>
+                    spawned.GetComponent<RoomState>().Initialize(request.RoomName, request.MaxPlayers));
+
+                if (!await WaitForRoomStateAsync())
+                {
+                    await ShutdownSessionAsync();
+                    return RoomResult.Fail("방 정보를 준비하지 못했어요. 다시 시도해 주세요.");
+                }
+                return RoomResult.Ok(request.RoomName);
             }
-
-            bool started = await StartSessionAsync(new StartGameArgs
+            finally
             {
-                SessionName = sessionId,
-                PlayerCount = request.MaxPlayers,
-                IsVisible = true,
-                IsOpen = true,
-                SessionProperties = properties
-            });
-            if (!started)
-            {
-                await ShutdownSessionAsync();
-                return RoomResult.Fail("방을 만들지 못했어요. 인터넷 연결을 확인하고 다시 해 주세요.");
+                if (ui != null) ui.SetConnecting(false);
             }
-
-            // 방 공용 게시판(RoomState)은 방을 만든 사람이 딱 한 번 만듭니다.
-            _runner.Spawn(roomStatePrefab, onBeforeSpawned: (runner, spawned) =>
-                spawned.GetComponent<RoomState>().Initialize(request.RoomName, request.MaxPlayers));
-
-            if (!await WaitForRoomStateAsync())
-            {
-                await ShutdownSessionAsync();
-                return RoomResult.Fail("방 정보를 준비하지 못했어요. 다시 시도해 주세요.");
-            }
-
-            return RoomResult.Ok(request.RoomName);
+            
         });
+        
     }
 
     // ───────────── 방 참가 ─────────────
@@ -187,9 +199,9 @@ public class NetworkLauncher : MonoBehaviour
     {
         if (!room.IsOpen) return UniTask.FromResult(RoomResult.Fail("이미 게임이 시작된 방이에요."));
         if (room.IsFull) return UniTask.FromResult(RoomResult.Fail("방이 가득 찼어요."));
-
-        // 비밀번호 확인: 입력한 비밀번호의 지문과 방에 붙어 있는 지문을 비교합니다.
-        if (room.HasPassword)
+        if (ScriptM.TryGet<NetWorkLobbyUi>(out NetWorkLobbyUi ui))
+            // 비밀번호 확인: 입력한 비밀번호의 지문과 방에 붙어 있는 지문을 비교합니다.
+            if (room.HasPassword)
         {
             string typed = (password ?? string.Empty).Trim();
             if (RoomCreateRequest.HashPassword(room.SessionId, typed) != room.PasswordHash)
@@ -200,22 +212,28 @@ public class NetworkLauncher : MonoBehaviour
 
         return RunExclusiveAsync(async () =>
         {
-            bool started = await StartSessionAsync(new StartGameArgs { SessionName = room.SessionId });
-            if (!started)
+            if (ui != null) ui.SetConnecting(true);
+            try
             {
-                await ShutdownSessionAsync();
-                return RoomResult.Fail("방에 들어가지 못했어요. 인터넷 연결을 확인해 주세요.");
-            }
+                bool started = await StartSessionAsync(new StartGameArgs { SessionName = room.SessionId });
+                if (!started)
+                {
+                    await ShutdownSessionAsync();
+                    return RoomResult.Fail("방에 들어가지 못했어요. 인터넷 연결을 확인해 주세요.");
+                }
 
-            // 공유 모드는 "없는 방이면 새로 만들어 버리는" 성질이 있어서,
-            // 그 사이에 방이 사라졌다면 RoomState가 없습니다 → 이 경우 바로 나와야 해요.
-            if (!await WaitForRoomStateAsync())
+                if (!await WaitForRoomStateAsync())
+                {
+                    await ShutdownSessionAsync();
+                    return RoomResult.Fail("방이 사라졌거나 연결이 너무 늦어요. 방 목록을 다시 확인해 주세요.");
+                }
+
+                return RoomResult.Ok(RoomState.Instance.RoomNameText);
+            }
+            finally
             {
-                await ShutdownSessionAsync();
-                return RoomResult.Fail("방이 사라졌거나 연결이 너무 늦어요. 방 목록을 다시 확인해 주세요.");
+                if (ui != null) ui.SetConnecting(false);
             }
-
-            return RoomResult.Ok(RoomState.Instance.RoomNameText);
         });
     }
 

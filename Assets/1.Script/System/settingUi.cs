@@ -12,7 +12,7 @@ public class settingUi : MonoBehaviour
     public void open()
     {
         isOpen = !isOpen;
-
+        
         if(isOpen)
         {
             if (panelCanvasGroup != null)

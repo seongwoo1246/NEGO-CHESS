@@ -13,10 +13,7 @@ public class ScenesM : MonoBehaviour
         ScriptM.Register<ScenesM>(this, UseSpace.Global);
     }
 
-    private void OnDestroy()
-    {
-        ScriptM.Unregister<ScenesM>();
-    }
+  
 
     /// <summary>
     /// 멀티 게임 시작할 때 안에 넣어주기
@@ -36,7 +33,7 @@ public class ScenesM : MonoBehaviour
         string sceneName = scene.ToString();
         ScriptM.ClearSceneLocalServices();
         //멀티로 이동 할때는 runner를 통해서 이동을 한다.
-        if (scene == SceneNumber.MultiLobby)
+        if (scene == SceneNumber.MultiBattle)
         {
             // Build Settings에서 sceneName("MultiLobby")에 해당하는 전체 Path("Assets/Scenes/MultiLobby.unity")를 자동으로 찾아옴
             string scenePath = SceneUtility.GetScenePathByBuildIndex(SceneUtility.GetBuildIndexByScenePath(sceneName));
