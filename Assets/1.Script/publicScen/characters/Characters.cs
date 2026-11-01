@@ -211,7 +211,7 @@ public class Characters : MonoBehaviour
         if (!hasLegal)
         {
             if (!IsKingInCheckDataOnly(board, turnColor)) return 0;
-            return isMax ? -(9000 + depth) : (9000 + depth);
+            return isMax ? (99999 + depth) : (-99999 - depth);
         }
         return best;
     }
