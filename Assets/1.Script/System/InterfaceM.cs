@@ -29,7 +29,7 @@ public interface IPieceSpawner
 /// 네트워크 코드는 "누가 언제 무엇을 해도 되는지"만 정하고,
 /// 실제로 기물을 만들고 옮기는 일은 이 창구를 통해 체스판 코드에 시킵니다.
 /// 그래서 체스 규칙/연출 코드를 건드리지 않고도 네트워크 부분을 따로 고칠 수 있어요.
-/// (구현 틀: CheseGameMBoardAdapter.cs)
+/// (구현: SingleChessGameM.Network.cs)
 /// </summary>
 public interface IChessBoardAdapter
 {
@@ -40,7 +40,11 @@ public interface IChessBoardAdapter
 
     // ───── 배치 단계 (모든 컴퓨터에서 똑같이 실행됩니다) ─────
 
-    /// <summary>(x, y)에 기물을 만듭니다. 내 기물이면 남은 개수 UI도 갱신하세요.</summary>
+    /// <summary>
+    /// (x, y)에 기물을 만듭니다.
+    /// 배치 중에는 "내 기물"만 이 함수로 들어오고, 상대 기물은 게임 시작 때 한꺼번에 들어옵니다.
+    /// 내 색 기물일 때만 남은 개수 UI를 갱신하세요. (상대 기물은 개수에 세지 않음)
+    /// </summary>
     void PlacePiece(pieceType type, PieceColor color, int x, int y);
 
     /// <summary>(x, y)의 기물을 치웁니다.</summary>
@@ -71,4 +75,15 @@ public interface IChessBoardAdapter
 
     /// <summary>sideToMove 차례인 판의 상태를 판정합니다. (방장 컴퓨터에서 호출)</summary>
     ChessOutcome EvaluateOutcome(PieceColor sideToMove);
+
+    // ───── 프로모션 (폰이 끝줄에 닿았을 때) ─────
+
+    /// <summary>mover의 폰이 끝줄에 닿아 승급을 기다리고 있나요? 있으면 그 칸을 알려 줍니다. (방장 컴퓨터에서 호출)</summary>
+    bool TryFindPromotion(PieceColor mover, out int x, out int y);
+
+    /// <summary>(x, y)의 폰을 선택한 기물로 바꿉니다. (모든 컴퓨터에서 똑같이 실행)</summary>
+    void ApplyPromotion(int x, int y, pieceType newType, PieceColor color);
+
+    /// <summary>승급 선택창을 보이거나 숨깁니다. visible일 때는 localColor 쪽 창만 켭니다.</summary>
+    void SetPromotionChoiceVisible(bool visible, PieceColor localColor);
 }

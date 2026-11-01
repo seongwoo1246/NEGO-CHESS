@@ -1,7 +1,6 @@
-﻿using Cysharp.Threading.Tasks;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -43,18 +42,16 @@ public class NetWorkLobbyUi : MonoBehaviour
     [Header("연결")]
     [SerializeField] private NetworkLauncher launcher;
     [SerializeField] private RoomBrowser browser;
-    [SerializeField] private Button gotoLobby;
 
     private readonly List<RoomListItemView> _itemViews = new List<RoomListItemView>();
     private bool _hasNickname;
     private bool _isBusy;
-    private bool _isConnecting = false;
-    private CancellationTokenSource _statusCts;
+    private string _listStatus = string.Empty;   // 목록 쪽 안내 ("불러오는 중...", "방이 없어요" 등)
+
     // ───────────── 시작 준비 ─────────────
 
     private void Awake()
     {
-        ScriptM.Register<NetWorkLobbyUi>(this,UseSpace.Network);
         nicknameInput.characterLimit = PlayerProfile.MaxNicknameLength;
         roomNameInput.characterLimit = RoomCreateRequest.MaxNameLength;
         roomPasswordInput.characterLimit = RoomCreateRequest.MaxPasswordLength;
@@ -63,8 +60,6 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void Start()
     {
-        gotoLobby.onClick.RemoveAllListeners();
-        gotoLobby.onClick.AddListener(GoToLobby);
         nicknameInput.text = PlayerProfile.Nickname;
         _hasNickname = PlayerProfile.HasNickname;
         RefreshButtons();
@@ -74,6 +69,15 @@ public class NetWorkLobbyUi : MonoBehaviour
     // 켜질 때 연결하고, 꺼질 때 풉니다 (짝을 맞추는 것이 중요!)
     private void OnEnable()
     {
+        // NetworkLauncher가 ScriptM으로 이 화면을 찾아 쓰므로, 켜질 때마다 등록합니다.
+        // (방에 들어갔다 나오면 서비스가 정리되어도, 패널이 다시 켜질 때 다시 등록돼요)
+        if (!ScriptM.TryGet<NetWorkLobbyUi>(out NetWorkLobbyUi _)) ScriptM.Register<NetWorkLobbyUi>(this, UseSpace.Network);
+
+        // 방에서 돌아왔을 때 이전 안내 글자가 남아 있지 않도록 깨끗하게 시작
+        _listStatus = string.Empty;
+        ShowMessage(string.Empty);
+        ApplyListStatus();
+
         nicknameConfirmButton.onClick.AddListener(OnClickConfirmNickname);
         nicknameInput.onValueChanged.AddListener(OnNicknameEdited);
         createRoomButton.onClick.AddListener(OnClickCreateRoom);
@@ -97,6 +101,20 @@ public class NetWorkLobbyUi : MonoBehaviour
 
         browser.RoomListChanged -= OnRoomListChanged;
         browser.StatusChanged -= OnBrowserStatusChanged;
+
+        if (ScriptM.TryGet<NetWorkLobbyUi>(out NetWorkLobbyUi registered) && registered == this)
+        {
+            ScriptM.Unregister<NetWorkLobbyUi>();
+        }
+    }
+
+    /// <summary>
+    /// NetworkLauncher가 "연결을 시작/끝냈어요" 하고 알려 주는 창구.
+    /// 연결 중에는 버튼을 잠그고, 끝나면 풉니다.
+    /// </summary>
+    public void SetConnecting(bool connecting)
+    {
+        SetBusy(connecting);
     }
 
     // ───────────── 닉네임 ─────────────
@@ -129,8 +147,6 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void OnRoomListChanged(IReadOnlyList<RoomListItem> rooms)
     {
-        if (_isConnecting) return;
-
         // 줄(프리팹)을 필요한 만큼만 만들고, 남는 줄은 숨겨서 재활용합니다.
         while (_itemViews.Count < rooms.Count)
         {
@@ -144,22 +160,29 @@ public class NetWorkLobbyUi : MonoBehaviour
             if (inUse) _itemViews[i].Bind(rooms[i], OnClickJoinRoom);
         }
 
-        if (listStatusText != null)
-        {
-            bool isEmpty = rooms.Count == 0;
-            listStatusText.gameObject.SetActive(isEmpty);
-            if (isEmpty) listStatusText.text = browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.";
-
-        }
-
-        ShowStatusWithDelay(listStatusText.text, 3f);
+        _listStatus = rooms.Count == 0
+            ? (browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.")
+            : string.Empty;
+        ApplyListStatus();
     }
 
     private void OnBrowserStatusChanged(string status)
     {
-        if (listStatusText == null || string.IsNullOrEmpty(status)) return;
-        listStatusText.gameObject.SetActive(true);
-        listStatusText.text = status;
+        _listStatus = status ?? string.Empty;
+        ApplyListStatus();
+    }
+
+    /// <summary>
+    /// 목록 안내 글자는 "방 만들기/입장 중이 아닐 때만" 보여 줍니다.
+    /// (입장 중에는 위쪽 안내 한 가지만 보이도록 → 글자가 겹치지 않아요)
+    /// </summary>
+    private void ApplyListStatus()
+    {
+        if (listStatusText == null) return;
+
+        bool show = !_isBusy && !string.IsNullOrEmpty(_listStatus);
+        listStatusText.gameObject.SetActive(show);
+        if (show) listStatusText.text = _listStatus;
     }
 
     // ───────────── 방 만들기 / 참가 ─────────────
@@ -179,6 +202,16 @@ public class NetWorkLobbyUi : MonoBehaviour
         if (!_hasNickname) { ShowMessage("먼저 닉네임을 정하고 '작성 완료'를 눌러 주세요."); return; }
 
         string password = roomPasswordInput.text;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        // 비밀번호가 안 맞는다고 나올 때 원인을 찾기 위한 임시 로그 (비밀번호 자체는 찍지 않아요)
+        if (room.HasPassword)
+        {
+            string fingerprint = RoomCreateRequest.HashPassword(room.SessionId, (password ?? string.Empty).Trim());
+            Debug.Log($"[Lobby] 입장 비밀번호 확인 | 입력 {(password ?? string.Empty).Trim().Length}글자 | 일치={fingerprint == room.PasswordHash} | 방 지문 '{room.PasswordHash}' / 내 지문 '{fingerprint}'");
+        }
+#endif
+
         RunRoomOperationAsync(() => launcher.JoinRoomAsync(room, password), "방에 들어가는 중이에요...").Forget();
     }
 
@@ -218,6 +251,7 @@ public class NetWorkLobbyUi : MonoBehaviour
     {
         _isBusy = busy;
         RefreshButtons();
+        ApplyListStatus();   // 입장 중에는 목록 안내를 숨기고, 끝나면 다시 보여 줍니다
     }
 
     private void RefreshButtons()
@@ -228,80 +262,6 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void ShowMessage(string message)
     {
-        ShowMassageWithDelay(message, 3f);
-    }
-
-    private async void ShowStatusWithDelay(string message, float delaySeconds)
-    {
-        // 이전 타이머가 돌고 있다면 취소
-        _statusCts?.Cancel();
-        _statusCts = new CancellationTokenSource();
-
-        if (listStatusText != null)
-        {
-            listStatusText.gameObject.SetActive(true);
-            listStatusText.text = message;
-        }
-
-        try
-        {
-            // 지정한 시간(초)만큼 대기 (오브젝트가 파괴되거나 새로 갱신되면 취소됨)
-            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: _statusCts.Token);
-
-            // 시간이 다 되면 텍스트 숨기기
-            if (listStatusText != null)
-            {
-                listStatusText.gameObject.SetActive(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 타이머가 도중에 취소된 경우는 무시
-        }
-    }
-    private async void ShowMassageWithDelay(string message, float delaySeconds)
-    {
-        // 이전 타이머가 돌고 있다면 취소
-        _statusCts?.Cancel();
-        _statusCts = new CancellationTokenSource();
-
-        if (messageText != null)
-        {
-            messageText.gameObject.SetActive(true);
-            messageText.text = message;
-        }
-
-        try
-        {
-            // 지정한 시간(초)만큼 대기 (오브젝트가 파괴되거나 새로 갱신되면 취소됨)
-            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: _statusCts.Token);
-
-            // 시간이 다 되면 텍스트 숨기기
-            if (messageText != null)
-            {
-                messageText.gameObject.SetActive(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 타이머가 도중에 취소된 경우는 무시
-        }
-    }
-
-    private void GoToLobby()
-    {
-        if(ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
-        {
-            scenesM.LoadScene(SceneNumber.GameStart);
-        }
-    }
-
-    public void SetConnecting(bool isConnecting)
-    {
-        _isConnecting = isConnecting;
-        if (_isConnecting && listStatusText != null)
-        {
-            listStatusText.gameObject.SetActive(false); // 연결 중엔 빈 방 문구 숨기기
-        }
+        if (messageText != null) messageText.text = message;
     }
 }

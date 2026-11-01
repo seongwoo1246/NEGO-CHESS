@@ -334,11 +334,11 @@ public class NetworkLauncher : MonoBehaviour
         if (_sessionObject != null) { Destroy(_sessionObject); _sessionObject = null; }
         _sceneManager = null;
 
-        CleanupNetworkServices();
+        CleanupNetworkServices(false);
     }
 
     // 멀티플레이 종료 또는 로비 퇴장 시 호출
-    public static void CleanupNetworkServices()
+    public static void CleanupNetworkServices(bool clearSceneServices = true)
     {
         // ReconnectionM이 이미 파괴되었거나 null인지 안전하게 확인 후 처리
         if (ScriptM.TryGet<ReconnectionM>(out var reconnectService))
@@ -351,6 +351,6 @@ public class NetworkLauncher : MonoBehaviour
             }
         }
 
-        ScriptM.ClearSceneLocalServices();
+        if (clearSceneServices) ScriptM.ClearSceneLocalServices();
     }
 }

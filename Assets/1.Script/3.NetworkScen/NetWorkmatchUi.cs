@@ -39,6 +39,10 @@ public class NetworkMatchUI : MonoBehaviour
     [SerializeField] private GameObject playPanel;
     [SerializeField] private Button resignButton;
     [SerializeField] private TMP_Text resignButtonText;
+    [Tooltip("'턴 넘기기' 버튼 (선택). NetworkGameM의 autoEndTurnAfterMove가 꺼져 있을 때만 보입니다.")]
+    [SerializeField] private Button endTurnButton;
+    [Tooltip("Enter 키로도 턴을 넘길 수 있게 합니다. (기존 '엔터 : 턴 넘기기' 안내와 동일)")]
+    [SerializeField] private bool enterKeyEndsTurn = true;
 
     [Header("결과 창")]
     [SerializeField] private GameObject resultPanel;
@@ -50,7 +54,7 @@ public class NetworkMatchUI : MonoBehaviour
 
     [Header("설정")]
     [Tooltip("Build Settings에 등록된 로비 씬 이름")]
-    [SerializeField] private string lobbySceneName = "MultiLobby";
+    [SerializeField] private string lobbySceneName = "Lobby";
 
     private NetworkGameM _game;
     private float _toastHideAt;
@@ -65,6 +69,7 @@ public class NetworkMatchUI : MonoBehaviour
         resignButton.onClick.AddListener(OnClickResign);
         rematchButton.onClick.AddListener(OnClickRematch);
         lobbyButton.onClick.AddListener(OnClickLobby);
+        if (endTurnButton != null) endTurnButton.onClick.AddListener(OnClickEndTurn);
 
         NetworkGameM.InstanceReady += Bind;
         NetworkGameM.InstanceLost += Unbind;
@@ -83,6 +88,7 @@ public class NetworkMatchUI : MonoBehaviour
         resignButton.onClick.RemoveListener(OnClickResign);
         rematchButton.onClick.RemoveListener(OnClickRematch);
         lobbyButton.onClick.RemoveListener(OnClickLobby);
+        if (endTurnButton != null) endTurnButton.onClick.RemoveListener(OnClickEndTurn);
 
         NetworkGameM.InstanceReady -= Bind;
         NetworkGameM.InstanceLost -= Unbind;
@@ -107,6 +113,13 @@ public class NetworkMatchUI : MonoBehaviour
 
     private void Update()
     {
+#if ENABLE_LEGACY_INPUT_MANAGER
+        if (enterKeyEndsTurn && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
+        {
+            OnClickEndTurn();
+        }
+#endif
+
         // 안내 문구는 잠깐 보였다가 사라져요
         if (_toastHideAt > 0f && Time.unscaledTime >= _toastHideAt)
         {
@@ -157,7 +170,17 @@ public class NetworkMatchUI : MonoBehaviour
                 RefreshSetup(hasLocalColor, me);
                 break;
             case GameState.Playing:
-                bannerText.text = _game.IsLocalTurn ? "내 차례예요!" : "상대방 차례예요.";
+                if (_game.IsRevealing) bannerText.text = "서로의 배치를 공개합니다!";
+                else if (_game.PromotionPending) bannerText.text = _game.IsLocalTurn ? "승급할 기물을 골라 주세요!" : "상대방이 승급할 기물을 고르는 중이에요...";
+                else if (!_game.IsLocalTurn) bannerText.text = "상대방 차례예요.";
+                else bannerText.text = _game.TurnMoved ? "턴 넘기기를 눌러 주세요." : "내 차례예요!";
+
+                if (endTurnButton != null)
+                {
+                    bool canEnd = hasLocalColor && _game.IsLocalTurn && _game.TurnMoved && !_game.IsRevealing && !_game.PromotionPending;
+                    endTurnButton.gameObject.SetActive(!_game.AutoEndTurnAfterMove);
+                    endTurnButton.interactable = canEnd;
+                }
                 break;
             case GameState.GameEnd:
                 RefreshResult(hasLocalColor, me);
@@ -180,13 +203,13 @@ public class NetworkMatchUI : MonoBehaviour
 
         bannerText.text = myReady
             ? "상대방이 준비하길 기다리고 있어요."
-            : "기물을 배치하고 '준비 완료'를 눌러 주세요.";
+            : "기물을 배치하고 '준비 완료'를 눌러 주세요. (상대 배치는 시작할 때 공개돼요)";
 
         setupReadyButtonText.text = myReady ? "준비 취소" : "준비 완료";
         setupReadyButton.interactable = true;
         setupResetButton.interactable = !myReady;
 
-        if (opponentReadyText != null) opponentReadyText.text = oppReady ? "상대: 준비 완료!" : "상대: 배치 중...";
+        if (opponentReadyText != null) opponentReadyText.text = oppReady ? "상대: 준비 완료!" : "상대: 배치 중... (비공개)";
     }
 
     private void RefreshResult(bool hasLocalColor, PieceColor me)
@@ -289,6 +312,13 @@ public class NetworkMatchUI : MonoBehaviour
         _resignArmedUntil = 0f;
         if (resignButtonText != null) resignButtonText.text = "기권";
         _game.RequestResign();
+    }
+
+    private void OnClickEndTurn()
+    {
+        if (_game == null || _game.State != GameState.Playing || _game.AutoEndTurnAfterMove) return;
+        if (!_game.IsLocalTurn || !_game.TurnMoved || _game.IsRevealing || _game.PromotionPending) return;
+        _game.RequestEndTurn();
     }
 
     private void OnClickRematch()

@@ -22,7 +22,6 @@ public readonly struct RoomCreateRequest
     /// <summary>비밀번호를 적었는지 (비밀번호는 선택 사항)</summary>
     public bool HasPassword => !string.IsNullOrEmpty(Password);
 
-    //방 만드는 함수
     public RoomCreateRequest(string roomName, string password, int maxPlayers)
     {
         // Trim(): 글자 앞뒤의 실수로 들어간 빈칸을 지워 줍니다.
@@ -69,7 +68,8 @@ public readonly struct RoomCreateRequest
         using (SHA256 sha = SHA256.Create())
         {
             byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(sessionId + ":" + password));
-            return Convert.ToBase64String(bytes);
+            // 방 목록에 붙는 값이라 짧게(16글자) 씁니다. 방 입장 확인용 지문이지 금고용 보안은 아니에요.
+            return BitConverter.ToString(bytes, 0, 8).Replace("-", string.Empty);
         }
     }
 }

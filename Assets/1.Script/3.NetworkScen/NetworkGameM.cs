@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
 
@@ -12,8 +13,8 @@ using UnityEngine;
 ///
 /// [진행 순서]
 ///  WaitingForPlayers : 두 사람이 모두 게임 씬에 들어올 때까지 기다림
-///  GameStart         : 각자 기물 배치 (서로의 배치 모습이 보임) → 둘 다 "준비 완료"
-///  Playing           : 흰색부터 번갈아 대국 (시계 작동)
+///  GameStart         : 각자 기물 배치 (상대에게는 안 보임!) → 둘 다 "준비 완료"
+///  Playing           : 시작 순간 서로의 배치를 공개 → 흰색부터 번갈아 대국 (시계 작동)
 ///  GameEnd           : 결과 표시 → 재대결(배치부터 다시) 또는 로비로
 /// </summary>
 public class NetworkGameM : NetworkBehaviour, IPlayerLeft
@@ -39,12 +40,18 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Tooltip("켜면 시간 초과 시 패배, 끄면 차례만 넘어갑니다. (기존 동작 = 끄기)")]
     [SerializeField] private bool forfeitOnTimeout = false;
 
+    [Header("진행 방식")]
+    [Tooltip("켜면 한 수를 둔 즉시 차례가 넘어갑니다. 끄면 이동 후 '턴 넘기기(Enter)'를 눌러야 넘어갑니다.")]
+    [SerializeField] private bool autoEndTurnAfterMove = true;
+    [Tooltip("게임 시작 직후, 서로의 배치를 보여 주며 시계를 멈추는 시간(초)")]
+    [SerializeField, Min(0f)] private float revealSeconds = 3f;
+
     [Header("재대결")]
     [Tooltip("켜면 재대결 때 흑/백을 서로 바꿉니다.")]
     [SerializeField] private bool swapSidesOnRematch = false;
 
     [Header("연결")]
-    [Tooltip("IChessBoardAdapter를 구현한 컴포넌트 (예: CheseGameMBoardAdapter)")]
+    [Tooltip("IChessBoardAdapter를 구현한 컴포넌트 (예: SingleChessGameM)")]
     [SerializeField] private MonoBehaviour boardAdapter;
 
     // ───────────── 네트워크로 공유되는 값 ─────────────
@@ -60,6 +67,10 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Networked] public PlayerRef Winner { get; private set; }          // None이면 무승부
     [Networked] public GameEndReason EndReason { get; private set; }
 
+    [Networked] public NetworkBool TurnMoved { get; private set; }     // 이번 차례에 이미 기물을 움직였나
+    [Networked] public TickTimer RevealTimer { get; private set; }     // 공개 시간 동안 시계/입력 정지
+    [Networked] public NetworkBool PromotionPending { get; private set; }   // 폰이 끝줄에 닿아 승급 선택을 기다리는 중
+
     [Networked] public int MoveCount { get; private set; }
     [Networked] public int MatchRound { get; private set; }            // 재대결할 때마다 1씩 증가
 
@@ -74,10 +85,15 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     // ───────────── 내 컴퓨터에서만 쓰는 값 ─────────────
     private const int PresenceCheckInterval = 30;   // 30틱마다 "둘 다 아직 있나?" 확인
     private const float LoadedPingInterval = 1f;
+    private const int RevealChunkSize = 64;         // 한 번에 공개하는 기물 수 (1개 = 4바이트)
+
+    private readonly List<SetupBoardModel.PlacedPiece> _revealBuffer = new List<SetupBoardModel.PlacedPiece>(32);
 
     private readonly SetupBoardModel _model = new SetupBoardModel();   // 방장만 사용
     private IChessBoardAdapter _adapter;
     private bool _movePending;                                         // 방장만: 방금 허락한 수가 아직 적용 전
+    private int _promotionX, _promotionY;                              // 방장만: 승급을 기다리는 폰의 칸
+    private bool _promotionInFlight;                                   // 방장만: 승급 선택을 허락해서 적용 대기 중
 
     private int _appliedRound = -1;
     private GameState? _shownState;
@@ -86,6 +102,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     private float _nextLoadedPing;
 
     public IChessBoardAdapter Adapter => _adapter;
+    public bool AutoEndTurnAfterMove => autoEndTurnAfterMove;
 
     // ───────────── 만들어질 때 / 사라질 때 ─────────────
 
@@ -172,6 +189,9 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         }
     }
 
+    /// <summary>게임 시작 직후 "상대 배치 공개" 시간인가요? (이 동안은 시계가 멈추고 아무도 둘 수 없어요)</summary>
+    public bool IsRevealing => RevealTimer.IsRunning && !RevealTimer.Expired(Runner);
+
     public bool IsPresent(PlayerRef player)
     {
         if (player == PlayerRef.None) return false;
@@ -186,6 +206,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     public void RequestSetupReady(bool ready) => RPC_SetSetupReady(ready);
     public void RequestResign() => RPC_RequestResign();
+    public void RequestEndTurn() => RPC_RequestEndTurn();
     public void RequestPostGameChoice(PostGameChoice choice) => RPC_SubmitPostGameChoice((int)choice);
 
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
@@ -224,6 +245,21 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         EndGame(PlayerOf(Opposite(color)), GameEndReason.Resign);
     }
 
+    /// <summary>"턴 넘기기(Enter)": 이번 차례에 이미 기물을 움직인 사람만 차례를 넘길 수 있어요.</summary>
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_RequestEndTurn(RpcInfo info = default)
+    {
+        if (State != GameState.Playing || _movePending || IsRevealing) return;
+        if (!TryGetColor(info.Source, out PieceColor color)) return;
+
+        bool whiteTurn = IsWhiteTurn;
+        if (whiteTurn != (color == PieceColor.white)) return;   // 내 차례가 아님
+        if (PromotionPending) { Announce(info.Source, "승급할 기물을 먼저 골라 주세요."); return; }
+        if (!TurnMoved) { Announce(info.Source, "먼저 기물을 움직여 주세요."); return; }
+
+        SetTurn(Opposite(color));
+    }
+
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_SubmitPostGameChoice(int choiceId, RpcInfo info = default)
     {
@@ -245,6 +281,50 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         if (Runner != null && Runner.LocalPlayer.PlayerId == playerId) Notice?.Invoke(message);
     }
 
+    /// <summary>
+    /// 게임 시작 때 방장이 "양쪽 배치"를 한꺼번에 공개합니다.
+    /// 각 컴퓨터는 이미 가지고 있는 내 기물은 건너뛰고, 상대 기물만 판 위에 올립니다.
+    /// (한 기물 = 4바이트: x, y, 종류, 흰색 여부)
+    /// </summary>
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_RevealPieces(int round, byte[] packed)
+    {
+        EnsureRound(round);
+        if (_adapter == null || packed == null || !TryGetLocalColor(out PieceColor me)) return;
+
+        bool iAmWhite = me == PieceColor.white;
+        for (int i = 0; i + 3 < packed.Length; i += 4)
+        {
+            bool pieceIsWhite = packed[i + 3] == 1;
+            if (pieceIsWhite == iAmWhite) continue;   // 내 기물은 이미 판 위에 있어요
+
+            _adapter.PlacePiece((pieceType)packed[i + 2], pieceIsWhite ? PieceColor.white : PieceColor.black, packed[i], packed[i + 1]);
+        }
+    }
+
+    private void RevealAllPieces()
+    {
+        _model.CopyPieces(_revealBuffer);
+
+        for (int start = 0; start < _revealBuffer.Count; start += RevealChunkSize)
+        {
+            int count = Mathf.Min(RevealChunkSize, _revealBuffer.Count - start);
+            var packed = new byte[count * 4];
+
+            for (int i = 0; i < count; i++)
+            {
+                SetupBoardModel.PlacedPiece piece = _revealBuffer[start + i];
+                int o = i * 4;
+                packed[o] = (byte)piece.X;
+                packed[o + 1] = (byte)piece.Y;
+                packed[o + 2] = (byte)piece.Type;
+                packed[o + 3] = (byte)(piece.Color == PieceColor.white ? 1 : 0);
+            }
+
+            RPC_RevealPieces(MatchRound, packed);
+        }
+    }
+
     /// <summary>방장 → 특정 사람에게만 짧은 안내를 보냅니다.</summary>
     internal void Announce(PlayerRef target, string message)
     {
@@ -258,6 +338,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     {
         _model.Clear();
         _movePending = false;
+        ClearPromotion();
 
         ResetClocks();
         IsWhiteTurn = true;
@@ -265,6 +346,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         EndReason = GameEndReason.None;
         MoveCount = 0;
         MatchRound = 0;
+        TurnMoved = false;
+        RevealTimer = default;
 
         WhiteLoaded = false;
         BlackLoaded = false;
@@ -328,7 +411,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
                 break;
 
             case GameState.Playing:
-                TickClock(Runner.DeltaTime);
+                if (!IsRevealing) TickClock(Runner.DeltaTime);   // 공개 시간 동안은 시계 정지
                 break;
         }
 
@@ -368,10 +451,15 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     private void BeginPlaying()
     {
+        RevealAllPieces();    // 지금까지 숨겨져 있던 서로의 배치를 공개
+
         _movePending = false;
+        ClearPromotion();
         MoveCount = 0;
+        TurnMoved = false;
         IsWhiteTurn = true;   // 흰색부터 시작
         ResetClocks();
+        RevealTimer = revealSeconds > 0f ? TickTimer.CreateFromSeconds(Runner, revealSeconds) : default;
         State = GameState.Playing;
     }
 
@@ -403,7 +491,14 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     private void OnTimeOut()
     {
-        if (_movePending) return;   // 방금 허락한 수가 적용되는 중이면 그 수를 먼저 처리
+        if (_movePending || _promotionInFlight) return;   // 방금 허락한 수/승급이 적용되는 중이면 먼저 처리
+
+        // 승급을 고르다가 시간이 다 되면 퀸으로 자동 승급
+        if (PromotionPending)
+        {
+            AuthorityPromote(pieceType.Queen);
+            return;
+        }
 
         bool whiteTurn = IsWhiteTurn;
         PieceColor loser = whiteTurn ? PieceColor.white : PieceColor.black;
@@ -414,6 +509,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     private void SetTurn(PieceColor next)
     {
+        TurnMoved = false;
         IsWhiteTurn = next == PieceColor.white;
         CurrentBonusTime = bonusTimeSeconds;   // 차례가 바뀔 때마다 초읽기 리셋
     }
@@ -476,10 +572,28 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         if (_adapter == null || State != GameState.Playing || _movePending) return false;
         if (!TryGetColor(sender, out mover)) return false;
 
+        if (IsRevealing)
+        {
+            reason = "상대방의 배치를 공개하는 중이에요. 잠시만 기다려 주세요.";
+            return false;
+        }
+
         bool whiteTurn = IsWhiteTurn;
         if (whiteTurn != (mover == PieceColor.white))
         {
             reason = "상대방 차례예요.";
+            return false;
+        }
+
+        if (PromotionPending)
+        {
+            reason = "승급할 기물을 먼저 골라 주세요.";
+            return false;
+        }
+
+        if (TurnMoved)
+        {
+            reason = "이미 기물을 움직였어요. 턴 넘기기를 눌러 주세요.";
             return false;
         }
 
@@ -509,8 +623,72 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
             case ChessOutcome.Checkmate: EndGame(PlayerOf(mover), GameEndReason.Checkmate); break;
             case ChessOutcome.Stalemate: EndGame(PlayerRef.None, GameEndReason.Stalemate); break;
             case ChessOutcome.Draw: EndGame(PlayerRef.None, GameEndReason.Draw); break;
-            default: SetTurn(next); break;
+            default:
+                if (_adapter.TryFindPromotion(mover, out int promoX, out int promoY))
+                {
+                    // 폰이 끝줄에 닿았어요: 기물을 고를 때까지 차례를 넘기지 않고 기다립니다.
+                    _promotionX = promoX;
+                    _promotionY = promoY;
+                    _promotionInFlight = false;
+                    PromotionPending = true;
+                }
+                else if (autoEndTurnAfterMove) SetTurn(next);   // 바로 상대 차례
+                else TurnMoved = true;                          // 이동은 끝, "턴 넘기기"를 기다림
+                break;
         }
+    }
+
+    // ───────────── 프로모션 심사 (NetworkChessPieceM이 호출) ─────────────
+
+    /// <summary>승급 선택이 올바른지 검사하고, 허락하면 "적용 대기" 상태로 만듭니다.</summary>
+    internal bool AuthorityTryPromote(PlayerRef sender, int typeId, out int x, out int y, out PieceColor color, out string reason)
+    {
+        reason = null;
+        x = _promotionX;
+        y = _promotionY;
+        color = default;
+
+        if (_adapter == null || State != GameState.Playing || !PromotionPending || _promotionInFlight) return false;
+        if (!TryGetColor(sender, out color)) return false;
+
+        bool whiteTurn = IsWhiteTurn;
+        if (whiteTurn != (color == PieceColor.white)) return false;   // 내 차례의 승급이 아님
+
+        var type = (pieceType)typeId;
+        if (type != pieceType.Queen && type != pieceType.Rook && type != pieceType.Bishop && type != pieceType.Knight)
+        {
+            reason = "그 기물로는 승급할 수 없어요.";
+            return false;
+        }
+
+        _promotionInFlight = true;
+        return true;
+    }
+
+    /// <summary>방장이 직접 승급시킵니다. (시간 초과 시 자동 승급용)</summary>
+    private void AuthorityPromote(pieceType type)
+    {
+        if (!ScriptM.TryGet<NetworkChessPieceM>(out NetworkChessPieceM pieces)) return;
+
+        bool whiteTurn = IsWhiteTurn;
+        _promotionInFlight = true;
+        pieces.AuthorityBroadcastPromotion(_promotionX, _promotionY, type, whiteTurn ? PieceColor.white : PieceColor.black);
+    }
+
+    /// <summary>모든 컴퓨터가 승급을 적용한 직후, 방장이 차례를 넘깁니다.</summary>
+    internal void AuthorityOnPromotionApplied(PieceColor mover)
+    {
+        ClearPromotion();
+        if (State != GameState.Playing) return;
+
+        if (autoEndTurnAfterMove) SetTurn(Opposite(mover));
+        else TurnMoved = true;
+    }
+
+    private void ClearPromotion()
+    {
+        PromotionPending = false;
+        _promotionInFlight = false;
     }
 
     // ───────────── 게임 끝 / 재대결 ─────────────
@@ -520,6 +698,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         if (State == GameState.GameEnd) return;   // 이미 끝난 게임이면 중복 방지
 
         _movePending = false;
+        ClearPromotion();
         Winner = winner;
         EndReason = reason;
         WhiteChoice = PostGameChoice.None;
@@ -544,11 +723,14 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
         _model.Clear();
         _movePending = false;
+        ClearPromotion();
 
         MatchRound++;   // 모든 컴퓨터가 이 숫자를 보고 자기 판을 비웁니다
         ResetClocks();
         IsWhiteTurn = true;
         MoveCount = 0;
+        TurnMoved = false;
+        RevealTimer = default;
         Winner = PlayerRef.None;
         EndReason = GameEndReason.None;
         WhiteSetupReady = false;
@@ -618,11 +800,16 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         {
             _adapter.SetSetupInputEnabled(false, PieceColor.white);
             _adapter.SetPlayInputEnabled(false, PieceColor.white);
+            _adapter.SetPromotionChoiceVisible(false, PieceColor.white);
             return;
         }
 
+        bool promoting = State == GameState.Playing && PromotionPending;
+        bool turnMoved = TurnMoved;
+
         _adapter.SetSetupInputEnabled(State == GameState.GameStart && !IsSetupReady(local), local);
-        _adapter.SetPlayInputEnabled(State == GameState.Playing && IsLocalTurn, local);
+        _adapter.SetPlayInputEnabled(State == GameState.Playing && !IsRevealing && IsLocalTurn && !turnMoved && !promoting, local);
+        _adapter.SetPromotionChoiceVisible(promoting && IsLocalTurn, local);   // 승급 선택창은 이동한 본인에게만
     }
 
     private int ComputeSignature()
@@ -634,6 +821,9 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
             hash = hash * 31 + MatchRound;
             hash = hash * 31 + MoveCount;
             hash = hash * 31 + (IsWhiteTurn ? 1 : 0);
+            hash = hash * 31 + (TurnMoved ? 1 : 0);
+            hash = hash * 31 + (State == GameState.Playing && IsRevealing ? 1 : 0);
+            hash = hash * 31 + (PromotionPending ? 1 : 0);
             hash = hash * 31 + (WhiteLoaded ? 1 : 0);
             hash = hash * 31 + (BlackLoaded ? 1 : 0);
             hash = hash * 31 + (WhiteSetupReady ? 1 : 0);

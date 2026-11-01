@@ -6,7 +6,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SingleChessGameM : MonoBehaviour
+public partial class SingleChessGameM : MonoBehaviour
 {
     private void Awake()
     {
@@ -45,7 +45,7 @@ public class SingleChessGameM : MonoBehaviour
         if (KeySettingM.Instance != null)
         {
             // 확실하게 이벤트 연결
-            KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover; 
+            KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
             KeySettingM.Instance.OnTurnoverTriggered += HandleTurnover;
 
             KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
@@ -74,7 +74,7 @@ public class SingleChessGameM : MonoBehaviour
     public Button ResetBtn_B;
     public Button ReadyBtn_B;
 
-  
+
 
     private PieceData? selectedPieceData = null;
     private bool isSpawnMode = false;
@@ -124,6 +124,7 @@ public class SingleChessGameM : MonoBehaviour
     // 타일 선택시 호출하는 함수
     public void OnTileClicked(int x, int y)
     {
+        if (NetHandleBoardClick(x, y)) return;
 
         // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
         if (isSpawnMode && selectedPieceData != null)
@@ -131,31 +132,32 @@ public class SingleChessGameM : MonoBehaviour
             if (IsValidSpawnZone(x, y, selectedPieceData.Value.Color))
             {
                 GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
-                
-                if(selectedPieceData.Value.Color == PieceColor.white)
+
+                if (selectedPieceData.Value.Color == PieceColor.white)
                 {
                     SpawnPiece(prefabToSpawn, x, y);
                 }
                 else
                 {
-                    SpawnPiece(prefabToSpawn, x, y,PieceColor.black);
+                    SpawnPiece(prefabToSpawn, x, y, PieceColor.black);
                 }
-                    
-                
+
+
 
                 // 카운트 증가 및 UI 갱신
                 AddSpawnedCount(selectedPieceData.Value.Type);
                 RefreshButtonUI();
 
-                
+
                 selectedPieceData = null;
                 ClearTileHighlights();
             }
-               
-                return;
+
+            return;
         }
-        
-        // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
+
+        if (!isMovedone)
+            // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
             if (selectedPos == null)
             {
                 // 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
@@ -171,9 +173,9 @@ public class SingleChessGameM : MonoBehaviour
                 // 클릭한 칸이 이동 가능한 위치 중 하나라면 -> 네트워크 이동 또는 실제 이동 실행
                 if (currentPossibleMoves.Contains(targetPos))
                 {
-                   MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
-                   
-                    
+                    MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                    isMovedone = true;
+
                     DeselectPiece();
                 }
                 // 다른 내 기물을 다시 클릭한 경우 -> 새로운 기물로 선택 교체
@@ -189,7 +191,7 @@ public class SingleChessGameM : MonoBehaviour
 
 
             }
-        
+
     }
 
     /// <summary>
@@ -215,6 +217,11 @@ public class SingleChessGameM : MonoBehaviour
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
     public void OnClickPieceButton(PieceData pieceData)
     {
+        if (IsNetworkMatch)
+        {
+            if (!_netSetupEnabled) return;
+            pieceData = NetAsLocalColor(pieceData);
+        }
         // 남은 개수 제한 체크 (예: maxPiece 이상 소환했다면 리턴)
         int currentCount = GetSpawnedCount(pieceData.Type);
         if (currentCount >= pieceData.maxPiece)
@@ -243,7 +250,7 @@ public class SingleChessGameM : MonoBehaviour
                     }
                 }
             }
-       
+
     }
 
 
@@ -324,7 +331,8 @@ public class SingleChessGameM : MonoBehaviour
             {
                 OnSpawnKing(newPiece, newPiece.isWhite);
             }
-        } activePieces.Add(newPiece);
+        }
+        activePieces.Add(newPiece);
         // 5. 2차원 배열에 기물 등록 및 반환
         pieceGrid[x, y] = newPiece;
 
@@ -354,12 +362,13 @@ public class SingleChessGameM : MonoBehaviour
 
     public void ResetAllPieces()
     {
+        if (IsNetworkMatch) return;
         // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 2; y++)
             {
-                
+
                 DestroyPiece(x, y);
             }
         }
@@ -372,12 +381,13 @@ public class SingleChessGameM : MonoBehaviour
     }
     public void ResetAllPieces_B()
     {
+        if (IsNetworkMatch) return;
         // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
         for (int x = 0; x < 8; x++)
         {
             for (int y = 5; y < 8; y++)
             {
-                
+
                 DestroyPiece(x, y);
             }
         }
@@ -391,6 +401,7 @@ public class SingleChessGameM : MonoBehaviour
 
     private void SetReady()
     {
+        if (IsNetworkMatch) return;
         if (whiteKing == null)
         {
             Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
@@ -403,6 +414,7 @@ public class SingleChessGameM : MonoBehaviour
     }
     private void SetReady_B()
     {
+        if (IsNetworkMatch) return;
         if (blackKing == null)
         {
             Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
@@ -442,7 +454,7 @@ public class SingleChessGameM : MonoBehaviour
     private CancellationTokenSource timerCts;
     private bool isTimerRunning = false;
 
-   
+
     [Header("프로모션 관련 대기 상태")]
     private Vector2Int pendingPromotionPos;
     private ChessPieceM pendingPromotionPawn;
@@ -460,6 +472,8 @@ public class SingleChessGameM : MonoBehaviour
     private bool isMovedone_W = false;
     private bool isMovedone_B = false;
 
+    // 기물 움직이면 끝인 변수
+    private bool isMovedone = false;
 
     private Vector2Int? selectedPos = null; // 현재 선택된 기물의 좌표
 
@@ -467,8 +481,8 @@ public class SingleChessGameM : MonoBehaviour
     private List<Vector2Int> attackMoves = new List<Vector2Int>(); // 공격이 가능한 부분 표시
     private List<MoveData> MoveHistory = new List<MoveData>(); //기보를 저장하기 위해서 있는 리스트
     public List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
-   
-    
+
+
 
     #endregion
 
@@ -476,15 +490,15 @@ public class SingleChessGameM : MonoBehaviour
     {
         TurnEnd();
     }
-  
+
 
     public void ActiveSelfSetting()
     {
         SettingPanel.SetActive(!SettingPanel.activeSelf);
     }
- 
 
-   
+
+
 
     private bool IsMyTurnAndPiece(int x, int y)
     {
@@ -672,7 +686,7 @@ public class SingleChessGameM : MonoBehaviour
         {
             RequestPromotion(pieceToMove, pieceToMove.CurrentPos.x, pieceToMove.CurrentPos.y, false);
         }
-        else if(!isMyTurn && pieceToMove.CurrentPos.y == 0)
+        else if (!isMyTurn && pieceToMove.CurrentPos.y == 0)
         {
             RequestPromotion(pieceToMove, pieceToMove.CurrentPos.x, pieceToMove.CurrentPos.y, true);
         }
@@ -694,7 +708,7 @@ public class SingleChessGameM : MonoBehaviour
             activePieces.Remove(pieceGrid[x, y]);
 
             bool isMyPiece = (pieceToDestroy.data.Color == PieceColor.white); // 플레이어 색상 기준
-           
+
 
             // spawner로 반환
             spawner.Despawn(pieceGrid[x, y].gameObject);
@@ -736,6 +750,7 @@ public class SingleChessGameM : MonoBehaviour
     }
     public void TurnEnd()
     {
+        if (IsNetworkMatch) return;
         isWhiteTurn = !isWhiteTurn;
         currentTurn = isWhiteTurn ? PieceColor.white : PieceColor.black;
 
@@ -745,24 +760,68 @@ public class SingleChessGameM : MonoBehaviour
         }
         else
         {
+            //isMovedone = false;
             StartTurnTimer(PieceColor.black);
         }
     }
+    private Vector2Int FindKingPosition(bool isWhiteTarget)
+    {
+        ChessPieceM targetKing = isWhiteTarget ? whiteKing : blackKing;
+
+        if (targetKing != null)
+        {
+            return targetKing.CurrentPos; // 즉시 위치 반환
+        }
+
+        return new Vector2Int(-1, -1);
+    }
+
+    // 2. 적 팀의 모든 기물이 이동/공격할 수 있는 좌표들을 모음
+    private List<Vector2Int> GetAllEnemyAttackMoves(bool isWhiteEnemy, ChessPieceM[,] grid)
+    {
+        attackMoves.Clear(); // 매번 new 하지 않고 기존 리스트 재활용
+
+        for (int i = 0; i < activePieces.Count; i++)
+        {
+            var piece = activePieces[i];
+            if (piece != null && piece.isWhite == isWhiteEnemy)
+            {
+                // 리스트 생성 없이, attackMoves에 직접 경로를 추가하도록 인자로 전달
+                piece.GetPossibleMoves(grid, attackMoves);
+            }
+        }
+
+        return attackMoves;
+    }
+
+    public bool IsKingInCheck(bool isWhiteTarget, ChessPieceM[,] grid)
+    {
+        // 1. target 팀의 킹 위치 찾기
+        Vector2Int kingPos = FindKingPosition(isWhiteTarget);
+
+        // 2. 상대방(적)의 모든 기물이 이동/공격할 수 있는 좌표들을 모음
+        List<Vector2Int> enemyAttackMoves = GetAllEnemyAttackMoves(!isWhiteTarget, grid);
+
+        // 3. 적의 공격 가능 범위에 킹의 위치가 포함되어 있다면 체크!
+        return enemyAttackMoves.Contains(kingPos);
+    }
+
 
     #region 협상관련  함수들
 
     // 💡 플레이어가 '무르기 협상' 버튼을 눌렀을 때 호출할 함수
     public void TryUndoWithNegotiation()
     {
+        if (IsNetworkMatch) return;
         if (MoveHistory.Count == 0)
         {
             return;
         }
-            
-         int lastIndex = MoveHistory.Count - 1;
-         MoveData lastMove = MoveHistory[lastIndex];
 
-         ExecuteUndoLastMove(lastMove, lastIndex);
+        int lastIndex = MoveHistory.Count - 1;
+        MoveData lastMove = MoveHistory[lastIndex];
+
+        ExecuteUndoLastMove(lastMove, lastIndex);
     }
     // 기존에 올리셨던 무르기 코드의 실제 실행부 분리
     private void ExecuteUndoLastMove(MoveData lastMove, int lastIndex)
@@ -801,13 +860,14 @@ public class SingleChessGameM : MonoBehaviour
             // 2. 원래 폰 다시 스폰
             GameObject pawnPrefab = GetPrefabByData(lastMove.MovedPiece.data);
             SpawnPiece(pawnPrefab, lastMove.From.x, lastMove.From.y);
-           
+
         }
     }
 
     // 프로모션 할때 사용
     public void RequestPromotion(ChessPieceM pawn, int x, int y, bool isBlack)
     {
+        if (IsNetworkMatch) return;
         if (isBlack)
         {
             pendingPromotionPawn = pawn;
@@ -834,6 +894,13 @@ public class SingleChessGameM : MonoBehaviour
     }
     public void OnPromotionPieceSelected(PieceDatabase piecedatabase, pieceType selectedType)
     {
+        // 멀티: 내 판을 바로 바꾸지 않고 방장에게 부탁합니다. (허락이 오면 모든 컴퓨터가 똑같이 승급)
+        if (IsNetworkMatch)
+        {
+            NetRequestPromotion(selectedType);
+            return;
+        }
+
         if (!isWaitingForPromotion || pendingPromotionPawn == null) return;
 
         int x = pendingPromotionPos.x;
@@ -881,7 +948,7 @@ public class SingleChessGameM : MonoBehaviour
         isWaitingForPromotion = false;
         pendingPromotionPawn = null;
 
-       
+
     }
 
     #endregion
@@ -960,12 +1027,19 @@ public class SingleChessGameM : MonoBehaviour
     public TextMeshProUGUI ResultText;
     public TextMeshProUGUI NegoText;
     public TextMeshProUGUI TimeText;
-   
 
-   
+    // 보드 상태별 반복 횟수를 저장하는 딕셔너리
+    private Dictionary<string, int> positionHistory = new Dictionary<string, int>();
+
 
     public void HandleGiveUp()
     {
+        // 멀티: 항복은 방장에게 요청 (결과 화면은 NetworkMatchUI가 보여 줌)
+        if (IsNetworkMatch)
+        {
+            if (ScriptM.TryGet<NetworkGameM>(out NetworkGameM netGame)) netGame.RequestResign();
+            return;
+        }
         ShowGameResultAsync(GameResultType.Giveup).Forget();
     }
     /// <summary>
@@ -973,19 +1047,20 @@ public class SingleChessGameM : MonoBehaviour
     /// </summary>
     public async UniTaskVoid ShowGameResultAsync(GameResultType resultType)
     {
+        if (IsNetworkMatch) return;
         if (ResultPanel != null)
         {
             ResultPanel.SetActive(true);
         }
 
-   
+
         string resultTextStr = "";
 
         // 결과 유형에 따른 분기 처리
         switch (resultType)
         {
             case GameResultType.Win:
-              
+
                 resultTextStr = " 백 승리";
 
                 if (NegoText != null) NegoText.text = $"백 플레이어 승리";
@@ -994,7 +1069,7 @@ public class SingleChessGameM : MonoBehaviour
                 break;
 
             case GameResultType.Lose:
-              
+
                 resultTextStr = "흑 승리";
 
                 if (NegoText != null) NegoText.text = $"흑 플레이어 승리";
@@ -1003,7 +1078,7 @@ public class SingleChessGameM : MonoBehaviour
 
             case GameResultType.Giveup:
                 resultTextStr = "항복";
-                
+
                 if (NegoText != null) NegoText.text = "대국을 포기했습니다.";
                 if (TimeText != null) TimeText.text = "곧 있다가 로비로 이동합니다.";
                 break;
@@ -1012,7 +1087,7 @@ public class SingleChessGameM : MonoBehaviour
 
         // UI 텍스트 적용
         if (ResultText != null) ResultText.text = resultTextStr;
-       
+
 
         // 5초 대기 후 로비 씬으로 이동
         await UniTask.Delay(System.TimeSpan.FromSeconds(5f), ignoreTimeScale: true);
@@ -1028,6 +1103,6 @@ public class SingleChessGameM : MonoBehaviour
             service.LoadScene(SceneNumber.Lobby);
         }
     }
- 
+
     #endregion
 }

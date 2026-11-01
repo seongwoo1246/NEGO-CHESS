@@ -318,6 +318,7 @@ public class CheseGameM : MonoBehaviour
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
     public void OnClickPieceButton(PieceData pieceData)
     {
+
         // 남은 개수 제한 체크 (예: maxPiece 이상 소환했다면 리턴)
         int currentCount = GetSpawnedCount(pieceData.Type);
         if (currentCount >= pieceData.maxPiece)
@@ -1726,9 +1727,6 @@ private void UnlockNextCharacter(int currentDefeatedCharacterId)
     #endregion
 
 
-
-
-
-
-
 }
+
+

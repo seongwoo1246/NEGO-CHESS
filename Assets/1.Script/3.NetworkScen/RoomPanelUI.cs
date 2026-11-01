@@ -65,6 +65,7 @@ public class RoomPanelUI : MonoBehaviour
     private readonly List<RoomPlayerView> _players = new List<RoomPlayerView>(8);
     private RoomState _state;
     private bool _isLeaving;
+    private int _teamResyncTicket;
 
     // ───────────── 켜기 / 끄기 ─────────────
 
@@ -141,7 +142,14 @@ public class RoomPanelUI : MonoBehaviour
             ? $"{_state.CountdownSecondsLeft}초 후 시작!"
             : $"{_state.ReadyCount}/{_state.MaxPlayers} 준비 완료";
 
-        if (statusText != null) statusText.text = BuildStatusMessage(phase);
+        if (statusText != null)
+        {
+            // 내 팀이 실제로 정해진 값을 항상 보여 줍니다. (선택이 확정됐는지 한눈에 확인)
+            string teamPrefix = _state.TryGetLocalPlayer(out RoomPlayerView mine)
+                ? $"내 팀: {(mine.Team == RoomTeam.White ? "백" : "흑")}팀  |  "
+                : string.Empty;
+            statusText.text = teamPrefix + BuildStatusMessage(phase);
+        }
 
         // 준비 버튼: 방이 가득 찼을 때만 누를 수 있어요 (= 시작 가능한 상태)
         bool meReady = _state.TryGetLocalPlayer(out RoomPlayerView me) && me.Ready;
@@ -184,7 +192,20 @@ public class RoomPanelUI : MonoBehaviour
     private void OnTeamDropdownChanged(int slotIndex, int value)
     {
         if (_state == null || slotIndex >= _players.Count || !_players[slotIndex].IsLocal) return;
-        _state.RequestSetTeam((RoomTeam)value);
+        if ((int)_players[slotIndex].Team == value) return;   // 이미 그 팀이면 할 일 없음
+
+        if (statusText != null) statusText.text = "팀을 바꾸는 중이에요...";
+        _state.RequestSetTeam((RoomTeam)value);               // 방장이 확정해 주면 화면이 알아서 바뀝니다
+        ResyncTeamLaterAsync().Forget();
+    }
+
+    // 방장이 요청을 거절했거나 응답이 없으면, 1초 뒤 화면을 "실제 확정된 값"으로 되돌립니다.
+    // (화면에만 바뀐 것처럼 보이고 실제로는 확정되지 않는 상황을 막아요)
+    private async UniTaskVoid ResyncTeamLaterAsync()
+    {
+        int ticket = ++_teamResyncTicket;
+        await UniTask.Delay(1000, ignoreTimeScale: true, cancellationToken: this.GetCancellationTokenOnDestroy());
+        if (ticket == _teamResyncTicket && isActiveAndEnabled) Refresh();
     }
 
     private void OnClickLeave()

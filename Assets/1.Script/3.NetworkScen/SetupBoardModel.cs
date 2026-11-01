@@ -13,6 +13,23 @@ public sealed class SetupBoardModel
 
     public enum PlaceResult { Ok, OutOfBoard, OutsideZone, Occupied, LimitReached }
 
+    /// <summary>장부에 적힌 기물 한 개 (게임 시작 때 상대에게 공개할 목록용)</summary>
+    public readonly struct PlacedPiece
+    {
+        public readonly pieceType Type;
+        public readonly PieceColor Color;
+        public readonly int X;
+        public readonly int Y;
+
+        public PlacedPiece(pieceType type, PieceColor color, int x, int y)
+        {
+            Type = type;
+            Color = color;
+            X = x;
+            Y = y;
+        }
+    }
+
     private struct Cell
     {
         public bool Filled;
@@ -85,6 +102,20 @@ public sealed class SetupBoardModel
         }
         _counts[Side(color)].Clear();
         return removed;
+    }
+
+    /// <summary>장부에 적힌 모든 기물을 buffer에 담아 줍니다. (공개용)</summary>
+    public void CopyPieces(List<PlacedPiece> buffer)
+    {
+        buffer.Clear();
+        for (int x = 0; x < Size; x++)
+        {
+            for (int y = 0; y < Size; y++)
+            {
+                Cell cell = _cells[x, y];
+                if (cell.Filled) buffer.Add(new PlacedPiece(cell.Type, cell.Color, x, y));
+            }
+        }
     }
 
     public void Clear()
