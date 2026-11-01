@@ -6765,6 +6765,7 @@ MonoBehaviour:
   messageText: {fileID: 1380238669}
   launcher: {fileID: 1312919361}
   browser: {fileID: 1750004021}
+  gotoLobby: {fileID: 661746457}
 --- !u!4 &1363282002
 Transform:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -42,16 +43,19 @@ public class NetWorkLobbyUi : MonoBehaviour
     [Header("연결")]
     [SerializeField] private NetworkLauncher launcher;
     [SerializeField] private RoomBrowser browser;
+    [SerializeField] private Button gotoLobby;
 
     private readonly List<RoomListItemView> _itemViews = new List<RoomListItemView>();
     private bool _hasNickname;
     private bool _isBusy;
+    private CancellationTokenSource _statusCts;
     private string _listStatus = string.Empty;   // 목록 쪽 안내 ("불러오는 중...", "방이 없어요" 등)
 
     // ───────────── 시작 준비 ─────────────
 
     private void Awake()
     {
+        ScriptM.Register<NetWorkLobbyUi>(this, UseSpace.Network);
         nicknameInput.characterLimit = PlayerProfile.MaxNicknameLength;
         roomNameInput.characterLimit = RoomCreateRequest.MaxNameLength;
         roomPasswordInput.characterLimit = RoomCreateRequest.MaxPasswordLength;
@@ -60,6 +64,8 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void Start()
     {
+        gotoLobby.onClick.RemoveAllListeners();
+        gotoLobby.onClick.AddListener(GoToLobby);
         nicknameInput.text = PlayerProfile.Nickname;
         _hasNickname = PlayerProfile.HasNickname;
         RefreshButtons();
@@ -164,6 +170,7 @@ public class NetWorkLobbyUi : MonoBehaviour
             ? (browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.")
             : string.Empty;
         ApplyListStatus();
+        ShowStatusWithDelay(listStatusText.text, 3f);
     }
 
     private void OnBrowserStatusChanged(string status)
@@ -262,6 +269,72 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void ShowMessage(string message)
     {
-        if (messageText != null) messageText.text = message;
+        ShowMassageWithDelay(message, 3f);
     }
+
+    private async void ShowStatusWithDelay(string message, float delaySeconds)
+    {
+        // 이전 타이머가 돌고 있다면 취소
+        _statusCts?.Cancel();
+        _statusCts = new CancellationTokenSource();
+
+        if (listStatusText != null)
+        {
+            listStatusText.gameObject.SetActive(true);
+            listStatusText.text = message;
+        }
+
+        try
+        {
+            // 지정한 시간(초)만큼 대기 (오브젝트가 파괴되거나 새로 갱신되면 취소됨)
+            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: _statusCts.Token);
+
+            // 시간이 다 되면 텍스트 숨기기
+            if (listStatusText != null)
+            {
+                listStatusText.gameObject.SetActive(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 타이머가 도중에 취소된 경우는 무시
+        }
+    }
+    private async void ShowMassageWithDelay(string message, float delaySeconds)
+    {
+        // 이전 타이머가 돌고 있다면 취소
+        _statusCts?.Cancel();
+        _statusCts = new CancellationTokenSource();
+
+        if (messageText != null)
+        {
+            messageText.gameObject.SetActive(true);
+            messageText.text = message;
+        }
+
+        try
+        {
+            // 지정한 시간(초)만큼 대기 (오브젝트가 파괴되거나 새로 갱신되면 취소됨)
+            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: _statusCts.Token);
+
+            // 시간이 다 되면 텍스트 숨기기
+            if (messageText != null)
+            {
+                messageText.gameObject.SetActive(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // 타이머가 도중에 취소된 경우는 무시
+        }
+    }
+
+    private void GoToLobby()
+    {
+        if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
+        {
+            scenesM.LoadScene(SceneNumber.GameStart);
+        }
+    }
+
 }
