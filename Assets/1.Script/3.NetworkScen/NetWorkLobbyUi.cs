@@ -1,7 +1,6 @@
 ﻿using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -48,8 +47,12 @@ public class NetWorkLobbyUi : MonoBehaviour
     private readonly List<RoomListItemView> _itemViews = new List<RoomListItemView>();
     private bool _hasNickname;
     private bool _isBusy;
-    private CancellationTokenSource _statusCts;
     private string _listStatus = string.Empty;   // 목록 쪽 안내 ("불러오는 중...", "방이 없어요" 등)
+    private string _message = string.Empty;      // 동작 결과 안내 ("방을 만드는 중이에요...", 오류 등)
+    private float _messageHideAt;                // 0이면 자동으로 사라지지 않음 (진행 중 안내)
+    private float _listStatusHideAt;             // 0이면 자동으로 사라지지 않음 (불러오는 중 등)
+
+    private const float ResultMessageSeconds = 3f;
 
     // ───────────── 시작 준비 ─────────────
 
@@ -60,12 +63,19 @@ public class NetWorkLobbyUi : MonoBehaviour
         roomNameInput.characterLimit = RoomCreateRequest.MaxNameLength;
         roomPasswordInput.characterLimit = RoomCreateRequest.MaxPasswordLength;
         roomPasswordInput.contentType = TMP_InputField.ContentType.Password;
+
+        // 안내 글자는 보기만 하는 용도 → 버튼/입력칸 클릭을 가로채지 않게 합니다.
+        if (listStatusText != null) listStatusText.raycastTarget = false;
+        if (messageText != null) messageText.raycastTarget = false;
     }
 
     private void Start()
     {
-        gotoLobby.onClick.RemoveAllListeners();
-        gotoLobby.onClick.AddListener(GoToLobby);
+        if (gotoLobby != null)
+        {
+            gotoLobby.onClick.RemoveAllListeners();
+            gotoLobby.onClick.AddListener(GoToLobby);
+        }
         nicknameInput.text = PlayerProfile.Nickname;
         _hasNickname = PlayerProfile.HasNickname;
         RefreshButtons();
@@ -81,8 +91,11 @@ public class NetWorkLobbyUi : MonoBehaviour
 
         // 방에서 돌아왔을 때 이전 안내 글자가 남아 있지 않도록 깨끗하게 시작
         _listStatus = string.Empty;
-        ShowMessage(string.Empty);
-        ApplyListStatus();
+        _message = string.Empty;
+        _messageHideAt = 0f;
+        _listStatusHideAt = 0f;
+        RenderStatus();
+        RefreshButtons();
 
         nicknameConfirmButton.onClick.AddListener(OnClickConfirmNickname);
         nicknameInput.onValueChanged.AddListener(OnNicknameEdited);
@@ -112,6 +125,27 @@ public class NetWorkLobbyUi : MonoBehaviour
         {
             ScriptM.Unregister<NetWorkLobbyUi>();
         }
+    }
+
+    private void Update()
+    {
+        bool changed = false;
+
+        if (_messageHideAt > 0f && Time.unscaledTime >= _messageHideAt)
+        {
+            _message = string.Empty;
+            _messageHideAt = 0f;
+            changed = true;
+        }
+
+        if (_listStatusHideAt > 0f && Time.unscaledTime >= _listStatusHideAt)
+        {
+            _listStatus = string.Empty;
+            _listStatusHideAt = 0f;
+            changed = true;
+        }
+
+        if (changed) RenderStatus();
     }
 
     /// <summary>
@@ -166,30 +200,51 @@ public class NetWorkLobbyUi : MonoBehaviour
             if (inUse) _itemViews[i].Bind(rooms[i], OnClickJoinRoom);
         }
 
-        _listStatus = rooms.Count == 0
-            ? (browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.")
-            : string.Empty;
-        ApplyListStatus();
-        ShowStatusWithDelay(listStatusText.text, 3f);
+        if (_isBusy) return;   // 입장 중에 목록이 비워지는 것은 안내할 필요 없어요
+
+        if (rooms.Count == 0)
+        {
+            SetListStatus(browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.", ResultMessageSeconds);
+        }
+        else
+        {
+            SetListStatus(string.Empty, 0f);
+        }
     }
 
     private void OnBrowserStatusChanged(string status)
     {
-        _listStatus = status ?? string.Empty;
-        ApplyListStatus();
+        if (_isBusy) return;
+        SetListStatus(status ?? string.Empty, 0f);   // "불러오는 중..." 등은 끝날 때까지 유지
+    }
+
+    private void SetListStatus(string text, float visibleSeconds)
+    {
+        _listStatus = text;
+        _listStatusHideAt = visibleSeconds > 0f && !string.IsNullOrEmpty(text) ? Time.unscaledTime + visibleSeconds : 0f;
+        RenderStatus();
     }
 
     /// <summary>
-    /// 목록 안내 글자는 "방 만들기/입장 중이 아닐 때만" 보여 줍니다.
-    /// (입장 중에는 위쪽 안내 한 가지만 보이도록 → 글자가 겹치지 않아요)
+    /// 안내 글자를 화면에 반영합니다. ★ 핵심 규칙: 두 글자 중 "한 번에 하나만" 보입니다.
+    ///  1순위: 동작 결과 안내(_message)  2순위: 방 목록 안내(_listStatus)
+    /// → 두 글자가 같은 자리에 있어도 겹치지 않아요.
     /// </summary>
-    private void ApplyListStatus()
+    private void RenderStatus()
     {
-        if (listStatusText == null) return;
+        bool showMessage = !string.IsNullOrEmpty(_message);
+        if (messageText != null)
+        {
+            messageText.gameObject.SetActive(showMessage);
+            if (showMessage) messageText.text = _message;
+        }
 
-        bool show = !_isBusy && !string.IsNullOrEmpty(_listStatus);
-        listStatusText.gameObject.SetActive(show);
-        if (show) listStatusText.text = _listStatus;
+        bool showList = !showMessage && !_isBusy && !string.IsNullOrEmpty(_listStatus);
+        if (listStatusText != null)
+        {
+            listStatusText.gameObject.SetActive(showList);
+            if (showList) listStatusText.text = _listStatus;
+        }
     }
 
     // ───────────── 방 만들기 / 참가 ─────────────
@@ -228,7 +283,7 @@ public class NetWorkLobbyUi : MonoBehaviour
         if (_isBusy) return;
 
         SetBusy(true);
-        ShowMessage(progressMessage);
+        ShowMessage(progressMessage, 0f);   // 진행 중 안내: 끝날 때까지 유지
 
         RoomResult result = await operation();
 
@@ -258,7 +313,7 @@ public class NetWorkLobbyUi : MonoBehaviour
     {
         _isBusy = busy;
         RefreshButtons();
-        ApplyListStatus();   // 입장 중에는 목록 안내를 숨기고, 끝나면 다시 보여 줍니다
+        RenderStatus();   // 입장 중에는 목록 안내를 숨깁니다
     }
 
     private void RefreshButtons()
@@ -267,66 +322,12 @@ public class NetWorkLobbyUi : MonoBehaviour
         searchButton.interactable = !_isBusy;
     }
 
-    private void ShowMessage(string message)
+    /// <summary>동작 결과 안내를 보여 줍니다. visibleSeconds가 0이면 다음 안내가 올 때까지 유지합니다.</summary>
+    private void ShowMessage(string message, float visibleSeconds = ResultMessageSeconds)
     {
-        ShowMassageWithDelay(message, 3f);
-    }
-
-    private async void ShowStatusWithDelay(string message, float delaySeconds)
-    {
-        // 이전 타이머가 돌고 있다면 취소
-        _statusCts?.Cancel();
-        _statusCts = new CancellationTokenSource();
-
-        if (listStatusText != null)
-        {
-            listStatusText.gameObject.SetActive(true);
-            listStatusText.text = message;
-        }
-
-        try
-        {
-            // 지정한 시간(초)만큼 대기 (오브젝트가 파괴되거나 새로 갱신되면 취소됨)
-            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: _statusCts.Token);
-
-            // 시간이 다 되면 텍스트 숨기기
-            if (listStatusText != null)
-            {
-                listStatusText.gameObject.SetActive(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 타이머가 도중에 취소된 경우는 무시
-        }
-    }
-    private async void ShowMassageWithDelay(string message, float delaySeconds)
-    {
-        // 이전 타이머가 돌고 있다면 취소
-        _statusCts?.Cancel();
-        _statusCts = new CancellationTokenSource();
-
-        if (messageText != null)
-        {
-            messageText.gameObject.SetActive(true);
-            messageText.text = message;
-        }
-
-        try
-        {
-            // 지정한 시간(초)만큼 대기 (오브젝트가 파괴되거나 새로 갱신되면 취소됨)
-            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken: _statusCts.Token);
-
-            // 시간이 다 되면 텍스트 숨기기
-            if (messageText != null)
-            {
-                messageText.gameObject.SetActive(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 타이머가 도중에 취소된 경우는 무시
-        }
+        _message = message ?? string.Empty;
+        _messageHideAt = visibleSeconds > 0f && !string.IsNullOrEmpty(_message) ? Time.unscaledTime + visibleSeconds : 0f;
+        RenderStatus();
     }
 
     private void GoToLobby()
