@@ -158,9 +158,9 @@ public class CheseGameM : MonoBehaviour
 
     private void OnDisable()
     {
-       
-            
-            if (KeySettingM.Instance != null)
+
+        if (timerCts != null) { timerCts.Cancel(); timerCts.Dispose(); timerCts = null; }
+        if (KeySettingM.Instance != null)
             {
                 KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
                 KeySettingM.Instance.OnNegotiationTriggered -= HandleNegotiation;
@@ -592,7 +592,7 @@ public class CheseGameM : MonoBehaviour
 
     // 기물 움직이면 끝인 변수
     private bool isMovedone = false;
-
+    private bool isGameEnded;
 
     private Vector2Int? selectedPos = null; // 현재 선택된 기물의 좌표
 
@@ -984,6 +984,7 @@ public class CheseGameM : MonoBehaviour
 
     public void TurnEnd()
     {
+        if (isGameEnded) return;
         isWhiteTurn = !isWhiteTurn;
         currentTurn = isWhiteTurn? PieceColor.white : PieceColor.black;
 
@@ -1411,6 +1412,7 @@ public class CheseGameM : MonoBehaviour
     // 💡 내 턴이 시작될 때 호출 (이어서 시작)
     public void StartTurnTimer(PieceColor activeTurn)
     {
+        if (isGameEnded) return;
         currentTurn = activeTurn;
 
         // 기존에 작동 중인 타이머 정지
@@ -1457,8 +1459,9 @@ public class CheseGameM : MonoBehaviour
                 // 프로퍼티 세터를 통해 시간이 감가되고 UI가 즉시 자동 업데이트됨!
                 activeTimerData.TimerTime -= 1f;
             }
-            
-            OnTimeOut();          
+
+            if (cancellationToken.IsCancellationRequested || isGameEnded) return;
+            OnTimeOut();
         }
         catch (OperationCanceledException)
         {
@@ -1566,6 +1569,10 @@ public class CheseGameM : MonoBehaviour
     /// </summary>
     public async UniTaskVoid ShowGameResultAsync(GameResultType resultType, float currentNegotiationPower, float remainingSeconds)
     {
+        if (isGameEnded) return;
+        isGameEnded = true;
+        PauseTurnTimer();
+
         if (ResultPanel != null)
         {
             ResultPanel.SetActive(true);

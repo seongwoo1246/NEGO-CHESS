@@ -2896,8 +2896,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "G : \uD56D\uBCF5\n\uC5D4\uD130 : \uD134 \uB118\uAE30\uAE30\nesc : \uBA54\uB274
-    \uC5F4\uAE30"
+  m_text: "G : \uBE60\uB978 \uD56D\uBCF5\n\uC5D4\uD130 : \uD134 \uB118\uAE30\uAE30\nesc
+    : \uBA54\uB274 \uC5F4\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
@@ -4622,7 +4622,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &981623360
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5368,7 +5368,7 @@ MonoBehaviour:
   setupReadyButton: {fileID: 1061879448}
   setupReadyButtonText: {fileID: 1524109616}
   opponentReadyText: {fileID: 1622557131}
-  playPanel: {fileID: 169639384}
+  playPanel: {fileID: 981623359}
   resignButton: {fileID: 1521463788}
   resignButtonText: {fileID: 1128688487}
   endTurnButton: {fileID: 1103174901}
@@ -5377,6 +5377,8 @@ MonoBehaviour:
   resultTitleText: {fileID: 1843790223}
   resultDetailText: {fileID: 663152802}
   rematchStatusText: {fileID: 706610493}
+  rematchText: {fileID: 761696982}
+  lobbyText: {fileID: 748036501}
   rematchButton: {fileID: 195440835}
   lobbyButton: {fileID: 830199944}
   lobbySceneName: MultiLobby
@@ -6874,8 +6876,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 14.0083, y: -42.0249}
-  m_SizeDelta: {x: 1691.1086, y: 376.861}
+  m_AnchoredPosition: {x: 782, y: -187}
+  m_SizeDelta: {x: 322.4644, y: 217.97}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1293453527
 CanvasRenderer:
@@ -6932,7 +6934,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 200
+  m_fontSize: 76.85
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -6971,7 +6973,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: -46.658936, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -8866,7 +8868,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 200
+  m_fontSize: 69.35
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -8935,8 +8937,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 14.0083, y: -42.0249}
-  m_SizeDelta: {x: 1691.1086, y: 376.861}
+  m_AnchoredPosition: {x: 767.76636, y: 18.8844}
+  m_SizeDelta: {x: 333.0273, y: 180.896}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1622557130
 GameObject:
@@ -10178,7 +10180,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1884015598
 MonoBehaviour:
   m_ObjectHideFlags: 0

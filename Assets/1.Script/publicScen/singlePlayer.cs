@@ -45,7 +45,31 @@ public static class singlePlayer
             }
         }
         Debug.LogWarning($"해당 기물 데이터를 찾지 못했습니다: {type}");
+
     }
+
+    private static readonly Dictionary<UpgradeType, int> upgradeLevels = new Dictionary<UpgradeType, int>();
+
+    public static int GetUpgradeLevel(UpgradeType type)
+        => upgradeLevels.TryGetValue(type, out int v) ? v : 0;
+
+    public static void SetUpgradeLevel(UpgradeType type, int level)
+        => upgradeLevels[type] = level;
+
+    public static void ExportUpgrades(List<UpgradeSaveData> output)
+    {
+        output.Clear();
+        foreach (var kv in upgradeLevels)
+            output.Add(new UpgradeSaveData { upgradeType = kv.Key, currentLevel = kv.Value });
+    }
+
+    public static void ImportUpgrades(List<UpgradeSaveData> input)
+    {
+        upgradeLevels.Clear();   // 새 게임이면 null을 넘겨서 초기화
+        if (input == null) return;
+        foreach (var d in input) upgradeLevels[d.upgradeType] = d.currentLevel;
+    }
+
 
     #endregion
 

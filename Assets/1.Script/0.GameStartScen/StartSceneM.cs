@@ -102,6 +102,10 @@ public class StartSceneM : MonoBehaviour
             SingleBtn.gameObject.SetActive(false);
             MultiBtn.gameObject.SetActive(false);
             InputData();
+            if (ScriptM.TryGet<HP>(out HP hp))
+            {
+                if (hp != null) { hp.ShowPanel(); }
+            }
             scenesM.LoadScene(SceneNumber.Lobby);
         }
     }

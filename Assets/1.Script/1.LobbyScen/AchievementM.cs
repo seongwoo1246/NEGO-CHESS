@@ -93,20 +93,13 @@ public class AchievementM : MonoBehaviour
     {
         if (panelCanvasGroup != null)
         {
-            panelCanvasGroup.alpha = 1f;             // 다시 선명하게 보이도록 복구
-            panelCanvasGroup.interactable = true;     // 상호작용 활성화
-            panelCanvasGroup.blocksRaycasts = true;    // 마우스 클릭 차단 활성화
+            panelCanvasGroup.alpha = 1f;
+            panelCanvasGroup.interactable = true;
+            panelCanvasGroup.blocksRaycasts = true;
         }
 
-        // 팝업 UI 복구 (다시 ESC로 제어 가능하게)
-        if (popupUIObject != null)
-        {
-            popupUIObject.enabled = true;
-        }
-
-        AchievementPanel.SetActive(false);
-
-        
+        if (popupUIObject != null) popupUIObject.enabled = true;
+        if (AchievementPanel != null) AchievementPanel.SetActive(false);
     }
 
     private void Awake()

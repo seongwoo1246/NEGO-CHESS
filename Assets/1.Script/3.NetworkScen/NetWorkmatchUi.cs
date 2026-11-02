@@ -49,6 +49,8 @@ public class NetworkMatchUI : MonoBehaviour
     [SerializeField] private TMP_Text resultTitleText;
     [SerializeField] private TMP_Text resultDetailText;
     [SerializeField] private TMP_Text rematchStatusText;
+    [SerializeField] private TMP_Text rematchText;
+    [SerializeField] private TMP_Text lobbyText;
     [SerializeField] private Button rematchButton;           // "같은 상대와 다시"
     [SerializeField] private Button lobbyButton;             // "로비로"
 
@@ -79,6 +81,9 @@ public class NetworkMatchUI : MonoBehaviour
         else ShowOnlyBanner("상대방을 기다리는 중이에요...");
 
         if (toastText != null) toastText.text = string.Empty;
+
+        rematchText.text = "한 판 더 하기";
+        lobbyText.text = "로비로 가기";
     }
 
     private void OnDisable()
@@ -142,6 +147,7 @@ public class NetworkMatchUI : MonoBehaviour
         if (_game == null) return;
 
         GameState state = _game.State;
+        
         bool hasLocalColor = _game.TryGetLocalColor(out PieceColor me);
         bool whiteTurn = _game.IsWhiteTurn;
         bool playing = state == GameState.Playing;
@@ -177,8 +183,8 @@ public class NetworkMatchUI : MonoBehaviour
 
                 if (endTurnButton != null)
                 {
-                    bool canEnd = hasLocalColor && _game.IsLocalTurn && _game.TurnMoved && !_game.IsRevealing && !_game.PromotionPending;
-                    endTurnButton.gameObject.SetActive(!_game.AutoEndTurnAfterMove);
+                    bool canEnd = !_game.AutoEndTurnAfterMove && hasLocalColor && _game.IsLocalTurn
+                   && _game.TurnMoved && !_game.IsRevealing && !_game.PromotionPending;
                     endTurnButton.interactable = canEnd;
                 }
                 break;

@@ -8,9 +8,12 @@ public class ReinforceSlot : MonoBehaviour
 
     private void Start()
     {
-        upgradeBtn.onClick.AddListener(() => {
-            if(ScriptM.TryGet<ReinforceM>(out ReinforceM manager))
-            manager.TryUpgrade(targetStat);
+        targetStat.currentLevel = singlePlayer.GetUpgradeLevel(targetStat.upgradeType);
+        targetStat.UpdateUI();
+        upgradeBtn.onClick.AddListener(() =>
+        {
+            if (ScriptM.TryGet<ReinforceM>(out ReinforceM manager))
+                manager.TryUpgrade(targetStat);
         });
     }
 

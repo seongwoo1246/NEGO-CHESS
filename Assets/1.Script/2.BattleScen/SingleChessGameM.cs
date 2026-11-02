@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 public partial class SingleChessGameM : MonoBehaviour
 {
+    private bool isGameEnded;
     private void Awake()
     {
         ScriptM.Register<SingleChessGameM>(this, UseSpace.Local);
@@ -55,6 +56,7 @@ public partial class SingleChessGameM : MonoBehaviour
 
     private void OnDisable()
     {
+        if (timerCts != null) { timerCts.Cancel(); timerCts.Dispose(); timerCts = null; }
         if (KeySettingM.Instance != null)
         {
             KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
@@ -750,6 +752,7 @@ public partial class SingleChessGameM : MonoBehaviour
     }
     public void TurnEnd()
     {
+        if (isGameEnded) return;
         if (IsNetworkMatch) return;
         isWhiteTurn = !isWhiteTurn;
         currentTurn = isWhiteTurn ? PieceColor.white : PieceColor.black;
@@ -957,6 +960,7 @@ public partial class SingleChessGameM : MonoBehaviour
     // 💡 내 턴이 시작될 때 호출 (이어서 시작)
     public void StartTurnTimer(PieceColor activeTurn)
     {
+        if (isGameEnded) return;
         currentTurn = activeTurn;
 
         // 기존에 작동 중인 타이머 정지
@@ -1004,6 +1008,7 @@ public partial class SingleChessGameM : MonoBehaviour
                 activeTimerData.TimerTime -= 1f;
             }
 
+            if (cancellationToken.IsCancellationRequested || isGameEnded) return;
             OnTimeOut();
         }
         catch (OperationCanceledException)
@@ -1047,6 +1052,10 @@ public partial class SingleChessGameM : MonoBehaviour
     /// </summary>
     public async UniTaskVoid ShowGameResultAsync(GameResultType resultType)
     {
+        if (isGameEnded) return;
+        isGameEnded = true;
+        PauseTurnTimer();
+
         if (IsNetworkMatch) return;
         if (ResultPanel != null)
         {

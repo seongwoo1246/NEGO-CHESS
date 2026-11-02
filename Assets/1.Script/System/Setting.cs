@@ -76,6 +76,10 @@ public class Setting : MonoBehaviour
 
     public void GoToStartScenes()
     {
+        if(ScriptM.TryGet<HP>(out  HP hp))
+        {
+            if(hp!=null) { hp.HidePanel(); }
+        }
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
             Sound.SetActive(false);

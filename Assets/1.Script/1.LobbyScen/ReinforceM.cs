@@ -67,45 +67,37 @@ public class ReinforceM : MonoBehaviour
             return;
         }
 
-        if (singlePlayer.Gold >= stat.price)
-        {
-            singlePlayer.Gold -= stat.price;
-            stat.currentLevel++;
-            ApplyStatEffect(stat);
-            stat.UpdateUI();
-            GoldText.text = $"현재 소유 금액 {singlePlayer.Gold}";
-            Debug.Log($"강화 완료! 현재 레벨: {stat.currentLevel}, 다음 비용: {stat.price}");
-        }
-        else
+        int cost = stat.FinalPrice;
+        if (singlePlayer.Gold < cost)
         {
             Debug.Log("골드가 부족합니다!");
+            return;
         }
+
+        singlePlayer.Gold -= cost;
+        stat.currentLevel++;
+        singlePlayer.SetUpgradeLevel(stat.upgradeType, stat.currentLevel);
+        ApplyStatEffect(stat);
+        stat.UpdateUI();
+        GoldText.text = $"현재 소유 금액 {singlePlayer.Gold}";
+        Debug.Log($"강화 완료! 현재 레벨: {stat.currentLevel}, 다음 비용: {stat.FinalPrice}");
     }
 
     private void ApplyStatEffect(Upgrade stat)
     {
-        if (ScriptM.TryGet<HP>(out HP hp))
-           
+        ScriptM.TryGet<HP>(out HP hp);
 
-            switch (stat.upgradeType)
+        switch (stat.upgradeType)
         {
-            case UpgradeType.MaxHp:  hp.bonusMaxHp += stat.TotalValue;  break;
-
-            case UpgradeType.UseHp: hp.bonusUseHp += stat.TotalValue; break;
-
-            case UpgradeType.MaxCost: singlePlayer.maxCost += stat.TotalValue; break;
-
-            case UpgradeType.Negotiation: singlePlayer.bonusNegoPower += stat.TotalValue; break;
-
-            case UpgradeType.SpawnPawn: singlePlayer.AddMaxPiece(pieceType.Pawn, stat.TotalValue); break;
-
-            case UpgradeType.SpawnBishop: singlePlayer.AddMaxPiece(pieceType.Bishop, stat.TotalValue); break;
-
-            case UpgradeType.SpawnKnight: singlePlayer.AddMaxPiece(pieceType.Knight, stat.TotalValue); break;
-
-            case UpgradeType.SpawnRook: singlePlayer.AddMaxPiece(pieceType.Rook, stat.TotalValue); break;
-
-            case UpgradeType.SpawnQueen: singlePlayer.AddMaxPiece(pieceType.Queen, stat.TotalValue); break;
+            case UpgradeType.MaxHp: if (hp != null) hp.bonusMaxHp += stat.pulse; break;
+            case UpgradeType.UseHp: if (hp != null) hp.bonusUseHp += stat.pulse; break;
+            case UpgradeType.MaxCost: singlePlayer.maxCost += stat.pulse; break;
+            case UpgradeType.Negotiation: singlePlayer.bonusNegoPower += stat.pulse; break;
+            case UpgradeType.SpawnPawn: singlePlayer.AddMaxPiece(pieceType.Pawn, stat.pulse); break;
+            case UpgradeType.SpawnBishop: singlePlayer.AddMaxPiece(pieceType.Bishop, stat.pulse); break;
+            case UpgradeType.SpawnKnight: singlePlayer.AddMaxPiece(pieceType.Knight, stat.pulse); break;
+            case UpgradeType.SpawnRook: singlePlayer.AddMaxPiece(pieceType.Rook, stat.pulse); break;
+            case UpgradeType.SpawnQueen: singlePlayer.AddMaxPiece(pieceType.Queen, stat.pulse); break;
         }
     }
 
