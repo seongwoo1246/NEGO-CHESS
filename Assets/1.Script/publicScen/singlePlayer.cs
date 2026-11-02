@@ -18,7 +18,7 @@ public static class singlePlayer
     public static int cloeWin = 0;
     public static int useHp = 0;
     public static int currentHp =100;
-    public static bool isFristPlay = true;
+    
 
 
     #region 강화를 위한 데이터와 함수
@@ -66,7 +66,7 @@ public static class singlePlayer
         data.cloeWin = cloeWin;
         data.useHp = useHp;
         data.Hp = currentHp;
-        data.fristPlay = isFristPlay;
+      
 
         data.upgradeSaveList.Clear();
         foreach (var upgrade in ReinforceM.Instance.upgradeList)
@@ -102,7 +102,7 @@ public static class singlePlayer
         cloeWin = data.cloeWin;
         useHp = data.useHp;
         currentHp = data.Hp;
-        isFristPlay = data.fristPlay;
+        
 
         // 2. 업그레이드 리스트를 순회하며 저장된 레벨을 찾아 꽂아주기
         foreach (var savedUpgrade in data.upgradeSaveList)

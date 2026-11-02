@@ -62,7 +62,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
     // ───────────── 설정 (프리팹 Inspector에서 조절) ─────────────
     [SerializeField, Min(1f)] private float countdownSeconds = 5f;
     [Tooltip("Build Settings에 등록된 게임 씬 이름")]
-    [SerializeField] private string gameSceneName = "NetworkGame";
+    [SerializeField] private string gameSceneName = "MultiBattle";
 
     // ───────────── 네트워크로 공유되는 값 ─────────────
     [Networked] public NetworkString<_32> RoomName { get; private set; }

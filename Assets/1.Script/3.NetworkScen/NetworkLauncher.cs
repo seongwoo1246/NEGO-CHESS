@@ -329,7 +329,13 @@ public class NetworkLauncher : MonoBehaviour
         {
             var runner = _runner;
             _runner = null;
-            await runner.Shutdown(destroyGameObject: true);
+            try
+            {
+                await UniTask.WhenAny(
+                    runner.Shutdown(destroyGameObject: true).AsUniTask(),
+                    UniTask.Delay(3000));
+            }
+            catch (Exception e) { Debug.LogException(e); }
         }
         if (_sessionObject != null) { Destroy(_sessionObject); _sessionObject = null; }
         _sceneManager = null;

@@ -25,6 +25,7 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
     private NetworkRunner _runner;
     private GameObject _runnerObject;
     private string _keyword = string.Empty;
+    private bool _wantBrowsing;
 
     private readonly List<SessionInfo> _latestSessions = new List<SessionInfo>();
     private readonly List<RoomListItem> _visibleRooms = new List<RoomListItem>();
@@ -43,6 +44,7 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
     {
         if (_runner != null) return;
 
+        _wantBrowsing = true;
         var runnerObject = new GameObject("RoomBrowserRunner");
         runnerObject.transform.SetParent(transform, false);
         var runner = runnerObject.AddComponent<NetworkRunner>();
@@ -76,14 +78,12 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
             StatusChanged?.Invoke("방 목록을 불러오지 못했어요.");
            
         }
-
-     
-
     }
 
     /// <summary>방 목록 받기를 멈추고 로비 연결을 끊습니다.</summary>
     public async UniTask StopBrowsingAsync()
     {
+        _wantBrowsing = false;
         NetworkRunner runner = _runner;
         GameObject runnerObject = _runnerObject;
         if (runner == null) return;
@@ -95,7 +95,7 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
         RebuildVisibleRooms();
 
         runner.RemoveCallbacks(this);
-        await runner.Shutdown(destroyGameObject: true);
+        await ShutdownWithTimeoutAsync(runner);
 
         if (runnerObject != null) Destroy(runnerObject);
     }
@@ -131,6 +131,36 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
         if (_runner != null) _runner.RemoveCallbacks(this);
     }
 
+
+    private void HandleLost(NetworkRunner runner, string why)
+    {
+        if (runner != _runner) return;   // 우리가 일부러 끈 경우(이미 _runner가 null)는 무시
+        Debug.LogWarning($"[RoomBrowser] 연결이 끊겼어요: {why}");
+        RecoverAsync().Forget();
+    }
+
+    private async UniTaskVoid RecoverAsync()
+    {
+        bool wanted = _wantBrowsing;
+        await StopBrowsingAsync();
+        if (!wanted || this == null) return;
+
+        StatusChanged?.Invoke("연결이 끊겨서 다시 연결하는 중이에요...");
+        await UniTask.Delay(1500);
+        if (this == null) return;
+        await StartBrowsingAsync();
+    }
+    private static async UniTask ShutdownWithTimeoutAsync(NetworkRunner runner)
+    {
+        try
+        {
+            await UniTask.WhenAny(
+                runner.Shutdown(destroyGameObject: true).AsUniTask(),
+                UniTask.Delay(3000));
+        }
+        catch (Exception e) { Debug.LogException(e); }
+    }
+
     // ───────────── Fusion 콜백 ─────────────
 
     // ★ 우리가 실제로 쓰는 것은 이것 하나뿐입니다: 방 목록이 갱신되었을 때
@@ -140,16 +170,17 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
         _latestSessions.AddRange(sessionList);
         RebuildVisibleRooms();
     }
-
+    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { HandleLost(runner, reason.ToString()); }
+    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { HandleLost(runner, shutdownReason.ToString()); }
     // ── 아래는 인터페이스를 채우기 위한 "빈 칸"들입니다 (쓰지 않음) ──
     // Fusion 버전에 따라 빠진 항목이 있으면 Visual Studio에서 Ctrl + . → "인터페이스 구현"으로 채우세요.
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
-    public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
+   
     public void OnConnectedToServer(NetworkRunner runner) { }
-    public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason) { }
+   
     public void OnConnectRequest(NetworkRunner runner, NetworkRunnerCallbackArgs.ConnectRequest request, byte[] token) { }
     public void OnConnectFailed(NetworkRunner runner, NetAddress remoteAddress, NetConnectFailedReason reason) { }
     public void OnUserSimulationMessage(NetworkRunner runner, SimulationMessagePtr message) { }

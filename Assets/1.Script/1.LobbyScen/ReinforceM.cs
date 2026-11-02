@@ -38,7 +38,8 @@ public class ReinforceM : MonoBehaviour
 
 
     private void Awake()
-    { 
+    {
+        DontDestroyOnLoad(gameObject);
         if(Instance == null) { Instance = this; }
         ScriptM.Register<ReinforceM>(this, UseSpace.Local);
         InitAllUpgrades();
@@ -72,6 +73,7 @@ public class ReinforceM : MonoBehaviour
             stat.currentLevel++;
             ApplyStatEffect(stat);
             stat.UpdateUI();
+            GoldText.text = $"현재 소유 금액 {singlePlayer.Gold}";
             Debug.Log($"강화 완료! 현재 레벨: {stat.currentLevel}, 다음 비용: {stat.price}");
         }
         else

@@ -52,7 +52,7 @@ public class NetWorkLobbyUi : MonoBehaviour
     private float _messageHideAt;                // 0이면 자동으로 사라지지 않음 (진행 중 안내)
     private float _listStatusHideAt;             // 0이면 자동으로 사라지지 않음 (불러오는 중 등)
 
-    private const float ResultMessageSeconds = 3f;
+    private const float ResultMessageSeconds = 2f;
 
     // ───────────── 시작 준비 ─────────────
 
@@ -85,15 +85,14 @@ public class NetWorkLobbyUi : MonoBehaviour
     // 켜질 때 연결하고, 꺼질 때 풉니다 (짝을 맞추는 것이 중요!)
     private void OnEnable()
     {
+        _isBusy = false;
         // NetworkLauncher가 ScriptM으로 이 화면을 찾아 쓰므로, 켜질 때마다 등록합니다.
         // (방에 들어갔다 나오면 서비스가 정리되어도, 패널이 다시 켜질 때 다시 등록돼요)
-        if (!ScriptM.TryGet<NetWorkLobbyUi>(out NetWorkLobbyUi _)) ScriptM.Register<NetWorkLobbyUi>(this, UseSpace.Network);
+        ScriptM.Register<NetWorkLobbyUi>(this, UseSpace.Network);
 
         // 방에서 돌아왔을 때 이전 안내 글자가 남아 있지 않도록 깨끗하게 시작
         _listStatus = string.Empty;
         _message = string.Empty;
-        _messageHideAt = 0f;
-        _listStatusHideAt = 0f;
         RenderStatus();
         RefreshButtons();
 
@@ -206,10 +205,7 @@ public class NetWorkLobbyUi : MonoBehaviour
         {
             SetListStatus(browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.", ResultMessageSeconds);
         }
-        else
-        {
-            SetListStatus(string.Empty, 0f);
-        }
+      
     }
 
     private void OnBrowserStatusChanged(string status)
@@ -220,6 +216,9 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void SetListStatus(string text, float visibleSeconds)
     {
+        // 만약 이미 똑같은 텍스트가 떠 있는 상태라면, 타이머가 계속 리셋되는 것을 방지합니다!
+        if (_listStatus == text) return;
+        
         _listStatus = text;
         _listStatusHideAt = visibleSeconds > 0f && !string.IsNullOrEmpty(text) ? Time.unscaledTime + visibleSeconds : 0f;
         RenderStatus();
@@ -255,7 +254,7 @@ public class NetWorkLobbyUi : MonoBehaviour
 
         var request = new RoomCreateRequest(roomNameInput.text, roomPasswordInput.text, maxPlayers);
         if (!request.Validate(out string error)) { ShowMessage(error); return; }
-
+        Debug.Log(roomPasswordInput.text);
         RunRoomOperationAsync(() => launcher.CreateRoomAsync(request), "방을 만드는 중이에요...").Forget();
     }
 
@@ -283,16 +282,30 @@ public class NetWorkLobbyUi : MonoBehaviour
         if (_isBusy) return;
 
         SetBusy(true);
-        ShowMessage(progressMessage, 0f);   // 진행 중 안내: 끝날 때까지 유지
+        ShowMessage(progressMessage, 0f);
 
-        RoomResult result = await operation();
+        bool success = false;
+        string failMessage = "연결에 실패했어요. 잠시 후 다시 시도해 주세요.";
 
-        SetBusy(false);
-
-        if (!result.Success)
+        try
         {
-            ShowMessage(result.Message);
-            browser.StartBrowsingAsync().Forget(); // 실패했으니 방 목록을 다시 받아 옵니다.
+            RoomResult result = await operation().Timeout(TimeSpan.FromSeconds(5));
+            success = result.Success;
+            if (!success) failMessage = result.Message;
+        }
+        catch (Exception e)
+        {
+            Debug.LogException(e);   // 어떤 예외였는지 콘솔에 남김
+        }
+        finally
+        {
+            SetBusy(false);          // 무슨 일이 있어도 반드시 풀어 줌
+        }
+
+        if (!success)
+        {
+            ShowMessage(failMessage);
+            browser.StartBrowsingAsync().Forget();
             return;
         }
 

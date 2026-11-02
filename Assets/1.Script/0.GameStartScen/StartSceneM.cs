@@ -25,8 +25,8 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] private TextMeshProUGUI Texts;
     [SerializeField] public Image Icon;
 
-    
 
+    public bool isFristPlay = true;
 
     private void Awake()
     {
@@ -37,9 +37,6 @@ public class StartSceneM : MonoBehaviour
 
     private void Start()
     {
-        // 시작할 때 저장한 데이터 불러오기
-        singlePlayer.ApplySaveData(SaveM.Load());
-
         characterData.InitializeDictionary();
 
         if (GameStartBtn != null)
@@ -112,6 +109,7 @@ public class StartSceneM : MonoBehaviour
     private void openChar()
     {
         Player.SetActive(true);
+       
     }
 
 
@@ -129,8 +127,10 @@ public class StartSceneM : MonoBehaviour
 
     private void InputData()
     {
-        if(singlePlayer.isFristPlay == true)
+       
+        if(isFristPlay == true)
         {
+            Debug.Log("데이터 삽입");
             singlePlayer.playerName = PlayerName.text;
 
             if (int.TryParse(PlayerMonth.text, out singlePlayer.birthMonth))
@@ -151,7 +151,7 @@ public class StartSceneM : MonoBehaviour
                 Texts.text = "예) 12일 = 12 식으로 적어주세요.";
             }
 
-            singlePlayer.isFristPlay = false;
+            isFristPlay = false;
         }
 
       
