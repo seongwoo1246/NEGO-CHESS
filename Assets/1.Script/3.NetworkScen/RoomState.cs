@@ -91,6 +91,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
 
     public override void Spawned()
     {
+        gameSceneName = "MultiBattle";
         Instance = this;
         _gameStartHandled = false;
         _lastSignature = int.MinValue;
@@ -307,16 +308,21 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
     // 장면(씬)을 불러올 수 있는 사람(공유 모드에서는 마스터 클라이언트) 한 명만 실행합니다.
     private void LoadGameSceneIfAllowed()
     {
-        if (!Runner.IsSceneAuthority) return;
+        if (!Runner.IsSceneAuthority)
+        {
+            return;
+        }
 
         int buildIndex = FindBuildIndex(gameSceneName);
+        
         if (buildIndex < 0)
         {
-            Debug.LogError($"[RoomState] Build Settings에서 '{gameSceneName}' 씬을 찾지 못했어요.");
             return;
         }
 
         Runner.LoadScene(SceneRef.FromIndex(buildIndex));
+
+     
     }
 
     private static int FindBuildIndex(string sceneName)

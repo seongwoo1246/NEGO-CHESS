@@ -89,7 +89,7 @@ public class StartSceneM : MonoBehaviour
 
    private void ExitGame()
     {
-        SaveM.Save(singlePlayer.CreateSaveData());
+      
         Application.Quit();
     }
 

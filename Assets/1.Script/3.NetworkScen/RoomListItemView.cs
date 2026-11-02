@@ -11,13 +11,15 @@ public class RoomListItemView : MonoBehaviour
 {
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private TMP_Text countText;
+    [SerializeField] private TMP_InputField passward;
     [Tooltip("비밀번호가 있는 방에서만 켜지는 자물쇠 그림 (선택)")]
     [SerializeField] private GameObject lockIcon;
     [SerializeField] private Button joinButton;
     [SerializeField] private TMP_Text joinButtonText;
 
     private RoomListItem _item;
-    private Action<RoomListItem> _onJoin;
+    private Action<RoomListItem, string> _onJoin;
+    private string _boundSessionId;
 
     private void Awake()
     {
@@ -30,15 +32,22 @@ public class RoomListItemView : MonoBehaviour
     }
 
     /// <summary>이 줄에 방 정보를 채워 넣습니다. (줄을 재활용하므로 여러 번 불려요)</summary>
-    public void Bind(RoomListItem item, Action<RoomListItem> onJoin)
+    public void Bind(RoomListItem item, Action<RoomListItem, string> onJoin)
     {
+        // 줄을 재활용하므로, 다른 방으로 바뀌었을 때만 이전에 적은 비밀번호를 지웁니다.
+        if (_boundSessionId != item.SessionId)
+        {
+            _boundSessionId = item.SessionId;
+            if (passward != null) passward.text = string.Empty;
+        }
+
         _item = item;
         _onJoin = onJoin;
 
-       
         nameText.text = item.RoomName;
         countText.text = $"{item.PlayerCount}/{item.MaxPlayers}";
         if (lockIcon != null) lockIcon.SetActive(item.HasPassword);
+        if (passward != null) passward.gameObject.SetActive(item.HasPassword); // 비번 있는 방만 입력칸 표시
 
         joinButton.interactable = item.CanJoin;
         if (joinButtonText != null)
@@ -47,8 +56,10 @@ public class RoomListItemView : MonoBehaviour
         }
     }
 
+
     private void HandleJoinClicked()
     {
-        _onJoin?.Invoke(_item);
+        string pw = passward != null ? passward.text : string.Empty;
+        _onJoin?.Invoke(_item, pw);
     }
 }

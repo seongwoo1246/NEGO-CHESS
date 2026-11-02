@@ -555,6 +555,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RoomListItemView
   nameText: {fileID: 3671303751500631034}
   countText: {fileID: 1247922555952372235}
+  passward: {fileID: 961544874058546484}
   lockIcon: {fileID: 4552119529485405789}
   joinButton: {fileID: 369960855005233086}
   joinButtonText: {fileID: 8126835079004973462}

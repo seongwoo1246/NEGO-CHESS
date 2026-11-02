@@ -3397,7 +3397,7 @@ GameObject:
   - component: {fileID: 613382522}
   - component: {fileID: 613382523}
   m_Layer: 5
-  m_Name: Text (TMP) (1)
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4933,7 +4933,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1511046367}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1715114133}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -5297,6 +5297,7 @@ GameObject:
   - component: {fileID: 1094747267}
   - component: {fileID: 1094747266}
   - component: {fileID: 1094747265}
+  - component: {fileID: 1094747269}
   m_Layer: 5
   m_Name: Lobby
   m_TagString: Untagged
@@ -5397,6 +5398,35 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1094747269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1094747264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fdfb9b47182e49e4fa8ff5e87a9a25af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetWorkLobbyUi
+  lobbyPanel: {fileID: 1094747264}
+  roomPanel: {fileID: 1872163607}
+  nicknameInput: {fileID: 539834934}
+  nicknameConfirmButton: {fileID: 250415933}
+  roomNameInput: {fileID: 591100127}
+  roomPasswordInput: {fileID: 871331923}
+  createRoomButton: {fileID: 266032265}
+  maxPlayers: 2
+  searchInput: {fileID: 1140047848}
+  searchButton: {fileID: 357766646}
+  roomListContent: {fileID: 1665915675}
+  roomItemPrefab: {fileID: 5374050989716116190, guid: 21af05ea85844584ca8e6740938c22a5, type: 3}
+  listStatusText: {fileID: 1380238669}
+  messageText: {fileID: 613382523}
+  launcher: {fileID: 1312919361}
+  browser: {fileID: 1750004021}
+  gotoLobby: {fileID: 661746457}
 --- !u!1 &1095774279
 GameObject:
   m_ObjectHideFlags: 0
@@ -6720,67 +6750,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1363282000
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1363282002}
-  - component: {fileID: 1363282001}
-  m_Layer: 0
-  m_Name: NetWorkLobbyUi
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1363282001
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1363282000}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fdfb9b47182e49e4fa8ff5e87a9a25af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetWorkLobbyUi
-  lobbyPanel: {fileID: 1094747264}
-  roomPanel: {fileID: 1872163607}
-  nicknameInput: {fileID: 539834934}
-  nicknameConfirmButton: {fileID: 250415933}
-  roomNameInput: {fileID: 591100127}
-  roomPasswordInput: {fileID: 871331923}
-  createRoomButton: {fileID: 266032265}
-  maxPlayers: 2
-  searchInput: {fileID: 1140047848}
-  searchButton: {fileID: 357766646}
-  roomListContent: {fileID: 1665915675}
-  roomItemPrefab: {fileID: 5374050989716116190, guid: 21af05ea85844584ca8e6740938c22a5, type: 3}
-  listStatusText: {fileID: 613382523}
-  messageText: {fileID: 1380238669}
-  launcher: {fileID: 1312919361}
-  browser: {fileID: 1750004021}
-  gotoLobby: {fileID: 661746457}
---- !u!4 &1363282002
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1363282000}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 913.95996, y: 801.8554, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1380238668
 GameObject:
   m_ObjectHideFlags: 0
@@ -6793,7 +6762,7 @@ GameObject:
   - component: {fileID: 1380238670}
   - component: {fileID: 1380238669}
   m_Layer: 5
-  m_Name: Text (TMP)
+  m_Name: text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7970,7 +7939,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 978778380}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1750004020
@@ -9779,12 +9749,10 @@ SceneRoots:
   m_Roots:
   - {fileID: 1774368687}
   - {fileID: 1094747268}
-  - {fileID: 978778380}
   - {fileID: 1872163611}
   - {fileID: 1715114133}
   - {fileID: 530426721}
   - {fileID: 1850914789}
-  - {fileID: 1363282002}
   - {fileID: 1750004022}
   - {fileID: 1617454116}
   - {fileID: 1312919362}

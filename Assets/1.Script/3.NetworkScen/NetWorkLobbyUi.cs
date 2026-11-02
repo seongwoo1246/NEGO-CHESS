@@ -44,6 +44,8 @@ public class NetWorkLobbyUi : MonoBehaviour
     [SerializeField] private RoomBrowser browser;
     [SerializeField] private Button gotoLobby;
 
+    private bool _started;
+
     private readonly List<RoomListItemView> _itemViews = new List<RoomListItemView>();
     private bool _hasNickname;
     private bool _isBusy;
@@ -53,12 +55,14 @@ public class NetWorkLobbyUi : MonoBehaviour
     private float _listStatusHideAt;             // 0이면 자동으로 사라지지 않음 (불러오는 중 등)
 
     private const float ResultMessageSeconds = 2f;
+    private string _lastEmptyNotice = string.Empty;
+   
 
     // ───────────── 시작 준비 ─────────────
 
     private void Awake()
     {
-        ScriptM.Register<NetWorkLobbyUi>(this, UseSpace.Network);
+        
         nicknameInput.characterLimit = PlayerProfile.MaxNicknameLength;
         roomNameInput.characterLimit = RoomCreateRequest.MaxNameLength;
         roomPasswordInput.characterLimit = RoomCreateRequest.MaxPasswordLength;
@@ -71,6 +75,7 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void Start()
     {
+      
         if (gotoLobby != null)
         {
             gotoLobby.onClick.RemoveAllListeners();
@@ -78,6 +83,7 @@ public class NetWorkLobbyUi : MonoBehaviour
         }
         nicknameInput.text = PlayerProfile.Nickname;
         _hasNickname = PlayerProfile.HasNickname;
+        _started = true;
         RefreshButtons();
         ShowMessage(string.Empty);
     }
@@ -85,11 +91,12 @@ public class NetWorkLobbyUi : MonoBehaviour
     // 켜질 때 연결하고, 꺼질 때 풉니다 (짝을 맞추는 것이 중요!)
     private void OnEnable()
     {
-        _isBusy = false;
+       
         // NetworkLauncher가 ScriptM으로 이 화면을 찾아 쓰므로, 켜질 때마다 등록합니다.
         // (방에 들어갔다 나오면 서비스가 정리되어도, 패널이 다시 켜질 때 다시 등록돼요)
         ScriptM.Register<NetWorkLobbyUi>(this, UseSpace.Network);
-
+        _isBusy = false;
+        _lastEmptyNotice = string.Empty;
         // 방에서 돌아왔을 때 이전 안내 글자가 남아 있지 않도록 깨끗하게 시작
         _listStatus = string.Empty;
         _message = string.Empty;
@@ -129,7 +136,7 @@ public class NetWorkLobbyUi : MonoBehaviour
     private void Update()
     {
         bool changed = false;
-
+      
         if (_messageHideAt > 0f && Time.unscaledTime >= _messageHideAt)
         {
             _message = string.Empty;
@@ -203,9 +210,18 @@ public class NetWorkLobbyUi : MonoBehaviour
 
         if (rooms.Count == 0)
         {
-            SetListStatus(browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.", ResultMessageSeconds);
+            string notice = browser.HasKeyword ? "검색 결과가 없어요." : "만들어진 방이 없어요.";
+            if (_lastEmptyNotice != notice)      // 같은 안내는 한 번만 보여 줌
+            {
+                _lastEmptyNotice = notice;
+                SetListStatus(notice, ResultMessageSeconds);
+            }
         }
-      
+        else
+        {
+            _lastEmptyNotice = string.Empty;     // 방이 생기면 다음에 비었을 때 다시 안내
+        }
+
     }
 
     private void OnBrowserStatusChanged(string status)
@@ -244,6 +260,7 @@ public class NetWorkLobbyUi : MonoBehaviour
             listStatusText.gameObject.SetActive(showList);
             if (showList) listStatusText.text = _listStatus;
         }
+       
     }
 
     // ───────────── 방 만들기 / 참가 ─────────────
@@ -258,20 +275,21 @@ public class NetWorkLobbyUi : MonoBehaviour
         RunRoomOperationAsync(() => launcher.CreateRoomAsync(request), "방을 만드는 중이에요...").Forget();
     }
 
-    private void OnClickJoinRoom(RoomListItem room)
+    private void OnClickJoinRoom(RoomListItem room, string rowPassword)
     {
         if (!_hasNickname) { ShowMessage("먼저 닉네임을 정하고 '작성 완료'를 눌러 주세요."); return; }
 
-        string password = roomPasswordInput.text;
+        // 방 줄의 입력칸에 적었으면 그 값을, 비었으면 위쪽 공용 칸의 값을 씁니다.
+        string password = !string.IsNullOrEmpty(rowPassword) ? rowPassword : roomPasswordInput.text;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
+
         // 비밀번호가 안 맞는다고 나올 때 원인을 찾기 위한 임시 로그 (비밀번호 자체는 찍지 않아요)
         if (room.HasPassword)
         {
             string fingerprint = RoomCreateRequest.HashPassword(room.SessionId, (password ?? string.Empty).Trim());
             Debug.Log($"[Lobby] 입장 비밀번호 확인 | 입력 {(password ?? string.Empty).Trim().Length}글자 | 일치={fingerprint == room.PasswordHash} | 방 지문 '{room.PasswordHash}' / 내 지문 '{fingerprint}'");
         }
-#endif
+
 
         RunRoomOperationAsync(() => launcher.JoinRoomAsync(room, password), "방에 들어가는 중이에요...").Forget();
     }
@@ -289,7 +307,7 @@ public class NetWorkLobbyUi : MonoBehaviour
 
         try
         {
-            RoomResult result = await operation().Timeout(TimeSpan.FromSeconds(5));
+            RoomResult result = await operation().Timeout(TimeSpan.FromSeconds(15));
             success = result.Success;
             if (!success) failMessage = result.Message;
         }
@@ -351,4 +369,18 @@ public class NetWorkLobbyUi : MonoBehaviour
         }
     }
 
+
+    public void OnLobbyPanelShown()
+    {
+        if (!_started) return;   // 씬 시작 때의 첫 켜짐은 OnEnable이 이미 처리함
+        _isBusy = false;
+        _listStatus = string.Empty;
+        _message = string.Empty;
+        _lastEmptyNotice = string.Empty;
+        RenderStatus();
+        RefreshButtons();
+        browser.StartBrowsingAsync().Forget();
+    }
+
+  
 }
