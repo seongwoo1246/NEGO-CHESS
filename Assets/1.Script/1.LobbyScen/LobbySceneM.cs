@@ -75,6 +75,7 @@ public class LobbySceneM : MonoBehaviour
         {
             dialogueController.ShowDialogue(SaveText.text);
         }
+        singlePlayer.currentHp += singlePlayer.keepHp;
     }
 
 

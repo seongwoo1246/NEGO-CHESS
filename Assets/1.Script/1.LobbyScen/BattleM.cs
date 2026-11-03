@@ -38,7 +38,7 @@ public class BattleM : MonoBehaviour
             hp.HidePanel();
 
 
-            if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM) )//&& hp.TryStartGame())(검사 끝나면 되돌리기)
+            if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM)&& hp.TryStartGame())
             {
                 PrepareForBattle();
                 scenesM.LoadScene(SceneNumber.Battle);

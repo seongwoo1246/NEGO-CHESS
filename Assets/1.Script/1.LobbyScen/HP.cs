@@ -64,11 +64,13 @@ public class HP : MonoBehaviour
 
     private void Awake()
     {
+        
         ScriptM.Register<HP>(this, UseSpace.Global);
     }
 
     private void Start()
     {
+
         OnHpRatioChanged += UpdateHpBar;
         OnHpChanged += UpdateHpText;
 
@@ -122,7 +124,7 @@ public class HP : MonoBehaviour
         // 프로퍼티(Hp)를 통해 값을 변경하므로 자동으로 이벤트가 발생함
         if(Hp>=useHp)
         {
-            Debug.Log("전투 가능");
+            
             Hp -= useHp;
             if(ScriptM.TryGet<AchievementM>(out AchievementM service))
             {
@@ -132,7 +134,7 @@ public class HP : MonoBehaviour
         }
         else
         {
-            Debug.Log("체력 부족");
+          
             return false;
         }
         
@@ -153,7 +155,7 @@ public class HP : MonoBehaviour
                 Hp += healAmount;
                 if (Hp >= maxHp)
                 {
-                    Debug.Log("체력이 가득 차서 회복을 멈춥니다.");
+                   
                     break; 
                 }
 
@@ -219,7 +221,7 @@ public class HP : MonoBehaviour
             {
                 // 체력 반영 (최대 체력 넘지 않도록 자동 클램프)
                 Hp = Mathf.Min(Hp + totalHeal, maxHp);
-                Debug.Log($"오프라인 동안 {totalHeal} 만큼 체력이 회복되었습니다!");
+                singlePlayer.keepHp = totalHeal;
             }
         }
     }
