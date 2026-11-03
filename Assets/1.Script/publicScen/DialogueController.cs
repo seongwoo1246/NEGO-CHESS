@@ -31,6 +31,8 @@ public struct CharacterDialogue
 /// </summary>
 public class DialogueController : MonoBehaviour
 {
+    private const string DefaultLine = "반가워, 체스 한 판 두어볼까?";
+
     public TextMeshProUGUI characterText; // 대사 출력용 텍스트 (첫 번째 이미지 참고)
     public Image CharIcon;
 
@@ -42,103 +44,145 @@ public class DialogueController : MonoBehaviour
     public List<CharacterDialogue> battleDialogues_Seo;
     public List<CharacterDialogue> battleDialogues_Reon;
     public List<CharacterDialogue> battleDialogues_Cloe;
+
+    private Sequence _fadeSeq;
+    private string _lastLine = string.Empty;
+
+    // 매번 새 리스트를 만들지 않도록 재사용
+    private readonly List<CharacterDialogue> _birthdayCandidates = new List<CharacterDialogue>();
+    private readonly List<CharacterDialogue> _normalCandidates = new List<CharacterDialogue>();
+
     public void Awake()
     {
         ScriptM.Register<DialogueController>(this, UseSpace.Global);
     }
 
+    private void OnDestroy()
+    {
+        if (_fadeSeq != null) _fadeSeq.Kill();
+    }
+
     // 대사를 출력하는 함수
     public void ShowDialogue(string message)
     {
-        // 1. 기존 트윈 애니메이션이 있다면 겹치지 않게 초기화
+        if (characterText == null) return;
+
+        // 1. 이전 연출이 남아 있다면 끊는다.
+        //    (시퀀스 안의 트윈은 DOKill(target)으로 안 끊기므로, 시퀀스를 직접 보관해서 끊어야 겹치지 않는다)
+        if (_fadeSeq != null) _fadeSeq.Kill();
         characterText.DOKill();
 
-        // 2. 투명도를 0으로 맞추고 시작
+        // 2. 새 대사를 넣고 투명하게 시작
+        characterText.text = message;
         characterText.alpha = 0f;
-        characterText.text = "";
 
-        // 3. DOTween 시퀀스(연속 애니메이션) 생성
-        Sequence seq = DOTween.Sequence();
-
-        characterText.text = message; // 텍스트를 먼저 대입하고
-      
-        seq.Append(characterText.DOFade(1f, 0.5f)); // 0.5초 동안 부드럽게 나타남
-        seq.AppendInterval(2.0f);
-        seq.Append(characterText.DOFade(0f, 0.5f)); // 0.5초 동안 사라짐
+        // 3. 나타남 → 유지 → 사라짐
+        _fadeSeq = DOTween.Sequence()
+            .Append(characterText.DOFade(1f, 0.5f))
+            .AppendInterval(2.0f)
+            .Append(characterText.DOFade(0f, 0.5f))
+            .SetLink(gameObject);
     }
 
-    // 플레이어의 정보를 받아 대사를 골라주는 함수
+    /// <summary>
+    /// 플레이어의 정보를 받아 대사를 골라주는 함수.
+    /// playerNego / enemyNego를 넘기면 협상력 조건(NegoPowerOver / NegoPowerUnder)이 적용됩니다.
+    /// 넘기지 않으면(일상 파트 등) 협상력 조건이 붙은 대사는 후보에서 빠집니다.
+    /// </summary>
     public string GetMatchingDialogue(CharacterType characterType, bool isBattle)
     {
         int currentMonth = System.DateTime.Now.Month;
         int currentDay = System.DateTime.Now.Day;
 
-        // 💡 핵심: 상황에 맞는 리스트를 통째로 골라 담을 변수
-        List<CharacterDialogue> targetList = null;
+        List<CharacterDialogue> targetList = SelectList(characterType, isBattle);
+        if (targetList == null) return DefaultLine;
 
-        // 1. 일상 / 배틀 여부와 캐릭터 타입에 따라 알맞은 리스트 선택
-        if (!isBattle) // 일상 파트인 경우
-        {
-            switch (characterType)
-            {
-                case CharacterType.seo: targetList = dailyDialogues_Seo; break;
-                case CharacterType.reon: targetList = dailyDialogues_Reon; break;
-                case CharacterType.cloe: targetList = dailyDialogues_Cloe; break;
-            }
-        }
-        else // 배틀 파트인 경우
-        {
-            switch (characterType)
-            {
-                case CharacterType.seo: targetList = battleDialogues_Seo; break;
-                case CharacterType.reon: targetList = battleDialogues_Reon; break;
-                case CharacterType.cloe: targetList = battleDialogues_Cloe; break;
-            }
-        }
+        _birthdayCandidates.Clear();
+        _normalCandidates.Clear();
 
-        // 만약 리스트가 비어있거나 잘못 연결되었다면 안전하게 기본 처리
-        if (targetList == null) return "반가워, 체스 한 판 두어볼까?";
-
-        List<CharacterDialogue> candidateList = new List<CharacterDialogue>();
-
-        // 2. 골라낸 리스트를 가지고 기존처럼 조건 검사 진행
         foreach (var d in targetList)
         {
-            bool isMatch = false;
-
+            // 날짜 조건
+            bool dateOk;
             if (d.isBirthdayCondition)
             {
-                if (singlePlayer.birthMonth == currentMonth && singlePlayer.birthDay == currentDay)
-                    isMatch = true;
+                dateOk = singlePlayer.birthMonth == currentMonth && singlePlayer.birthDay == currentDay;
             }
             else
             {
-                bool matchMonth = (d.targetMonth == 0 || d.targetMonth == currentMonth);
-                bool matchDay = (d.targetDay == 0 || d.targetDay == currentDay);
-                if (matchMonth && matchDay) isMatch = true;
+                bool matchMonth = d.targetMonth == 0 || d.targetMonth == currentMonth;
+                bool matchDay = d.targetDay == 0 || d.targetDay == currentDay;
+                dateOk = matchMonth && matchDay;
             }
+            if (!dateOk) continue;
 
+            // 성별 조건
             bool matchGender = (!d.requireGirl && !d.requireMan) ||
                                (d.requireGirl && singlePlayer.isGirl) ||
                                (d.requireMan && !singlePlayer.isGirl);
+            if (!matchGender) continue;
 
-            if (isMatch && matchGender)
+           
+
+            if (d.isBirthdayCondition) _birthdayCandidates.Add(d);
+            else _normalCandidates.Add(d);
+        }
+
+        // 생일 대사가 있으면 오늘은 그것만 나옵니다 (일반 대사에 묻히지 않도록)
+        List<CharacterDialogue> pool = _birthdayCandidates.Count > 0 ? _birthdayCandidates : _normalCandidates;
+        if (pool.Count == 0) return DefaultLine;
+
+        CharacterDialogue selected = PickWeighted(pool);
+
+        // 아이콘은 있을 때만 바꿉니다 (비어 있는 대사가 그림을 지워 버리지 않도록)
+        if (CharIcon != null && selected.icon != null) CharIcon.sprite = selected.icon;
+
+        _lastLine = selected.dialogueText;
+        return FormatLine(selected.dialogueText);
+    }
+
+    // 후보 중 하나를 랜덤으로 고르되, 후보가 둘 이상이면 방금 나온 대사는 피합니다.
+    private CharacterDialogue PickWeighted(List<CharacterDialogue> pool)
+    {
+        if (pool.Count > 1)
+        {
+            int start = Random.Range(0, pool.Count);
+            for (int k = 0; k < pool.Count; k++)
             {
-                candidateList.Add(d);
+                CharacterDialogue c = pool[(start + k) % pool.Count];
+                if (c.dialogueText != _lastLine) return c;
             }
         }
-
-        // 3. 후보 중 랜덤 선택 후 텍스트 및 아이콘 반환
-        if (candidateList.Count > 0)
+        return pool[Random.Range(0, pool.Count)];
+    }
+    private List<CharacterDialogue> SelectList(CharacterType characterType, bool isBattle)
+    {
+        if (!isBattle)
         {
-            int randomIndex = UnityEngine.Random.Range(0, candidateList.Count);
-            CharacterDialogue selected = candidateList[randomIndex];
-
-            CharIcon.sprite = selected.icon; // 아이콘 저장 (스크린샷 변수명 기준)
-            return string.Format(selected.dialogueText, singlePlayer.playerName);
+            switch (characterType)
+            {
+                case CharacterType.seo: return dailyDialogues_Seo;
+                case CharacterType.reon: return dailyDialogues_Reon;
+                case CharacterType.cloe: return dailyDialogues_Cloe;
+            }
         }
+        else
+        {
+            switch (characterType)
+            {
+                case CharacterType.seo: return battleDialogues_Seo;
+                case CharacterType.reon: return battleDialogues_Reon;
+                case CharacterType.cloe: return battleDialogues_Cloe;
+            }
+        }
+        return null;
+    }
 
-       
-        return "반가워, 체스 한 판 두어볼까?";
+    // string.Format은 대사에 { } 가 하나라도 섞이면 예외가 나므로, {0}만 안전하게 바꿉니다.
+    private static string FormatLine(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return DefaultLine;
+        string name = string.IsNullOrEmpty(singlePlayer.playerName) ? string.Empty : singlePlayer.playerName;
+        return text.Replace("{0}", name);
     }
 }

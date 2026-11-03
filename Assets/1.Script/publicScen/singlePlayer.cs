@@ -20,6 +20,7 @@ public static class singlePlayer
     public static int bonusUseHp = 0;
     public static int useHp = 0;
     public static int currentHp;
+    public static bool hpInitialized = false;
     public static int keepHp;
 
 
@@ -143,6 +144,7 @@ public static class singlePlayer
         currentHp = data.Hp;
         bonusMaxHp = data.bonusMaxHp;
         bonusUseHp = data.bonusUseHp;
+        hpInitialized = true;
 
 
         ImportUpgrades(data.upgradeSaveList);

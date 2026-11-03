@@ -62,15 +62,6 @@ public enum VolumeType
     SFX 
 }
 
-public enum CharacterSprite
-{
-    Nomal,
-    Check,
-    Anger,
-    Move,
-    Smile
-}
-
 public enum CharacterType
 {
     seo,

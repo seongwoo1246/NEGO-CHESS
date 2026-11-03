@@ -64,13 +64,22 @@ public class HP : MonoBehaviour
 
     private void Awake()
     {
-        
+    
         ScriptM.Register<HP>(this, UseSpace.Global);
     }
 
     private void Start()
     {
-
+        if (!singlePlayer.hpInitialized)
+        {
+            singlePlayer.currentHp = maxHp;       // 처음에는 가득 채움
+            singlePlayer.hpInitialized = true;
+        }
+        else
+        {
+            // 최대 체력이 줄었거나 보너스가 바뀐 경우를 대비해 넘치지 않게 정리
+            singlePlayer.currentHp = Mathf.Min(singlePlayer.currentHp, maxHp);
+        }
         OnHpRatioChanged += UpdateHpBar;
         OnHpChanged += UpdateHpText;
 

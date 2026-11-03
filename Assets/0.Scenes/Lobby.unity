@@ -786,8 +786,6 @@ MonoBehaviour:
   hpBar: {fileID: 420995744}
   baseMaxHp: 100
   baseUseHp: 20
-  bonusMaxHp: 0
-  bonusUseHp: 0
   hpPanelRect: {fileID: 420995743}
 --- !u!1 &75972976
 GameObject:
@@ -10155,8 +10153,1079 @@ MonoBehaviour:
     requireMan: 0
     NegoPowerOver: 0
     icon: {fileID: -7475954394319961426, guid: 8d7cefe3070fb844eb7cb803b924a425, type: 3}
-  dailyDialogues_Reon: []
-  dailyDialogues_Cloe: []
+  dailyDialogues_Reon:
+  - characterType: 1
+    dialogueText: "\uC548\uB155\uD558\uC2ED\uB2C8\uAE4C {0}\n\uC624\uB298 \uD558\uB8E8\uB294
+      \uC5B4\uB5A0\uC168\uC2B5\uB2C8\uAE4C?\n\uC9C0\uAE08 \uD64D\uCC28\uB97C \uD0C0\uC62C
+      \uD14C\uB2C8 \uAC19\uC774 \uB9C8\uC2DC\uBA74\uC11C\n\uC774\uC57C\uAE30\uB97C
+      \uB4E4\uC5B4\uBCF4\uB3C4\uB85D \uD560\uAE4C\uC694?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC74C?? \uC624\uB298\uC740 \uD45C\uC815\uC774 \uC88B\uC544 \uBCF4\uC774\uC2DC\uB124\uC694?\n\uAC00\uBCCD\uAC8C
+      \uCCB4\uC2A4\uB97C \uB450\uBA74\uC11C \uC774\uC57C\uAE30 \uB4E4\uC5B4 \uBCFC\uAE4C\uC694?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC624\uB298\uC740 \uD45C\uC815\uC774 \uBCC4\uB85C \uC548 \uC88B\uC544\uBCF4\uC774\uB294
+      \uAD70\uC694.\n{0} \uC5EC\uAE30\uB85C \uC640\uC11C \uC549\uC73C\uC138\uC694
+      \uCC28\uB97C \uD0C0\uC624\uB3C4\uB85D \uD558\uC8E0. "
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC548\uB155\uD558\uC2ED\uB2C8\uAE4C. {0}\uC591\n\uC624\uB298\uB3C4
+      \uCCB4\uC2A4\uB97C \uD558\uB7EC \uC624\uC168\uC2B5\uB2C8\uAE4C?\n{0}\uC591\uB3C4
+      \uCCB4\uC2A4\uB97C \uCC38 \uC88B\uC544 \uD558\uC2DC\uAD70\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uD750\uC74C.. \uC624\uC168\uC2B5\uB2C8\uAE4C? {0}\uAD70\n\uC544\uAC00\uC528\uB97C
+      \uC0C1\uB300\uD558\uAE30 \uC804\uC5D0 \uC81C\uAC00 \uBA3C\uC800 \uC0C1\uB300
+      \uD558\uB3C4\uB85D \uD558\uC8E0. \uC790 \uC624\uB3C4\uB85D \uD558\uC138\uC694!!"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -3797050772981226451, guid: face25b59d17b3848aeedf07e3645d2a, type: 3}
+  - characterType: 1
+    dialogueText: "\uC548\uB155\uD558\uC138\uC694.{0}\n\uC0DD\uC77C \uCD95\uD558\uB4DC\uB9BD\uB2C8\uB2E4.
+      \n\uC624\uB298 \uD558\uB8E8\uB294 \uB290\uAE0B\uD558\uAC8C \uC774\uC57C\uAE30
+      \uD558\uB3C4\uB85D \uD560\uAE4C\uC694?"
+    isBirthdayCondition: 1
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC0DD\uC77C \uCD95\uD558\uB4DC\uB9BD\uB2C8\uB2E4.{0}\uC591\n\uC624\uB298
+      \uD558\uB8E8\uB294 \uB290\uAE0B \uD558\uAC8C \uC9C0\uB0B4\uBA70 \uC774\uC57C\uAE30\uB77C\uB3C4
+      \uD558\uB294\uAC74 \uC5B4\uB5A0\uC2ED\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC0DD\uC77C \uCD95\uD558\uB4DC\uB9BD\uB2C8\uB2E4.{0}\uC591\n\uB808\uC624\uAD70\uC740
+      \uB9CC\uB098\uC168\uB098\uC694? \uC544\uC9C1\uC774\uB77C\uBA74 \uD55C \uBC88
+      \uAC00\uBCF4\uC2DC\uB294\uAC8C \uC88B\uACA0\uC9C0\uC694.\n\uC65C\uB0D0\uACE0
+      \uD558\uC2DC\uBA74? \uD6C4\uD6C4 \uC81C \uC785\uC73C\uB85C\uB294 \uB9D0 \uBABB\uD558\uACA0\uAD70\uC694. "
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  - characterType: 1
+    dialogueText: "{0}\uAD70\n\uD074\uB85C\uC5D0 \uC544\uAC00\uC528\uB294 \uB9CC\uB098\uBCF4\uC168\uB098\uC694?\n\uC544\uC9C1
+      \uC774\uB77C\uBA74 \uC9C0\uAE08 \uB2F9\uC7A5 \uAC00\uB3C4\uB85D  \uD558\uC138\uC694.\n\uD074\uB85C\uC5D0
+      \uC544\uAC00\uC528\uAC00 \uAE30\uB2E4\uB9AC\uACE0 \uACC4\uC2ED\uB2C8\uB2E4.\n\uC544
+      \uADF8\uB9AC\uACE0 \uB9D0\uC744 \uC548\uD588\uAD70\uC694. \uC0DD\uC77C \uCD95\uD558\uB4DC\uB9BD\uB2C8\uB2E4.{0}\uAD70"
+    isBirthdayCondition: 1
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "1\uC6D4\uC774\uAD70\uC694.\n\uC0C8\uD574\uC758 \uC2DC\uC791\uC774\uAE30\uB3C4
+      \uD569\uB2C8\uB2E4\uB9CC\n\uD574\uC57C \uD560 \uC77C\uC774 \uB9CE\uC774 \uC788\uC9C0\uB9CC
+      \uD558\uB098\uC529 \uCC9C\uCC9C\uD788 \uD574\uBCFC\uAE4C\uC694?"
+    isBirthdayCondition: 0
+    targetMonth: 1
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uD798\uB4E0 \uACA8\uC6B8\uC774 \uC9C0\uB098\uAC00\uB294 \uAD70\uC694.\n\uB208\uC774
+      \uC624\uB294 \uB0A0\uB3C4 \uC788\uC5C8\uACA0\uC8E0.\n\uD558\uC9C0\uB9CC \uC880
+      \uB9CC \uB354 \uBC84\uD2F0\uBA74 \uC2F9\uC774 \uD544\uD14C\uB2C8 \n\uC880 \uB9CC
+      \uB354 \uBC84\uD168\uBCF4\uB294 \uAC74 \uC5B4\uB5A0\uC2ED\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 2
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC0BC\uC6D4\uC774 \uC654\uC2B5\uB2C8\uB2E4.\n\uC2F9\uC774 \uD2B8\uB294
+      \uC774 \uC2DC\uAE30\uC5D0\uB294 \uC0C8\uD559\uAE30\uC5D0 \uC2DC\uAE30\uAE30\uB3C4
+      \uD558\uC9C0\uC694. \n\uC0C8\uB86D\uAC8C \uCD9C\uBC1C\uD558\uB294 \uB450\uADFC\uAC70\uB9BC\uC744
+      \uC544\uC9C1 \uB290\uB07C\uACE0 \uACC4\uC2DC\uB2E4\uBA74 \uC544\uC9C1\uC740
+      \uCCAD\uCD98\uC774\uAD70\uC694.\n\uC88B\uB2E4\uACE0 \uC0DD\uAC01\uD569\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  - characterType: 1
+    dialogueText: "\uC0AC\uC6D4\uC740 \uC88B\uC9C0\uC694.\n\uB098\uBB34\uB97C \uC2EC\uACE0
+      \uAF43\uAD6C\uACBD\uC744 \uD558\uACE0 \uC0AC\uB78C\uC774 \uD65C\uBC1C\uD574\uC9C0\uB294
+      \uC2DC\uAE30.\n{0]\uB294 \uC5B4\uB5A4 \uC2DD\uC73C\uB85C \uBCF4\uB0B4\uACE0
+      \uACC4\uC2ED\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 4
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 0
+    dialogueText: "\uAC00\uC815\uC758 \uB2EC\uC774 \uC654\uAD70\uC694.\n\uAC00\uC871\uB4E4\uACFC
+      \uC774\uC57C\uAE30\uB294 \uD574\uBCF4\uC168\uB098\uC694?\n\uC624\uC6D4\uC5D0\uB294
+      \uC8FC\uBCC0 \uC0AC\uB78C\uB4E4\uACFC \uC774\uC57C\uAE30\uD574\uBCF4\uB294
+      \uAC8C \uC88B\uACA0\uC9C0\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 0
+    dialogueText: "1\uB144\uC758 \uBC18\uC774 \uC9C0\uB098\uAC00\uB294 \uAD70\uC694.\n\uC5F0\uCD08\uC5D0
+      \uACC4\uD68D\uD558\uC2E0 \uC77C\uC740 \uC798 \uD558\uACE0 \uACC4\uC2E0\uAC00\uC694?\n\uC544\uC9C1\uC774\uB77C\uBA74
+      \uB178\uB825\uD574 \uBCF4\uB294 \uAC83\uB3C4 \uC88B\uACA0\uC9C0\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC810\uC810 \uB354\uC6CC\uC9C0\uB294 \uC2DC\uAE30\uAC00 \uC654\uC2B5\uB2C8\uB2E4.\n\uC544\uAC00\uC528\uAC00
+      \uBD88\uD3B8\uD574 \uD558\uAE30 \uC804\uC5D0 \uC800\uD0DD\uC758 \uC628\uB3C4\uC870\uC808
+      \uC2DC\uC2A4\uD15C\uC744 \uCCAD\uC18C\uD574\uC57C\uACA0\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 7
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uD314\uC6D4\uB2EC \uBC8C\uC368 \uB354\uC704\uAC00 \uBCF8\uACA9\uC801\uC73C\uB85C
+      \uCC3E\uC544 \uC654\uAD70\uC694.\n\uD558\uC9C0\uB9CC \uAD1C\uCC2E\uC2B5\uB2C8\uB2E4.\n
+      \uB354\uC704 \uB300\uCC45\uC740 \uC774\uBBF8 \uB2E4 \uD588\uC2B5\uB2C8\uB2E4.\n\uB290\uAE0B\uD558\uAC8C
+      \uCC28\uB77C\uB3C4 \uB9C8\uC2DC\uB3C4\uB85D \uD560\uAE4C\uC694?"
+    isBirthdayCondition: 0
+    targetMonth: 8
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "\uC544\uC9C1\uC740 \uB354\uC704\uAC00 \uB0A8\uC544 \uC788\uB294
+      \uC2DC\uAE30\uC785\uB2C8\uB2E4\uB9CC,\n\uC774\uB7F0 \uB0A0\uC528\uC5D0\uB294
+      \uD0DC\uD48D\uC744 \uC870\uC2EC\uD558\uB3C4\uB85D \uD558\uC8E0."
+    isBirthdayCondition: 0
+    targetMonth: 9
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC2ED\uC6D4 \uC2AC\uC2AC \uCD94\uC6CC\uC9C0\uB294 \uC2DC\uAE30\uAC00
+      \uCC3E\uC544\uC624\uACE0 \uC788\uC2B5\uB2C8\uB2E4.\n\uC6D4\uB3D9 \uC900\uBE44\uB97C
+      \uD558\uB294\uAC8C \uC88B\uACA0\uC9C0\uC694.\n\uB2E8\uD48D\uC744 \uC2AC\uC2AC
+      \uAD6C\uACBD\uD558\uB7EC \uAC00\uB294 \uAC83\uB3C4 \uC88B\uC9C0 \uC54A\uACA0\uC2B5\uB2C8\uAC00?"
+    isBirthdayCondition: 0
+    targetMonth: 10
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "\uC2ED\uC77C\uC6D4 \n\uCD94\uC704\uAC00 \uCC3E\uC544\uC654\uC2B5\uB2C8\uB2E4.
+      \uC544\uC9C1 \uACA8\uC6B8 \uC774\uB77C\uACE0 \uD560 \uC815\uB3C4\uB294 \uC544\uB2C8\uC9C0\uB9CC
+      \uC774\uB7F4 \uB54C \uAC10\uAE30\uC5D0 \uC798 \uAC78\uB9AC\uB2C8\n\uBAB8 \uC870\uC2EC\uD558\uB294\uAC8C
+      \uC88B\uACA0\uC9C0\uC694.\n\uCC28\uB77C\uB3C4 \uD55C \uC794 \uB4DC\uC2DC\uACA0\uC2B5\uB2C8\uAE4C? "
+    isBirthdayCondition: 0
+    targetMonth: 11
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "\uC5F0\uB9D0\uC785\uB2C8\uB2E4. \n\uC774\uBC88 \uC77C\uB144\uC740
+      \uC5B4\uB5A0\uC168\uC2B5\uB2C8\uAE4C?\n\uB418\uB3CC\uC544 \uBD24\uC744 \uB54C
+      \uD6C4\uD68C\uAC00 \uC788\uC744 \uC218\uB3C4 \uC788\uACA0\uC9C0\uC694.\n\uADF8\uB798\uB3C4
+      \uC774\uBC88 \uC77C\uB144\uB3C4 \uBB34\uC0AC\uD788 \uC798 \uBC84\uD2F0\uC168\uC2B5\uB2C8\uB2E4.
+      \uB2E4\uC74C \uB144\uB3C4\uB97C \uC900\uBE44\uD558\uB3C4\uB85D \uD558\uC8E0."
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC0C8\uD574\uAC00 \uC654\uC2B5\uB2C8\uB2E4. \n\uC77C\uB144\uC774
+      \uC2DC\uC791\uB418\uB294 \uC911\uC694\uD55C \uB0A0\uC785\uB2C8\uB2E4.\n\uADF8\uB7F0
+      \uC624\uB298 \uC774\uACF3\uC5D0 \uC624\uC2DC\uB2E4\uB2C8 \uC88B\uC2B5\uB2C8\uB2E4.\n\uCCB4\uC2A4\uB97C
+      \uC900\uBE44\uD558\uB3C4\uB85D \uD558\uC8E0."
+    isBirthdayCondition: 0
+    targetMonth: 1
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC548\uB155\uD558\uC138\uC694{0}\uC591\n\uBC1C\uB80C\uD0C0\uC778\uB370\uC774
+      \uC778\uB370 \uC900\uBE44\uB294 \uD558\uC168\uC2B5\uB2C8\uAE4C?\n\uADF8\uB807\uAC8C
+      \uC911\uC694\uD55C\uAC8C \uC544\uB2D0 \uC218\uB3C4 \uC788\uC9C0\uC694.\n\uB098\uC774\uAC00
+      \uB4DC\uB2C8 \uCC38\uACAC\uB9CC \uB298\uC5C8\uB098 \uBD05\uB2C8\uB2E4.\n \uC88B\uC740
+      \uD558\uB8E8\uB97C \uBCF4\uB0B4\uB3C4\uB85D \uD558\uC138\uC694. "
+    isBirthdayCondition: 0
+    targetMonth: 2
+    targetDay: 14
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  - characterType: 1
+    dialogueText: "{0}\uAD70 \n\uBC1C\uB80C\uD0C0\uC778 \uB370\uC774\uB77C\uACE0
+      \uB108\uBB34 \uB4E4\uB72C\uAC8C \uC544\uB2D0\uAE4C \uC2ED\uC9C0\uB9CC \n\uC624\uB298
+      \uAC19\uC740 \uB0A0\uC774\uBA74 \uADF8\uB7F4 \uC218 \uC788\uACA0\uC9C0\uC694.\n\uD074\uB85C\uC5D0
+      \uB2D8\uD55C\uD0DC \uCC3E\uC544\uAC00 \uBCF4\uB294 \uAC83\uB3C4 \uC88B\uACA0\uC9C0\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 2
+    targetDay: 14
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "3.1\uC808...\n\uC544\uB2C8\uC694 \uC544\uBB34\uAC83\uB3C4 \uC544\uB2D9\uB2C8\uB2E4.\n\uC81C\uAC00
+      \uBABB \uBCFC \uAF34\uC744 \uBCF4\uC774\uACE0 \uB9D0\uC558\uC2B5\uB2C8\uB2E4.\n\uC7A0\uC2DC
+      \uC870\uBD80\uBAA8\uB2D8\uC774 \uB5A0\uC62C\uB790\uC5C8\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC548\uB155\uD558\uC138\uC694{0}\uC591 \n\uC624\uB298\uC740 \uC5B4\uB5A0\uC2ED\uB2C8\uAE4C?\n\uD45C\uC815\uB9CC
+      \uBD10\uB3C4 \uC54C\uACA0\uC2B5\uB2C8\uB2E4.\n\uCC28\uB77C\uB3C4 \uD55C \uC794
+      \uD558\uBA70 \uB4E3\uB3C4\uB85D \uD558\uC8E0."
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 14
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uD638\uC624..\uC624\uC168\uC2B5\uB2C8\uAE4C?{0}\uAD70\n\uC624\uB298\uC774
+      \uBB34\uC2A8 \uB0A0\uC778\uC9C0\uB294 \uB2F9.\uC5F0.\uD788.\n\uC54C\uACE0\uACC4\uC2DC\uACA0\uC9C0\uC694?\n\uC544\uAC00\uC528\uB77C\uBA74
+      \uC548\uCABD\uC5D0 \uAE30\uB2E4\uB9AC\uACE0 \uACC4\uC2ED\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 14
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -3797050772981226451, guid: face25b59d17b3848aeedf07e3645d2a, type: 3}
+  - characterType: 1
+    dialogueText: "\uC548\uB155\uD558\uC2ED\uB2C8\uAE4C?{0}\n\uC624\uB298\uC740 \uB4E4\uC740
+      \uBC14\uC5D0 \uC758\uD558\uBA74 \uB9CC\uC6B0\uC808\uC774\uB77C\uACE0 \uD558\uB294\uB370
+      \uC800\uB85C\uC368\uB294 \uC798 \uBAA8\uB974\uACA0\uC73C\uB2C8 \uC990\uAC70\uC6B4
+      \uD558\uB8E8\uB97C \uBCF4\uB0B4\uB3C4\uB85D \uD558\uC138\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 4
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC2DD\uBAA9\uC77C\uC774 \uC654\uC2B5\uB2C8\uB2E4. \n\uC800\uB294
+      \uC624\uB298 \uC7A0\uC2DC \uC800\uD0DD \uB4A4 \uC815\uC6D0\uC5D0 \uC544\uAC00\uC528\uC640
+      \uB098\uBB34\uB97C \uC2EC\uAE30\uB85C \uD588\uC2B5\uB2C8\uB2E4. \uAC19\uC774
+      \uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 4
+    targetDay: 5
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "4.19 \uD601\uBA85\n\uADF8\uB54C\uC5D0\uB294 \uC544\uC9C1 \uC5B4\uB838\uC9C0\uB9CC
+      \uC9C0\uAE08 \uC0DD\uAC01\uD574 \uBCF4\uBA74 \n\uC5ED\uC0AC\uC758 \uD55C \uC7A5\uBA74\uC5D0
+      \uC788\uC5C8\uB2E4\uB294 \uC2E4\uAC10\uC774 \uAC00\uB054\uC529 \uB4DC\uB294\uAC74
+      \uB098\uC774\uAC00 \uBA39\uC5B4\uC11C \uADF8\uB7F0 \uAC78 \uC218\uB3C4 \uC788\uACA0\uC9C0\uC694.\n\uB098\uC774\uAC00
+      \uB9CE\uC544\uC9C0\uB2C8 \uB9D0\uB9CC \uB9CE\uC544\uC9C0\uB294 \uAC70 \uAC19\uC2B5\uB2C8\uB2E4. "
+    isBirthdayCondition: 0
+    targetMonth: 4
+    targetDay: 19
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "\uADFC\uB85C\uC790\uC758 \uB0A0\uC774 \uC654\uC2B5\uB2C8\uB2E4.\n\uC800\uD558\uACE0\uB294
+      \uC0C1\uAD00\uC774 \uC5C6\uC73C\uB2C8 \uC624\uB298 \uD558\uB8E8\uB3C4 \uC5F4\uC2EC\uD788
+      \uC77C\uD558\uB3C4\uB85D \uD560\uAE4C\uC694. {0}\uC740 \uC624\uB298 \uD3B8\uD558\uAC8C
+      \uBCF4\uB0B4\uC168\uC2B5\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "\uC624\uB298\uC740 \uC5B4\uB9B0\uC774 \uB0A0 \uC774\uAD70\uC694.\n\uD074\uB85C\uC5D0
+      \uC544\uAC00\uC528\uB294 \uC2E0\uACBD \uC548 \uC4F0\uACA0\uC9C0\uB9CC \n\uC900\uBE44\uB294
+      \uD574 \uB450\uB3C4\uB85D \uD558\uB294\uAC8C \uC88B\uACA0\uC9C0\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 5
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC5B4\uBC84\uC774\uB0A0 \uC778\uB370  \uBD80\uBAA8\uB2D8\uACFC\uB294
+      \uB300\uD654 \uD574 \uBCF4\uC168\uC2B5\uB2C8\uAE4C?\n\uD3C9\uC18C\uC5D0\uB294
+      \uBD80\uBAA8\uC5D0\uAC8C \uB300\uD654\uAC00 \uC801\uC744 \uC218\uB3C4 \uD639\uC740
+      \uC5C6\uC744 \uC218\uB3C4 \uC788\uACA0\uC9C0\uB9CC \uC774\uB7F0 \uB0A0 \uC815\uB3C4\uB294
+      \uBA3C\uC800 \uB300\uD654\uD574\uBCF4\uB294 \uAC83\uB3C4 \uC88B\uC9C0 \uC54A\uACA0\uC2B5\uB2C8\uAE4C? "
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 8
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC2A4\uC2B9\uC758 \uB0A0\uC774\uB77C\n\uC2A4\uC2B9\uACFC \uC774\uC57C\uAE30
+      \uD55C \uC801\uC740 \uC5B8\uC81C\uC77C\uAE4C\uC694.\n\uC2A4\uC2B9\uC5D0\uAC8C
+      \uAC00\uB054\uC774\uB77C\uB3C4 \uCC3E\uC544 \uBD10\uC57C\uACA0\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 15
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "5.18\n\uC774 \uB54C\uB294 \uC81C\uAC00 \uC800\uD0DD\uC5D0\uC11C
+      \uC77C\uD558\uAC8C \uB41C\uC9C0 \uC2DC\uAC04\uC774 \uB9CE\uC774 \uC9C0\uB0AC\uC744
+      \uB54C\uC600\uC9C0\uC694. \uB2F9\uC2DC\uC5D0\uB294 \uBAB0\uB790\uC9C0\uB9CC
+      \uB098\uC911\uC5D0 \uB274\uC2A4\uB97C \uBCF4\uB2C8 \uD070\uC77C\uC774\uC600\uB2E4\uACE0
+      \uB4E4\uC5C8\uC2B5\uB2C8\uB2E4. \uBBFC\uC8FC\uC8FC\uC758\uC758 \uC5ED\uC0AC\uC758
+      \uD55C \uD398\uC774\uC9C0\uB97C \uC368\uB0B4\uB824\uAC14\uC5C8\uB358 \uC2DC\uC808\uC774\uC600\uC2B5\uB2C8\uB2E4.  "
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 18
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uD604\uCDA9\uC77C \n\uC800\uB294 \uC624\uB298 \uC544\uCE68\uC5D0
+      \uC804\uC6B0\uB4E4\uC5D0\uAC8C \uAC14\uB2E4\uC654\uC5C8\uC2B5\uB2C8\uB2E4.
+      \uC774 \uB0A0\uC740 \uC870\uAE08 \uAC10\uC131\uC801\uC73C\uB85C \uBCC0\uD558\uB294
+      \uAC78\uC9C0\uB3C4 \uBAA8\uB974\uACA0\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 6
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "6\uC6D4 \uBBFC\uC8FC \uD56D\uC7C1\n\uC544\uC9C1\uB3C4 \uB290\uAEF4\uC9D1\uB2C8\uB2E4.
+      \n\uADF8\uB0A0\uC758 \uC5F4\uAE30,\n\uADF8\uB0A0\uC758 \uD568\uC131,\n\uC544\uC9C1\uB3C4
+      \uC78A\uD600\uC9C0\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 10
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uBBFC\uC871\uC758 \uC0C1\uCC98\uAC00 \uC0DD\uAE34 \uB0A0\uC785\uB2C8\uB2E4.\n\uADF8
+      \uB2F9\uC2DC\uC5D0 \uCD1D\uC131\uACFC \uB300\uD3EC \uC18C\uB9AC \n\uD53C\uB09C
+      \uAC14\uB358 \uAE30\uC5B5\uC774 \uB610\uB837\uD569\uB2C8\uB2E4.\n\uADF8 \uB54C
+      \uC7A1\uACE0 \uC788\uB358 \uBD80\uBAA8\uB2D8\uC758 \uC190\uC758 \uB5A8\uB9BC\n\uC628\uAE30\uB294
+      \uC544\uC9C1\uAE4C\uC9C0\uB3C4 \uAE30\uC5B5\uB0A9\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 25
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC81C\uD5CC\uC808\uC774\uAD70\uC694\n\uD5CC\uBC95\uC774 \uC81C\uC815
+      \uB41C \uB0A0\uC785\uB2C8\uB2E4.\n5\uB300 \uAD6D\uACBD\uC77C \uC911 \uD558\uB098\uC785\uB2C8\uB2E4\uB9CC
+      \n\uC608\uC804\uC5D0\uB294 \uD734\uC77C\uC774\uC600\uB294\uB370 \uC9C0\uAE08\uC740
+      \uC544\uB2CC \uAC78\uB85C \uC54C \uACE0 \uC788\uC2B5\uB2C8\uB2E4\uB9CC \uC624\uB298
+      \uD558\uB8E8\uB3C4 \uBB34\uC0AC\uD788 \uBCF4\uB0B4\uC168\uC2B5\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 7
+    targetDay: 17
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "8.15 \uAD11\uBCF5\uC808\n\uC624\uB298 \uAC19\uC740 \uB0A0\uC774\uBA74
+      \uC800\uD0DD\uC5D0 \uD0DC\uADF9\uAE30\uB97C \uAC78\uC5B4\uB194\uC57C\uACA0\uAD70\uC694. 
+      \n\uC544\uC9C1 \uC5B4\uB838\uB358 \uC2DC\uC808\uC758 \uAE30\uC5B5 \uBFD0\uC774\uC9C0\uB9CC
+      \uBAA8\uB450\uAC00 \uAE30\uBED0\uD558\uB358 \uD45C\uC815\uC774 \uC0DD\uAC01\uB0A9\uB2C8\uB2E4. "
+    isBirthdayCondition: 0
+    targetMonth: 8
+    targetDay: 15
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uAC1C\uCC9C\uC808.\n\uD558\uB298\uC774 \uC5F4\uB9B0 \uB0A0. \uB2E8\uAD70\uC655\uAC80\uC774
+      \uB098\uB77C\uB97C \uC138\uC6B4 \uB0A0\uC785\uB2C8\uB2E4. \n\uC5B4\uB5A4 \uC2DD\uC73C\uB85C
+      \uBCF4\uBA74 \uB098\uB77C\uC758 \uC0DD\uC77C\uC778 \uAC83\uC774\uB2C8 \uC774\uB7F0
+      \uB0A0\uC5D0\uB294 \uC0DD\uC77C \uD30C\uD2F0\uB77C\uB3C4 \uC5F4\uC5B4\uC57C
+      \uD558\uB294 \uAC83\uB3C4 \uC88B\uACA0\uC9C0\uC694. \uCD08\uB97C \uB2E4 \uAF42\uC73C\uB824\uBA74
+      \uCF00\uC774\uD06C\uAC00 \uC5C4\uCCAD \uCEE4\uC57C \uACA0\uC2B5\uB2C8\uB2E4.
+      \uD558\uD558\uD558"
+    isBirthdayCondition: 0
+    targetMonth: 10
+    targetDay: 3
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  - characterType: 1
+    dialogueText: "\uAC00\uAC38\uB0A0\uC774\uAD70\uC694.\n\uD55C\uAE00 \uCC3D\uC81C\uB294
+      \uC544\uB9C8 \uC778\uB958\uC0AC\uB97C \uBC14\uAFB8\uB294 \uC21C\uAC04\uC774\uC600\uC744
+      \uC9C0 \uBAA8\uB985\uB2C8\uB2E4. \uC544\uC9C1\uC740 \uBAA8\uB974\uC9C0\uB9CC
+      \uC2DC\uAC04\uC774 \uC9C0\uB098\uBA74 \uC9C0\uB0A0 \uC218\uB85D \uD55C\uAE00\uC758
+      \uC9C4\uAC00\uAC00 \uB098\uC624\uB294 \uB0A0\uC774 \uC54C \uC218 \uC788\uC9C0
+      \uC54A\uACA0\uC2B5\uB2C8\uAE4C? "
+    isBirthdayCondition: 0
+    targetMonth: 10
+    targetDay: 9
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  - characterType: 1
+    dialogueText: "\uD06C\uB9AC\uC2A4\uB9C8\uC2A4 \uC774\uBE0C\uC785\uB2C8\uB2E4.\n\uD074\uB85C\uC5D0
+      \uC544\uAC00\uC528\uAC00 \uB9D0\uD588\uB294\uC9C0 \uBAA8\uB974\uACA0\uC9C0\uB9CC
+      \n\uC624\uB298 \uB0B4\uC77C\uB85C \uD06C\uB9AC\uC2A4\uB9C8\uC2A4 \uD30C\uD2F0\uB97C
+      \uD560 \uC608\uC815\uC785\uB2C8\uB2E4. \uBD80\uB514 \uCC38\uAC00\uD574\uC8FC\uBA74
+      \uC88B\uACA0\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 24
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uD06C\uB9AC\uC2A4\uB9C8\uC2A4 \uC774\uBE0C\uC785\uB2C8\uB2E4
+      {0}\uAD70\n\uC624\uB298 \uB0B4\uC77C\uB85C \uC77C\uC815\uC740 \uC5C6\uC73C\uC2E0\uAC00\uC694?\n\uC5C6\uC73C\uC2DC\uACA0\uC8E0?
+      \uB124 \uC5C6\uB2E4\uBA74 \uD30C\uD2F0\uC5D0 \uC624\uB3C4\uB85D \uD558\uC138\uC694.\n\uC544\uB2C8
+      \uC640\uC57C\uB9CC \uD560 \uAC81\uB2C8\uB2E4. \uB124 \uC628\uB2E4\uACE0 \uD074\uB85C\uC5D0
+      \uC544\uAC00\uC528\uC5D0\uAC8C \uB9D0\uC500 \uB4DC\uB9AC\uB3C4\uB85D \uD558\uACA0\uC2B5\uB2C8\uB2E4.\n{0}\uAD70"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 24
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC74C \uC624\uC168\uAD70\uC694. \uC88B\uC2B5\uB2C8\uB2E4.\n\uC548\uC5D0
+      \uC544\uAC00\uC528\uAC00 \uAE30\uB2E4\uB9AC\uACE0 \uACC4\uC2ED\uB2C8\uB2E4.\n\uC5BC\uB978
+      \uC624\uC2DC\uC8E0. \uC544 \uADF8\uB9AC\uACE0 \uB9D0\uD558\uB294\uAC78 \uC78A\uC5C8\uAD70\uC694.\n\uBA54\uB9AC
+      \uD06C\uB9AC\uC2A4\uB9C8\uC2A4\uC785\uB2C8\uB2E4. {0}\uAD70"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 25
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uC5F0\uB9D0\uC774\uAD70\uC694. \n\uC774\uBC88 \uB144\uB3C4 \uB9C8\uC9C0\uB9C9\uC785\uB2C8\uB2E4.\n\uC62C
+      \uD55C\uD574\uB294 \uC5B4\uB5A0\uC168\uB098\uC694?\n\uC774\uBC88 \uB144\uB3C4
+      \uC798 \uB9C8\uBB34\uB9AC\uD558\uACE0 \uB0B4\uB144\uC744 \uAE30\uC57D\uD558\uBA70
+      \uC62C \uD55C\uD574\uB97C \uBCF4\uB0B4\uC8FC\uB3C4\uB85D \uD558\uC8E0.\n\uADF8\uB7EC\uBA74
+      \uB0B4\uB144\uC5D0 \uBD59\uB3C4\uB85D \uD558\uACA0\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 31
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  dailyDialogues_Cloe:
+  - characterType: 2
+    dialogueText: "\uC548\uB155 {0}\n\uC624\uB298 \uD558\uB8E8\uB294 \uC5B4\uB54C?\n\uC88B\uC740\uC77C
+      \uC774\uB77C\uB3C4 \uC788\uC5C8\uC5B4?\n\uCCB4\uC2A4\uB77C\uB3C4 \uB450\uBA74\uC11C
+      \uB4E4\uC5B4\uBCFC\uAE4C?\n\uB808\uC628! \uD64D\uCC28 2\uC794 \uBD80\uD0C1\uD574."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC548\uB155{0}\n\uC624\uB298\uC740 \uD45C\uC815\uC774 \uBCC4\uB85C
+      \uC548 \uC88B\uC544 \uBCF4\uC774\uB124?\n\uCCB4\uC2A4\uB294 \uC880 \uB098\uC911\uC5D0
+      \uD558\uACE0 \uC774\uC57C\uAE30\uB97C \uB4E4\uC5B4\uBCFC\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC548\uB155{0}\n\uC624\uB298\uB3C4 \uCCB4\uC2A4 \uD558\uB7EC
+      \uC654\uAD6C\uB098?\n\uC88B\uC544 \uC5EC\uAE30 \uAE4C\uC9C0 \uC628 \uAC83\uB3C4
+      \uC778\uC815 \uD574\uC8FC\uB3C4\uB85D \uD558\uACA0\uC5B4. \uB364\uBE44\uB3C4\uB85D
+      \uD574! \uC0C1\uB300\uD574\uC8FC\uACA0\uC5B4."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "\uC751? {0}\uC5B8\uB2C8 \uC654\uC5B4?\n\uBB50 \uC88B\uC544 \uC624\uB298\uC740
+      \uCCB4\uC2A4\uB97C \uD558\uACE0 \uC2F6\uC740 \uAE30\uBD84\uC774\uB124\n\uD2B9\uBCC4\uD788
+      \uC0C1\uB300\uD574 \uC8FC\uB3C4\uB85D \uD558\uACA0\uC5B4!"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC5B4..{0}\uC624\uBE60 \uC640..\uC654\uC5B4?\n\uD760 \uC88B\uC544
+      \uC654\uC73C\uBA74 \uB9D0\uC744 \uD558\uC9C0.\n\uC624\uB298\uC740 \uBB50\uD558\uB7EC
+      \uC654\uC5B4? \n\uD5E4\uC5D0 \uC138\uC624\uD55C\uD0DC \uBCFC\uC77C\uC774 \uC788\uB2E4\uACE0?\n\uD5E4\uC5D0
+      \uB098 \uB54C\uBB38\uC5D0 \uC628\uAC8C \uC544\uB2C8\uC600\uAD6C\uB098 \uADF8\uB798.
+      \n\uADF8\uB807\uAD6C\uB098"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -8228373630913213390, guid: 6a9c494610ff91b49a2fee79af3176fe, type: 3}
+  - characterType: 2
+    dialogueText: "\uC0DD\uC77C\uC774\uAD6C\uB098 {0}\uC5B8\uB2C8\n\uC0DD\uC77C \uCD95\uD558\uD574!\n\uC0DD\uC77C
+      \uC120\uBB3C\uB85C \uBB50\uAC00 \uC88B\uC544? \uC5B4\uB5A4\uAC8C \uC88B\uC544?\n\uD544\uC694
+      \uC5C6\uB2E4\uACE0? \uD750\uC74C \uC54C\uC558\uC5B4 \n(\uB098\uC911\uC5D0 \uC138\uC624\uD55C\uD0DC
+      \uC801\uB2F9\uD788 \uB9D0\uD574\uB46C\uC57C\uACA0\uB124)"
+    isBirthdayCondition: 1
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC624\uBE60 \uC0DD\uC77C\uCD95\uD558\uD574~~~\n\uC0DD\uC77C
+      \uC815\uB3C4\uB294 \uC194\uC9C1\uD558\uAC8C \uB9D0\uD574\uB3C4 \uB418\uACA0\uC9C0?\n\uC120\uBB3C\uC740
+      \uC5B4\uB5A4 \uAC8C \uC88B\uC544?\n\uC5D0.. \uAD1C\uCC2E\uC544? \uC54C\uC558\uC5B4\n(\uB098\uC911\uC5D0
+      \uC870\uC0AC\uD574\uBD10\uC57C\uACA0\uB124)"
+    isBirthdayCondition: 1
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "1\uC6D4! \n\uB208\uC774 \uC624\uB294 \uACC4\uC808\uC774\uB77C\uC11C
+      \uC88B\uC544!\n\uC815\uC6D0\uC5D0\uC11C \uB808\uC628\uC774\uB791 \uC138\uC624\uB791
+      \uB208 \uC0AC\uB78C \uB9CC\uB4E4\uACE0 \uB180\uACE0\uC57C \n\uBB3C\uB860 {0}\uB3C4
+      \uC62C\uAC70\uC9C0?"
+    isBirthdayCondition: 0
+    targetMonth: 1
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -974523336881832889, guid: a51a7f12c12d58e449c83d91f1735ca2, type: 3}
+  - characterType: 2
+    dialogueText: "2\uC6D4\n\uC544\uC9C1\uC740 \uC880 \uCDA5\uC9C0\uB9CC \uC5ED\uC2DC
+      \uC774\uB807\uAC8C \uCD94\uC6B4 \uB0A0\uC740\n\uC800\uD0DD \uC548\uC5D0 \uC640\uC11C
+      \uCCB4\uC2A4\uD558\uB294\uAC8C \uC81C\uC77C \uC88B\uC544!"
+    isBirthdayCondition: 0
+    targetMonth: 2
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "3\uC6D4\n\uC0C8\uD559\uAE30\uC758 \uACC4\uC808\n\uD559\uAD50\uC5D0\uC11C\uB3C4
+      \uD559\uB144\uC774 \uC62C\uB77C\uAC00\uC11C \uC0C8 \uCE5C\uAD6C\uB4E4\uC774\uB791
+      \n\uB9CC\uB0A0 \uC0DD\uAC01\uD558\uBA74 \uB450\uADFC\uB450\uADFC\uD574!"
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "4\uC6D4\n\uAF43 \uAD6C\uACBD\uD558\uB294 \uB2EC\n\uC800\uD0DD
+      \uB4A4\uC5D0\uC11C \uB2E4\uAC19\uC774 \uAF43 \uAD6C\uACBD\uD558\uC790."
+    isBirthdayCondition: 0
+    targetMonth: 4
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "5\uC6D4\n\uAC00\uC815\uC758 \uB2EC! \n\uC624\uB79C\uB9CC\uC5D0
+      \uC5C4\uB9C8 \uC544\uBE60\uB791 \uB9CC\uB0A0 \uC218 \uC788\uC744 \uAC70\uAC19\uC544."
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "6\uC6D4!\n\uC77C\uB144\uC758 \uBC18\uC774 \uC9C0\uB098\uBC84\uB838\uC5B4!!\n\uC2AC\uC2AC
+      \uC5EC\uB984\uC778\uB370 \uBAA8\uAE30\uB294 \uC880 \uBCC4\uB85C\uC778\uB370.."
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "7\uC6D4\n\uC5EC\uB984\uC774 \uCC3E\uC544\uC624\uB294 \uACC4\uC808
+      \n\uADF8\uB798\uB3C4 \uC800\uD0DD\uC740 \uB298 \uB365\uC9C0\uB3C4 \uCDA5\uC9C0\uB3C4
+      \uC54A\uC544\uC11C \uC88B\uC544!\n\uBC16\uC740 \uB108\uBB34 \uB354\uC6CC\uC11C
+      \uBABB \uB098\uAC08 \uAC70\uAC19\uC544"
+    isBirthdayCondition: 0
+    targetMonth: 7
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "8\uC6D4 \n\uC774\uB7F0 \uB354\uC6B4 \uC5EC\uB984 \uB0A0\uC5D0\uB294
+      \n\uC5ED\uC2DC \uC800\uD0DD \uC548\uC5D0\uC11C \uCCB4\uC2A4\uB97C \uD558\uB294\uAC8C
+      \uC81C\uC77C \uC88B\uC544."
+    isBirthdayCondition: 0
+    targetMonth: 8
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "9\uC6D4\n\uAC00\uC744\uC758 \uACC4\uC808\uC774 \uCC3E\uC544 \uC62C
+      \uC900\uBE44\uB97C \uD558\uB294 \uACC4\uC808\n\uC774\uB7F0 \uACC4\uC808\uC774\uB77C\uB3C4
+      \uD0DC\uD48D\uC77C \uBD88\uAC70\uB098 \uAC00\uC744 \uBAA8\uAE30\uAC00 \uB098\uC624\uAE30\uB3C4
+      \uD558\uB2C8\uAE4C \uC8FC\uC758\uD558\uB3C4\uB85D \uD574\n{0} "
+    isBirthdayCondition: 0
+    targetMonth: 9
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "10\uC6D4\n\uB2E8\uD48D \uAD6C\uACBD\uD558\uAE30 \uC88B\uC740 \uACC4\uC808\n\uC774\uB54C\uB294
+      \uC800\uD0DD \uB4A4\uC5D0\uC11C \uB2E8\uD48D \uAD6C\uACBD\uC744 \uD558\uACE4
+      \uD558\uB294\uB370 \uAC19\uC774 \uB2E8\uD48D \uAD6C\uACBD\uD560\uB798?"
+    isBirthdayCondition: 0
+    targetMonth: 10
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "11\uC6D4\n\uC2AC\uC2AC \uCD94\uC6CC\uC9C0\uB294 \uACC4\uC808\uC774\uB124\n\uC6D4\uB3D9
+      \uC900\uBE44\uB294 \uC774\uBBF8 \uD588\uACA0\uC9C0?\n\uB098\uB294 \uB208 \uC624\uB294\uAC8C
+      \uC88B\uC73C\uB2C8\uAE4C \uC88B\uC544\uD558\uB294 \uB2EC\uC774\uAE30\uB3C4
+      \uD574"
+    isBirthdayCondition: 0
+    targetMonth: 11
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "12\uC6D4\n\uACA8\uC6B8! \uACA8\uC6B8\uC774\uC57C!  \uB098\uB294
+      \uB208 \uB0B4\uB9B4\uB54C\uAC00 \uC81C\uC77C \uC88B\uC544\n\uD654\uC774\uD2B8
+      \uD06C\uB9AC\uC2A4\uB9C8\uC2A4\uAC00 \uB410\uC73C\uBA74 \uC88B\uACA0\uC5B4"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC548\uB155{0}\uC5B8\uB2C8\n\uC0C8\uD574\uAC00 \uCC3E\uC544\uC654\uB294\uB370
+      \uC774\uBC88 \uB144\uB3C4\uB3C4 \uC800\uD0DD\uC5D0 \uC640\uC904 \uAC70\uC9C0^^"
+    isBirthdayCondition: 0
+    targetMonth: 1
+    targetDay: 1
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC544\uB155{0}\uC624\uBE60\n\uC73C \uC73C\u3161\uD760 (\uC4F0\uC74D
+      \uD6C4~)\n\uC548\uB155 {0}\uC624\uBE60\n\uC0C8\uD574 \uCD95\uD558\uD574 \uC791\uB144\uC774
+      \uC5B4\uCA0B\uB4E0 \uAC04\uC5D0 \uC774\uBC88 \uB144\uB3C4\uB3C4 \uC800\uD0DD\uC5D0
+      \uC640\uC904 \uAC70\uC9C0(^\u3145^)"
+    isBirthdayCondition: 0
+    targetMonth: 1
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -974523336881832889, guid: a51a7f12c12d58e449c83d91f1735ca2, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC5B8\uB2C8\uB294 \uCD08\uCF5C\uB9BF \uC900\uBE44\uD588\uC5B4?\n\uB098\uB294
+      \uC900\uBE44\uD588\uC5B4  \uC624\uB298\uC740 \uC640\uC904\uC9C0 \uBAA8\uB974\uACA0\uB294\uB370
+      \n\uC654\uC73C\uBA74 \uC88B\uACA0\uB124..\n{0}\uC5B8\uB2C8\uB3C4 \uBB34\uC0AC\uD788
+      \uC904 \uC218 \uC788\uC73C\uBA74 \uC88B\uACA0\uB124 "
+    isBirthdayCondition: 0
+    targetMonth: 2
+    targetDay: 14
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC624\uBE60 \uC654\uC5B4?\n\uC790 \uC5EC\uAE30 \uBC1B\uC5B4
+      \uCD08\uCF5C\uB9BF!\n\uBB50 {0}\uC624\uBE60 \uB9D0\uACE0\uB3C4 \uC138\uC624,\uB808\uC628
+      \uD55C\uD0DC\uB3C4 \uB2E4 \uC8FC\uB290\uAC70\uB2C8\uAE4C \uCC29\uAC01\uC740
+      \uD558\uC9C0 \uB9D0\uC544\uC918!\n\uC790 \uADF8\uB7FC \uC92C\uC73C\uB2C8\uAE4C
+      \uB098\uB294 \uAC04\uB2E4!"
+    isBirthdayCondition: 0
+    targetMonth: 2
+    targetDay: 14
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "3.1\uC808\n\uC774 \uC815\uB3C4\uB294 \uB098\uB3C4 \uC54C\uC544!\n1919\uB144
+      3.1\uC77C \uB0A0 \uC77C\uC81C\uC758 \uC555\uBC15\uC5D0\uC11C \uBC97\uC5B4\uB098\uAE30
+      \uC704\uD55C \uBE44\uD3ED\uB825 \uB9CC\uC138\uC6B4\uB3D9\uC774\uC796\uC544.\n\uADF8
+      \uC815\uB3C4\uB294 \uC54C\uACE0 \uC788\uC5B4."
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC5B8\uB2C8\uB294 \uBC1B\uC558\uC5B4?\n\uB098\uB294 \uC544\uC9C1
+      \uBABB \uBC1B\uC558\uC5B4\n{0}\uC5B8\uB2C8\uB294 \uBC1B\uC558\uC73C\uBA74 \uC88B\uAC30\uB124."
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 14
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC624\uBE60 \uC654\uC5B4 \n\uC5BC\uB978\uC640 \uC624\uB298\uC740
+      \uBB34\uC2A8\uC77C\uC774\uC57C?\n\uC751? \uBB34\uC2A8 \uC77C\uB85C \uC628\uAC70\uC57C?"
+    isBirthdayCondition: 0
+    targetMonth: 3
+    targetDay: 14
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -974523336881832889, guid: a51a7f12c12d58e449c83d91f1735ca2, type: 3}
+  - characterType: 2
+    dialogueText: "\uC548\uB155 \uB098\uB294 \uD074\uB85C\uC5D0\n\uAC15\uD558\uACE0
+      \uD798\uCC2C \uC544\uCE68!\n\uB9CC\uC6B0\uC808\uC744 \uD30C\uAD34\uD558\uB7EC
+      \uC654\uB2E4\uC774\uB2E42\uB2E4E"
+    isBirthdayCondition: 0
+    targetMonth: 4
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC6B0\uB9AC \uC800\uD0DD\uC740 \uB9E4\uBC88 \uC800\uD0DD \uB4A4\uC5D0
+      \uB098\uBB34\uB97C \uC2EC\uACE0 \uD558\uB294\uB370 \uC5B4\uB54C \uAC19\uC774\uAC00\uC11C
+      \uB098\uBB34\uB77C\uB3C4 \uC2EC\uC744\uB798?"
+    isBirthdayCondition: 0
+    targetMonth: 4
+    targetDay: 5
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "\uADFC\uB85C\uC790\uC758 \uB0A0\uC774\uB124\n\uB098\uB294 \uC26C\uB294
+      \uB0A0\uC774\uB77C\uC11C \uC88B\uC740\uB370\n\uC544\uC27D\uC9C0\uB9CC \uC6B0\uB9AC
+      \uC800\uD0DD\uC5D0\uB294 \uADFC\uB85C\uC790\uC758 \uB0A0\uC774\uB77C\uACE0\n\uC26C\uB294
+      \uC0AC\uB78C\uC740 \uB098 \uC815\uB3C4 \uACA0\uC9C0?"
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 1
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC5B4\uB9B0\uC774\uB0A0 \uC774\uB124?\n\uBB50 \uB098\uB294 \uADF8\uB7F0\uAC70
+      \uC2E0\uACBD\uC740 \uC548 \uC4F0\uC9C0\uB9CC\n\uAD73\uC774 \uBB58 \uD574\uC900\uB2E4\uBA74
+      \uB098\uB791 \uAC19\uC774 \uCCB4\uC2A4 \uD55C\uD310 \uD574\uC918\n\uADF8 \uC815\uB3C4\uB294
+      \uAD1C\uCC2E\uC9C0?"
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 5
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -974523336881832889, guid: a51a7f12c12d58e449c83d91f1735ca2, type: 3}
+  - characterType: 2
+    dialogueText: "\uC5B4\uBC84\uC774 \uB0A0\uC778\uAC00..\n\uC5C4\uB9C8 \uC544\uBE60\uD55C\uD0DC
+      \uD55C \uBC88 \uCC3E\uC544\uAC00 \uBD10\uC57C\uACA0\uC9C0..\n\uC624\uB298\uC740
+      \uC790\uB9AC\uB97C \uBE44\uC6B0\uB3C4\uB85D \uD558\uACA0\uC5B4.\n\uCCB4\uC2A4
+      \uC0C1\uB300\uB294 \uB2E4\uB978 \uC0AC\uB78C\uB4E4 \uD55C\uD0DC \uB9D0 \uAC78\uC5B4\uBD10"
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 8
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC2A4\uC2B9\uC758 \uB0A0\uC778\uAC00?\n\uB098\uC758 \uC2A4\uC2B9\uC740
+      \uB808\uC628\uC774\uC57C.\n\uB0B4\uAC00 \uCCB4\uC2A4\uB97C \uBC30\uC6B4 \uAC74
+      \uB808\uC628\uD55C\uD0DC \uBC30\uC6E0\uC5B4.\n\uADF8\uB7EC\uB124 \uC2A4\uC2B9\uC758
+      \uB0A0\uC774\uB2C8\uAE4C \uC624\uB79C\uB9CC\uC5D0 \uB808\uC628\uC774\uB791
+      \uCCB4\uC2A4\uB97C \uD574\uBCFC\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 15
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "5.18\n\uB098\uB294 \uC798 \uBAA8\uB974\uACA0\uC9C0\uB9CC \uB808\uC628\uC774
+      \uACC4\uC18D \uB9D0\uD558\uB358\uAC74 \uC54C\uACE0 \uC788\uC5B4. \uBBFC\uC8FC\uC8FC\uC758\uB85C
+      \uD5A5\uD558\uB294 \uBC29\uBC95\uC911 \uD55C \uAC1C\uB77C\uACE0 \uC0DD\uAC01
+      \uD558\uACE0 \uC788\uACE0 \uADF8 \uBD84\uB4E4\uC774 \uC788\uC5B4\uC11C \uD3B8\uD558\uAC8C
+      \uC0B4\uACE0 \uC788\uB2E4\uACE0 \uC0DD\uAC01\uC740 \uD558\uACE0 \uC788\uC5B4."
+    isBirthdayCondition: 0
+    targetMonth: 5
+    targetDay: 18
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uD604\uCDA9\uC77C\uC774\uC796\uC544.\n\uC624\uB298\uC740 \uD0DC\uADF9\uAE30\uB97C
+      \uAC78\uC5B4\uC57C\uACA0\uB124.\n\uC7A0\uC2DC\uB9CC \uAE30\uB2E4\uB824\uBD10
+      \n\uC138\uC624 \uD0DC\uADF9\uAE30\uAC00 \uC5B4\uB514\uC788\uC5C8\uC9C0?"
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 6
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "6\uC6D4 \uBBFC\uC8FC \uD56D\uC7C1\n\uC815\uD655\uD788\uB294 \uBAA8\uB974\uC9C0\uB9CC 
+      \uBBFC\uC8FC\uC8FC\uC758 \uD55C\uAC78\uC74C\uC774\uB77C\uACE0 \uC0DD\uAC01\uD558\uACE0
+      \uC788\uC5B4."
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 10
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "6.25\n\uC804\uC7C1\uC774 \uC77C\uC5B4\uB0AC\uB358 \uB0A0\uC774\uC796\uC544?\n\uD55C
+      \uBC88\uB3C4 \uC804\uC7C1\uC774\uB77C\uB294 \uAC78 \uACAA\uC5B4\uBCF4\uC9C0\uB294
+      \uC54A\uC558\uC9C0\uB9CC\n\uB808\uC628\uD55C\uD0DC \uB4E4\uC5B4\uBCF4\uBA74
+      \uC804\uC7C1\uC774 \uC548\uB098\uC11C \uB2E4\uD589\uC774\uB77C\uACE0 \uC0DD\uAC01\uD558\uACE0
+      \uC788\uC5B4."
+    isBirthdayCondition: 0
+    targetMonth: 6
+    targetDay: 25
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uC81C\uD5CC\uC808\uC774\uB124\n\uD5CC\uBC95\uC774 \uC0DD\uAE34
+      \uB0A0\uC774 \uC796\uC544?\n\uADF8 \uC815\uB3C4\uB294 \uC54C\uC544."
+    isBirthdayCondition: 0
+    targetMonth: 7
+    targetDay: 17
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 0
+    dialogueText: "\uAD11\uBCF5\uC808\uC774\uB124 \n\uB098\uB77C\uAC00 \uB3CC\uC544\uC628
+      \uB0A0\uC774\uB2C8\uAE4C \uC88B\uC740 \uB0A0\uC774\uB77C\uB294 \uAC74 \uC54C\uACE0
+      \uC788\uC5B4."
+    isBirthdayCondition: 0
+    targetMonth: 8
+    targetDay: 15
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uAC1C\uCC9C\uC808\n\uB2E8\uAD70\uD560\uC544\uBC84\uC9C0\uAC00
+      \uB098\uB77C\uB97C \uC138\uC6B4 \uB0A0\uC774\uB77C\uB294 \uAC70 \uAC19\uB358\uB370?.."
+    isBirthdayCondition: 0
+    targetMonth: 10
+    targetDay: 3
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uD55C\uAE00\uB0A0!\n\uC138\uC885\uB300\uC655\uC774 \uD6C8\uBBFC\uC815\uC74C\uC744
+      \uBC1C\uD45C\uD55C \uB0A0!\n\uB9DE\uC9C0?"
+    isBirthdayCondition: 0
+    targetMonth: 10
+    targetDay: 9
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC5B8\uB2C8 \n\uC624\uB298 \uB0B4\uC77C\uB85C \uD06C\uB9AC\uC2A4\uB9C8\uC2A4
+      \uD30C\uD2F0 \uD560 \uAC74\uB370\n\uC640 \uC904\uAC70\uC9C0? \uC640\uC8FC\uBA74
+      \uC88B\uACA0\uB124!"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 24
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC624\uBE60\uB294 \uC624\uB298 \uB0B4\uC77C\n\uC2DC\uAC04\uC740
+      \uBE44\uC6CC\uC788\uC9C0 \uD06C\uB9AC\uC2A4\uB9C8\uC2A4 \uD30C\uD2F0 \uD560\uAC74\uB370\n\uC640\uC8FC\uBA74..
+      \uC88B\uACA0\uB294\uB370"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 24
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC5B8\uB2C8\n\uBA54\uB9AC\uD06C\uB9AC\uC2A4\uB9C8\uC2A4\n\uC624\uB298
+      \uD30C\uD2F0\uB2C8\uAE4C \uC624\uB298 \uD558\uB8E8 \uC815\uB3C4\uB294 \uC990\uAC81\uAC8C
+      \uBCF4\uB0B4\uB3C4\uB85D \uD574\uC918"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 25
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "{0}\uC624\uBE60 \uC654\uC5B4?\n\uC5BC\uB978 \uC640~ \uD30C\uD2F0\uB294
+      \uC774\uC81C \uC2DC\uC791\uD560 \uAC70\uB2C8\uAE4C\n\uC990\uAC81\uAC8C \uC990\uAE30\uB2E4\uAC00
+      \uAC00\uC918\n\uC544! \uADF8\uB9AC\uACE0 \uBA54\uB9AC \uD06C\uB9AC\uC2A4\uB9C8\uC2A4
+      ^^"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 25
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -974523336881832889, guid: a51a7f12c12d58e449c83d91f1735ca2, type: 3}
+  - characterType: 2
+    dialogueText: "\uBC8C\uC368 1\uB144\uC774 \uC9C0\uB0AC\uB124 {0}\uC624\uBE60\n\uC774\uBC88
+      \uB144\uB3C4\uB294 \uC218\uACE0\uD588\uC5B4 \n\uB0B4\uB144\uB3C4 \uC798 \uBD80\uD0C1\uD574"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 31
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uBC8C\uC368 1\uB144\uC774 \uC9C0\uB0AC\uB124 {0}\uC5B8\uB2C8\n\uC774\uBC88
+      \uB144\uB3C4\uB294 \uC218\uACE0\uD588\uC5B4 \n\uB0B4\uB144\uB3C4 \uC798 \uBD80\uD0C1\uD574"
+    isBirthdayCondition: 0
+    targetMonth: 12
+    targetDay: 31
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
   battleDialogues_Seo: []
   battleDialogues_Reon: []
   battleDialogues_Cloe: []
