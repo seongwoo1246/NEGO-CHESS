@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using TinyJSON;
-using Unity.VisualScripting;
 using UnityEngine;
 
 [System.Serializable]
@@ -17,20 +15,17 @@ public class SaveData
 {
     public int gold;
     public string name;
-    public int month;
-    public int day;
+    public int month, day;
     public bool IsGirl;
     public string Gender;
     public int maxcost;
     public float pulsNego;
-    public int seoWin;
-    public int reonWin;
-    public int cloeWin;
-    public int useHp;
-    public int Hp;
+    public int seoWin, reonWin,cloeWin;
+    public int useHp, Hp;
     public bool fristPlay;
+    public int maxPawn, maxBishop, maxKnight, maxRook, maxQueen;
+    public int bonusMaxHp, bonusUseHp;
 
-   
 
     public List<UpgradeSaveData> upgradeSaveList = new List<UpgradeSaveData>();
 

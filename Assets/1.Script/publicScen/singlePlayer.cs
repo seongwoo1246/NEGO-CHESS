@@ -16,9 +16,11 @@ public static class singlePlayer
     public static int seoWin =0;
     public static int reonWin =0;
     public static int cloeWin = 0;
+    public static int bonusMaxHp = 0;
+    public static int bonusUseHp = 0;
     public static int useHp = 0;
-    public static int currentHp =100;
-    
+    public static int currentHp;
+
 
 
     #region 강화를 위한 데이터와 함수
@@ -70,12 +72,32 @@ public static class singlePlayer
         foreach (var d in input) upgradeLevels[d.upgradeType] = d.currentLevel;
     }
 
+    private static int GetMaxPiece(pieceType type)
+    {
+        foreach (var p in pieceDataList)
+            if (p.Type == type) return p.maxPiece;
+        return 0;
+    }
 
+    private static void SetMaxPiece(pieceType type, int value)
+    {
+        if (value <= 0) return;   // 예전 저장 파일에는 이 값이 없어 0이므로 무시
+        for (int i = 0; i < pieceDataList.Count; i++)
+        {
+            if (pieceDataList[i].Type == type)
+            {
+                PieceData data = pieceDataList[i];
+                data.maxPiece = value;
+                pieceDataList[i] = data;
+                return;
+            }
+        }
+    }
     #endregion
 
     #region 저장과 불러오기를 하기 위한 부분
     public static SaveData CreateSaveData()
-    { 
+    {
         SaveData data = new SaveData();
         data.gold = Gold;
         data.name = playerName;
@@ -90,22 +112,14 @@ public static class singlePlayer
         data.cloeWin = cloeWin;
         data.useHp = useHp;
         data.Hp = currentHp;
-      
 
-        data.upgradeSaveList.Clear();
-        foreach (var upgrade in ReinforceM.Instance.upgradeList)
-        {
-            if (upgrade != null)
-            {
-                data.upgradeSaveList.Add(new UpgradeSaveData
-                {
-                    upgradeType = upgrade.upgradeType,
-                    currentLevel = upgrade.currentLevel,
-                    price = upgrade.price
-                });
-            }
-        }
+        ExportUpgrades(data.upgradeSaveList);   // 강화 레벨 (ReinforceM 없이 저장)
 
+        data.maxPawn = GetMaxPiece(pieceType.Pawn);
+        data.maxBishop = GetMaxPiece(pieceType.Bishop);
+        data.maxKnight = GetMaxPiece(pieceType.Knight);
+        data.maxRook = GetMaxPiece(pieceType.Rook);
+        data.maxQueen = GetMaxPiece(pieceType.Queen);
 
         return data;
     }
@@ -126,21 +140,15 @@ public static class singlePlayer
         cloeWin = data.cloeWin;
         useHp = data.useHp;
         currentHp = data.Hp;
-        
 
-        // 2. 업그레이드 리스트를 순회하며 저장된 레벨을 찾아 꽂아주기
-        foreach (var savedUpgrade in data.upgradeSaveList)
-        {
-            // 내 업그레이드 리스트에서 저장된 타입과 일치하는 항목 찾기
-            Upgrade target =ReinforceM.Instance.upgradeList.Find(u => u.upgradeType == savedUpgrade.upgradeType);
 
-            if (target != null)
-            {
-                target.currentLevel = savedUpgrade.currentLevel; // 레벨 복구
-                target.price = savedUpgrade.price;               // 가격 복구 (필요한 경우)
-                target.UpdateUI();                               // 💡 UI 텍스트(레벨, 비용) 갱신!
-            }
-        }
+        ImportUpgrades(data.upgradeSaveList);
+
+        SetMaxPiece(pieceType.Pawn, data.maxPawn);
+        SetMaxPiece(pieceType.Bishop, data.maxBishop);
+        SetMaxPiece(pieceType.Knight, data.maxKnight);
+        SetMaxPiece(pieceType.Rook, data.maxRook);
+        SetMaxPiece(pieceType.Queen, data.maxQueen);
     }
 
     #endregion

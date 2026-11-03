@@ -16,6 +16,10 @@ public class ReinforceSlot : MonoBehaviour
                 manager.TryUpgrade(targetStat);
         });
     }
-
+    private void OnEnable()
+    {
+        targetStat.currentLevel = singlePlayer.GetUpgradeLevel(targetStat.upgradeType);
+        targetStat.UpdateUI();
+    }
 
 }

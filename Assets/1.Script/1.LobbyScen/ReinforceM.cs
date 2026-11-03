@@ -85,12 +85,12 @@ public class ReinforceM : MonoBehaviour
 
     private void ApplyStatEffect(Upgrade stat)
     {
-        ScriptM.TryGet<HP>(out HP hp);
+       
 
         switch (stat.upgradeType)
         {
-            case UpgradeType.MaxHp: if (hp != null) hp.bonusMaxHp += stat.pulse; break;
-            case UpgradeType.UseHp: if (hp != null) hp.bonusUseHp += stat.pulse; break;
+            case UpgradeType.MaxHp: singlePlayer.bonusMaxHp += stat.pulse; break;
+            case UpgradeType.UseHp: singlePlayer.bonusUseHp += stat.pulse; break;
             case UpgradeType.MaxCost: singlePlayer.maxCost += stat.pulse; break;
             case UpgradeType.Negotiation: singlePlayer.bonusNegoPower += stat.pulse; break;
             case UpgradeType.SpawnPawn: singlePlayer.AddMaxPiece(pieceType.Pawn, stat.pulse); break;

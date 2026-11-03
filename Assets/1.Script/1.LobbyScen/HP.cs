@@ -15,8 +15,17 @@ public class HP : MonoBehaviour
     [SerializeField] private int baseUseHp = 20;
 
     // 업그레이드로 인해 추가된 수치 (나중에 업그레이드 시스템에서 이 값만 조작하면 됩니다!)
-    public int bonusMaxHp = 0;
-    public int bonusUseHp = 0;
+    public int bonusMaxHp
+    {
+        get => singlePlayer.bonusMaxHp;
+        set => singlePlayer.bonusMaxHp = value;
+    }
+
+    public int bonusUseHp
+    {
+        get => singlePlayer.bonusUseHp;
+        set => singlePlayer.bonusUseHp = value;
+    }
 
     // 💡 프로퍼티를 사용하면 외부에서는 계산된 최종 수치를 안전하게 읽어갈 수 있습니다.
     public int maxHp => baseMaxHp + bonusMaxHp;
