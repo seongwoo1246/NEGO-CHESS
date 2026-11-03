@@ -62,8 +62,14 @@ public class DialogueController : MonoBehaviour
         if (_fadeSeq != null) _fadeSeq.Kill();
     }
 
-    // 대사를 출력하는 함수
+    // 대사를 출력하는 함수 (기존 호출 그대로 사용 가능)
     public void ShowDialogue(string message)
+    {
+        ShowDialogue(message, 2.0f);
+    }
+
+    /// <param name="holdSeconds">글자가 완전히 나타난 뒤 머무는 시간(초)</param>
+    public void ShowDialogue(string message, float holdSeconds)
     {
         if (characterText == null) return;
 
@@ -79,23 +85,58 @@ public class DialogueController : MonoBehaviour
         // 3. 나타남 → 유지 → 사라짐
         _fadeSeq = DOTween.Sequence()
             .Append(characterText.DOFade(1f, 0.5f))
-            .AppendInterval(2.0f)
+            .AppendInterval(Mathf.Max(0f, holdSeconds))
             .Append(characterText.DOFade(0f, 0.5f))
             .SetLink(gameObject);
     }
 
     /// <summary>
-    /// 플레이어의 정보를 받아 대사를 골라주는 함수.
-    /// playerNego / enemyNego를 넘기면 협상력 조건(NegoPowerOver / NegoPowerUnder)이 적용됩니다.
-    /// 넘기지 않으면(일상 파트 등) 협상력 조건이 붙은 대사는 후보에서 빠집니다.
+    /// 플레이어의 정보를 받아 대사 하나를 골라주는 함수.
     /// </summary>
     public string GetMatchingDialogue(CharacterType characterType, bool isBattle)
+    {
+        List<CharacterDialogue> pool = BuildPool(characterType, isBattle);
+        if (pool == null || pool.Count == 0) return DefaultLine;
+
+        CharacterDialogue selected = PickWeighted(pool);
+
+        // 아이콘은 있을 때만 바꿉니다 (비어 있는 대사가 그림을 지워 버리지 않도록)
+        if (CharIcon != null && selected.icon != null) CharIcon.sprite = selected.icon;
+
+        _lastLine = selected.dialogueText;
+        return FormatLine(selected.dialogueText);
+    }
+
+    // ───────────── 캐릭터 채팅(CharacterChatM)용 ─────────────
+
+    /// <summary>오늘 조건에 맞는 대사 후보 전체를 output에 채웁니다. (생일 대사가 있으면 그것만)</summary>
+    public void GetCandidatePool(CharacterType characterType, bool isBattle, List<CharacterDialogue> output)
+    {
+        output.Clear();
+        List<CharacterDialogue> pool = BuildPool(characterType, isBattle);
+        if (pool != null) output.AddRange(pool);
+    }
+
+    /// <summary>골라 둔 대사 하나를 화면에 보여줍니다. (아이콘 교체 + 이름 치환 + 페이드)</summary>
+    public void ShowLine(CharacterDialogue line, float holdSeconds)
+    {
+        if (CharIcon != null && line.icon != null) CharIcon.sprite = line.icon;
+        _lastLine = line.dialogueText;
+        ShowDialogue(FormatLine(line.dialogueText), holdSeconds);
+    }
+
+    public string FallbackLine => DefaultLine;
+
+    // ───────────── 내부 ─────────────
+
+    // 조건(날짜, 성별)에 맞는 후보 목록을 만듭니다. 이 클래스의 재사용 리스트를 돌려주므로 호출한 쪽은 바로 복사해서 쓰세요.
+    private List<CharacterDialogue> BuildPool(CharacterType characterType, bool isBattle)
     {
         int currentMonth = System.DateTime.Now.Month;
         int currentDay = System.DateTime.Now.Day;
 
         List<CharacterDialogue> targetList = SelectList(characterType, isBattle);
-        if (targetList == null) return DefaultLine;
+        if (targetList == null) return null;
 
         _birthdayCandidates.Clear();
         _normalCandidates.Clear();
@@ -122,23 +163,12 @@ public class DialogueController : MonoBehaviour
                                (d.requireMan && !singlePlayer.isGirl);
             if (!matchGender) continue;
 
-           
-
             if (d.isBirthdayCondition) _birthdayCandidates.Add(d);
             else _normalCandidates.Add(d);
         }
 
         // 생일 대사가 있으면 오늘은 그것만 나옵니다 (일반 대사에 묻히지 않도록)
-        List<CharacterDialogue> pool = _birthdayCandidates.Count > 0 ? _birthdayCandidates : _normalCandidates;
-        if (pool.Count == 0) return DefaultLine;
-
-        CharacterDialogue selected = PickWeighted(pool);
-
-        // 아이콘은 있을 때만 바꿉니다 (비어 있는 대사가 그림을 지워 버리지 않도록)
-        if (CharIcon != null && selected.icon != null) CharIcon.sprite = selected.icon;
-
-        _lastLine = selected.dialogueText;
-        return FormatLine(selected.dialogueText);
+        return _birthdayCandidates.Count > 0 ? _birthdayCandidates : _normalCandidates;
     }
 
     // 후보 중 하나를 랜덤으로 고르되, 후보가 둘 이상이면 방금 나온 대사는 피합니다.
@@ -155,6 +185,7 @@ public class DialogueController : MonoBehaviour
         }
         return pool[Random.Range(0, pool.Count)];
     }
+
     private List<CharacterDialogue> SelectList(CharacterType characterType, bool isBattle)
     {
         if (!isBattle)
