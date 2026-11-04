@@ -54,11 +54,12 @@ public class DialogueController : MonoBehaviour
 
     public void Awake()
     {
-        ScriptM.Register<DialogueController>(this, UseSpace.Global);
+        ScriptM.Register<DialogueController>(this, UseSpace.Local);
     }
 
     private void OnDestroy()
     {
+        ScriptM.Unregister<DialogueController>();   // 추가 (Characters와 같은 방식)
         if (_fadeSeq != null) _fadeSeq.Kill();
     }
 
