@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 public class AchievementSlot : MonoBehaviour
 {
+    [Header("최대값을 가진 AchievementM (비워 두면 자동으로 찾습니다)")]
+    [SerializeField] private AchievementM achievement;
+
     [Header("세오 관련")]
     [SerializeField] Slider seo;
     [SerializeField] TextMeshProUGUI seoText;
@@ -20,106 +23,30 @@ public class AchievementSlot : MonoBehaviour
     [SerializeField] Slider hpbar;
     [SerializeField] TextMeshProUGUI hpbarText;
 
-    private void OnEnable()
+    private void OnEnable() => Refresh();
+
+    public void Refresh()
     {
-        if(ScriptM.TryGet<AchievementM>(out AchievementM service))
-        {
-            service.OnReonWinChanged += UpdateReonUI;
-            service.OnCloeWinChanged += UpdateCloeUI;
-            service.OnSeoWinChanged += UpdateSeoUI;
-            service.OnUseHpChanged += UpdateUseHpUI;
-        }
-    }
-    private void OnDisable()
-    {
-        
-        if (ScriptM.TryGet<AchievementM>(out AchievementM service))
-        {
-            service.OnReonWinChanged -= UpdateReonUI;
-            service.OnCloeWinChanged -= UpdateCloeUI;
-            service.OnSeoWinChanged -= UpdateSeoUI;
-            service.OnUseHpChanged -= UpdateUseHpUI;
-        }
+        AchievementM a = FindAchievement();
+        if (a == null) return;
+
+        SetBar(seo, seoText, singlePlayer.seoWin, a.MaxSeoWin);
+        SetBar(reon, reonText, singlePlayer.reonWin, a.MaxReonWin);
+        SetBar(cloe, cloeText, singlePlayer.cloeWin, a.MaxCloeWin);
+        SetBar(hpbar, hpbarText, singlePlayer.useHp, a.MaxUseHp);
     }
 
-    private void UpdateSeoUI(int currentWin)
+    private AchievementM FindAchievement()
     {
-        if (ScriptM.TryGet<AchievementM>(out AchievementM service))
-        {
-            float maxWin = service.MaxSeoWin;
-
-
-            // 슬라이더 비율 갱신 (0 ~ 1 사이 값)
-            if (seo != null)
-            {
-                seo.value = (float)currentWin / maxWin;
-            }
-
-            // 텍스트 갱신 (예: "0/50")[cite: 10]
-            if (seoText != null)
-            {
-                seoText.text = $"{currentWin}/{maxWin}";
-            }
-        }
+        if (achievement != null) return achievement;
+        if (ScriptM.TryGet<AchievementM>(out AchievementM found) && found != null) achievement = found;
+        else achievement = GetComponentInParent<AchievementM>(true);
+        return achievement;
     }
-    private void UpdateReonUI(int currentWin)
+
+    private static void SetBar(Slider bar, TextMeshProUGUI label, int current, int max)
     {
-        if (ScriptM.TryGet<AchievementM>(out AchievementM service))
-        {
-            float maxWin = service.MaxReonWin;
-
-
-            // 슬라이더 비율 갱신 (0 ~ 1 사이 값)
-            if (reon != null)
-            {
-                reon.value = (float)currentWin / maxWin;
-            }
-
-            // 텍스트 갱신 (예: "0/50")[cite: 10]
-            if (reonText != null)
-            {
-                reonText.text = $"{currentWin}/{maxWin}";
-            }
-        }
-    }
-    private void UpdateCloeUI(int currentWin)
-    {
-        if (ScriptM.TryGet<AchievementM>(out AchievementM service))
-        {
-            float maxWin = service.MaxCloeWin;
-
-
-            // 슬라이더 비율 갱신 (0 ~ 1 사이 값)
-            if (cloe != null)
-            {
-                cloe.value = (float)currentWin / maxWin;
-            }
-
-            // 텍스트 갱신 (예: "0/50")[cite: 10]
-            if (cloeText != null)
-            {
-                cloeText.text = $"{currentWin}/{maxWin}";
-            }
-        }
-    }
-    private void UpdateUseHpUI(int currentUseHp)
-    {
-        if (ScriptM.TryGet<AchievementM>(out AchievementM service))
-        {
-            float maxWin = service.MaxUseHp;
-
-
-            // 슬라이더 비율 갱신 (0 ~ 1 사이 값)
-            if (hpbar != null)
-            {
-                hpbar.value = (float)currentUseHp / maxWin;
-            }
-
-            // 텍스트 갱신 (예: "0/50")[cite: 10]
-            if (hpbarText != null)
-            {
-                hpbarText.text = $"{currentUseHp}/{maxWin}";
-            }
-        }
+        if (bar != null) bar.value = max > 0 ? Mathf.Clamp01((float)current / max) : 0f;
+        if (label != null) label.text = $"{current}/{max}";
     }
 }

@@ -59,10 +59,10 @@ public class Characters : MonoBehaviour
     public List<PieceSpawnInfo> defaultPieceLayout;
 
     [Header("AI 생각 깊이 (숫자가 높을수록 똑똑하지만 오래 걸립니다. 0이면 4)")]
-    public int searchDepth = 4;
+    public int searchDepth = 6;
 
     [Header("한 수를 생각하는 최대 시간(초). 깊이에 도달하기 전에 시간이 다 되면 그때까지의 최선수를 둡니다.")]
-    public float maxThinkSeconds = 2.5f;
+    public float maxThinkSeconds = 4.5f;
 
     private CheseGameM gameM;
 
@@ -219,13 +219,6 @@ public class Characters : MonoBehaviour
             case pieceType.King: return ChessSearchEngine.K;
             default: return 0;
         }
-    }
-
-    // 예전 코드와의 호환용 (다른 스크립트에서 참조할 가능성 때문에 남겨 둠)
-    public struct MoveCand
-    {
-        public Vector2Int from, to;
-        public int score;
     }
 
     private void ExecuteMove(Vector2Int from, Vector2Int to)

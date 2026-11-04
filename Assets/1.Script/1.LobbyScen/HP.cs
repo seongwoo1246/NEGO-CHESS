@@ -14,6 +14,12 @@ public class HP : MonoBehaviour
     [SerializeField] private int baseMaxHp = 100;
     [SerializeField] private int baseUseHp = 20;
 
+    [Header("체력 자동 회복")]
+    [SerializeField] private int regenAmount = 5;
+    [SerializeField] private float regenInterval = 120f;
+
+    private bool _regenRunning;
+
     // 업그레이드로 인해 추가된 수치 (나중에 업그레이드 시스템에서 이 값만 조작하면 됩니다!)
     public int bonusMaxHp
     {
@@ -39,7 +45,7 @@ public class HP : MonoBehaviour
     // 최대 체력 대비 비율(float)로 필요할 때를 위한 이벤트 (선택사항)
     public event Action<float> OnHpRatioChanged;
 
-    private CancellationTokenSource cts;
+   
 
     // 프로퍼티를 통해 hp 값이 변경될 때 자동으로 이벤트가 발동되도록 설정
     public int Hp
@@ -57,6 +63,7 @@ public class HP : MonoBehaviour
                 if (maxHp > 0)
                 {
                     OnHpRatioChanged?.Invoke((float)singlePlayer.currentHp / maxHp);
+                    if (clampedValue < maxHp) EnsureRegen();
                 }
             }
         }
@@ -64,7 +71,7 @@ public class HP : MonoBehaviour
 
     private void Awake()
     {
-    
+        CheckOfflineHpRegen(regenAmount, regenInterval);
         ScriptM.Register<HP>(this, UseSpace.Global);
     }
 
@@ -82,23 +89,49 @@ public class HP : MonoBehaviour
         }
         OnHpRatioChanged += UpdateHpBar;
         OnHpChanged += UpdateHpText;
+        singlePlayer.OnHpStatChanged += OnMaxHpChanged;
 
         InitHp();
-
-        CheckOfflineHpRegen(5, 120f);
-        if (Hp < maxHp)
-        {
-            StartRegenerateHP(5, 120f).Forget();
-        }
-       
-      
+        EnsureRegen();
     }
 
     private void OnDisable()
     {
         OnHpChanged -= UpdateHpText;
         OnHpRatioChanged -= UpdateHpBar;
-        
+        singlePlayer.OnHpStatChanged -= OnMaxHpChanged;
+
+    }
+    private void OnMaxHpChanged()
+    {
+        if (singlePlayer.currentHp > maxHp) Hp = Mathf.Min(Hp, maxHp);  // 최대가 줄면 넘치지 않게
+        InitHp();                                   // 글자 "현재 / 최대"와 바 갱신
+        if (Hp < maxHp) EnsureRegen();              // 최대가 늘어 빈 칸이 생기면 회복 시작
+    }
+
+    // 이미 돌고 있으면 아무 것도 하지 않습니다 (중복 방지)
+    private void EnsureRegen()
+    {
+        if (_regenRunning) return;
+        RegenLoopAsync(destroyCancellationToken).Forget();
+    }
+
+    private async UniTaskVoid RegenLoopAsync(CancellationToken ct)
+    {
+        _regenRunning = true;
+        try
+        {
+            while (Hp < maxHp)   // 가득 차면 자연스럽게 끝남
+            {
+                bool canceled = await UniTask
+                    .Delay(TimeSpan.FromSeconds(regenInterval), ignoreTimeScale: true, cancellationToken: ct)
+                    .SuppressCancellationThrow();
+                if (canceled) return;
+
+                Hp += regenAmount;   // 프로퍼티: 최대치 제한 + UI 갱신
+            }
+        }
+        finally { _regenRunning = false; }
     }
 
     public void InitHp()
@@ -130,51 +163,23 @@ public class HP : MonoBehaviour
 
     public bool TryStartGame()
     {
+       
         // 프로퍼티(Hp)를 통해 값을 변경하므로 자동으로 이벤트가 발생함
-        if(Hp>=useHp)
+        if (Hp>=useHp)
         {
             
             Hp -= useHp;
-            if(ScriptM.TryGet<AchievementM>(out AchievementM service))
-            {
-                service.AddUseHp(useHp);
-            }
+            singlePlayer.useHp += useHp;
             return true;
         }
         else
         {
-          
             return false;
         }
         
     }
 
-    // 유니테스크를 이용한 일정 시간마다 체력 증가 로직
-    public async UniTaskVoid StartRegenerateHP(int healAmount, float intervalSeconds)
-    {
-        cts = new CancellationTokenSource();
-
-        try
-        {
-            while (!cts.Token.IsCancellationRequested)
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(intervalSeconds), cancellationToken: cts.Token);
-
-                // 프로퍼티를 통해 체력 증가 (최대 체력 자동 클램프 및 이벤트 발생)
-                Hp += healAmount;
-                if (Hp >= maxHp)
-                {
-                   
-                    break; 
-                }
-
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            // 정상 취소 처리
-        }
-    }
+   
 
     #region 넘어갈 때 위치 변경
 
@@ -233,6 +238,13 @@ public class HP : MonoBehaviour
                 singlePlayer.keepHp = totalHeal;
             }
         }
+    }
+
+    public void ApplyKeptHp()
+    {
+        if (singlePlayer.keepHp <= 0) return;
+        Hp += singlePlayer.keepHp;     // 프로퍼티라 최대치 제한 + UI 갱신이 같이 됩니다
+        singlePlayer.keepHp = 0;       // 한 번 쓰면 비움
     }
     #endregion
 

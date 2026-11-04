@@ -1781,6 +1781,282 @@ MonoBehaviour:
     requireMan: 0
     NegoPowerOver: 0
     icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
-  battleDialogues_Seo: []
-  battleDialogues_Reon: []
-  battleDialogues_Cloe: []
+  battleDialogues_Seo:
+  - characterType: 0
+    dialogueText: "\uD638\uC624... \uACFC\uC5F0..."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -2609879190663527008, guid: 5b81198af7bfa1245aec5842eefaf7e5, type: 3}
+  - characterType: 0
+    dialogueText: "{0}\uC591\n\uADF8\uB7F4 \uC0DD\uAC01\uC785\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 1
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -2609879190663527008, guid: 5b81198af7bfa1245aec5842eefaf7e5, type: 3}
+  - characterType: 0
+    dialogueText: "\uC774\uB7F0\uAC74 \uC5B4\uB5BB\uC2B5\uB2C8\uAE4C? {0}\uAD70"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 1
+    NegoPowerOver: 0
+    icon: {fileID: -7475954394319961426, guid: 8d7cefe3070fb844eb7cb803b924a425, type: 3}
+  - characterType: 0
+    dialogueText: "\uC73C\uBBC0\uBBC0 \uADF8\uB807\uAC8C \uB098\uC624\uC168\uAD70\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -3797050772981226451, guid: face25b59d17b3848aeedf07e3645d2a, type: 3}
+  - characterType: 0
+    dialogueText: "\uC544\uD558\uD558 \uADF8\uB7F0 \uC2DD\uC73C\uB85C \uD574\uB3C4
+      \uB418\uACA0\uC2B5\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 6882321832591764360, guid: 5e4275054f6389d499f6fb6a3ac046f0, type: 3}
+  - characterType: 0
+    dialogueText: "\uC774\uB7F0 \uC2DD\uC73C\uB85C \uD574\uBCF4\uB294\uAC74 \uC5B4\uB5A4\uAC00\uC694?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 0
+    dialogueText: "\uBC29\uAE08 \uADF8 \uC120\uD0DD\uC73C\uB85C \uB418\uACA0\uC2B5\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -2609879190663527008, guid: 5b81198af7bfa1245aec5842eefaf7e5, type: 3}
+  - characterType: 0
+    dialogueText: "\uACFC\uC5F0 \uADF8\uB7F0 \uC2DD\uC73C\uB85C \uD558\uACA0\uB2E4\uB294
+      \uAC70\uAD70\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -2609879190663527008, guid: 5b81198af7bfa1245aec5842eefaf7e5, type: 3}
+  - characterType: 0
+    dialogueText: "\uC774\uB807\uAC8C \uD55C \uBC88 \uD574\uBCFC\uAE4C\uC694?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 0
+    dialogueText: "\uC774\uB7F0 \uC2E4\uC218\uB97C \uD558\uAC8C \uB420 \uC904\uC774\uC57C.."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -3797050772981226451, guid: face25b59d17b3848aeedf07e3645d2a, type: 3}
+  battleDialogues_Reon:
+  - characterType: 1
+    dialogueText: "\uD638\uC624\uC624.."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uADF8\uAC78\uB85C \uAD1C\uCC2E\uC73C\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "\uC774\uB7F0 \uC2DD\uC740 \uC5B4\uB5A0\uC2ED\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 7129533472587438123, guid: 2d45cec5425ba7646ab0ec052db5bb9f, type: 3}
+  - characterType: 1
+    dialogueText: "\uC74C.. \uC2E4\uC218 \uD588\uAD70\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -3797050772981226451, guid: face25b59d17b3848aeedf07e3645d2a, type: 3}
+  - characterType: 1
+    dialogueText: "\uC774\uB7F0 \uAC74 \uC5B4\uB5A0\uC2ED\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  - characterType: 1
+    dialogueText: "\uC5B4..... \uC774\uB7F0\uC774\uB7F0 \uC2E4\uC218 \uD588\uAD70\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -3797050772981226451, guid: face25b59d17b3848aeedf07e3645d2a, type: 3}
+  - characterType: 1
+    dialogueText: "\uD760\uD760.. \uD638\uC624\uC624"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uADF8\uB7F0 \uC2DD\uC73C\uB85C \uD558\uC2DC\uB294 \uAD70\uC694."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uADF8\uB7F0 \uC2DD\uC73C\uB85C \uD558\uC2DC\uACA0\uB2E4\uB294\uAC81\uB2C8\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -9054060596661462530, guid: a1fc63e4d2adff04cbada3c2bb577acf, type: 3}
+  - characterType: 1
+    dialogueText: "\uD558\uD558\uD558\uD558\uD558\uD558\uD558\uD558\uD558\n\uC88B\uC2B5\uB2C8\uB2E4.
+      \uC544\uC8FC \uB300\uB2E8\uD55C \uC218\uB97C \uB450\uC168\uC2B5\uB2C8\uB2E4."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: 1261983876821974576, guid: 460c675805a5dae4d95c1c33ada9a0a8, type: 3}
+  battleDialogues_Cloe:
+  - characterType: 2
+    dialogueText: "\uD750\uD760 \uADF8\uB7F0 \uC2DD\uC73C\uB85C \uD558\uACA0\uB2E4\uB294\uAC70\uC9C0"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uADF8\uB7F0 \uC2DD \uBCF4\uB2E4\uB294 \uC774\uB7F0\uAC74 \uC5B4\uB54C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "\uC544\uB2C8~~~ \uC774\uAC70\uB294 \uC544\uB2CC\uAC70 \uAC19\uC740\uB370."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -8228373630913213390, guid: 6a9c494610ff91b49a2fee79af3176fe, type: 3}
+  - characterType: 2
+    dialogueText: "\uC774\uAC70\uB97C \uC774\uB807\uAC8C \uADF8\uB7EC\uBA74 \uC800\uAC8C
+      \uC774\uB7F0 \uC2DD\uC73C\uB85C...\n(\uC911\uC5BC\uC911\uC5BC)"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uADF8\uAC78\uB85C \uC548 \uC6C0\uC9C1\uC5EC\uB3C4 \uB418\uACA0\uC5B4?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -5819435642169030532, guid: 037aa7319e4797c47a45818619c0bb0e, type: 3}
+  - characterType: 2
+    dialogueText: "\uB098\uB77C\uBA74 \uADF8\uB807\uAC8C \uC548\uD560 \uAC70 \uAC19\uC740\uB370 "
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "\uC774\uB7F0 \uC2DD\uC73C\uB85C \uD574 \uBCFC\uAE4C?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "\uC774\uB807\uAC8C \uD574\uBC84\uB9B4\uAE4C\uB098?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -1642079248484462197, guid: 3877a30d0c22f094ca1d1c440d696875, type: 3}
+  - characterType: 2
+    dialogueText: "\uBC29\uAE08 \uADF8\uAC78\uB85C \uB098\uC758 \uC2B9\uB9AC\uAC00
+      \uACB0\uC815 \uB410\uB124\n\uD6C4\uD6D7 \uC218\uACE0\uD588\uC5B4."
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -974523336881832889, guid: a51a7f12c12d58e449c83d91f1735ca2, type: 3}
+  - characterType: 2
+    dialogueText: "\uC5B4\uB77C? \uC774\uB807\uAC8C \uB450\uBA74 \uC548\uB3FC\uB294
+      \uAC70\uC600\uB098?"
+    isBirthdayCondition: 0
+    targetMonth: 0
+    targetDay: 0
+    requireGirl: 0
+    requireMan: 0
+    NegoPowerOver: 0
+    icon: {fileID: -8228373630913213390, guid: 6a9c494610ff91b49a2fee79af3176fe, type: 3}

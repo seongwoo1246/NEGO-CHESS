@@ -37,7 +37,6 @@ public class BattleM : MonoBehaviour
         {
             hp.HidePanel();
 
-
             if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM)&& hp.TryStartGame())
             {
                 PrepareForBattle();

@@ -9,20 +9,54 @@ public static class singlePlayer
      public static bool isGirl = true;
      public static string gender = "여";
     public static int maxCost = 49;
-     public static int Gold = 0;
     public static Sprite icon;
     public static float bonusNegoPower = 0;
     public static int selectedCharacterId;
     public static int seoWin =0;
     public static int reonWin =0;
     public static int cloeWin = 0;
-    public static int bonusMaxHp = 0;
     public static int bonusUseHp = 0;
     public static int useHp = 0;
-    public static int currentHp;
     public static bool hpInitialized = false;
     public static int keepHp;
 
+    public static event System.Action OnHpStatChanged;
+
+    private static int _bonusMaxHp = 0;
+    public static int bonusMaxHp
+    {
+        get => _bonusMaxHp;
+        set { _bonusMaxHp = value; OnHpStatChanged?.Invoke(); }
+    }
+    private static int _currentHp;
+    public static int currentHp
+    {
+        get => _currentHp;
+        set
+        {
+            if (_currentHp != value)
+                UnityEngine.Debug.Log($"[currentHp] {_currentHp} -> {value}\n{System.Environment.StackTrace}");
+            _currentHp = value;
+        }
+    }
+   
+    public static bool isFristPlay
+    {
+        get => PlayerPrefs.GetInt("FirstPlayDone", 0) == 0;
+        set { PlayerPrefs.SetInt("FirstPlayDone", value ? 0 : 1); PlayerPrefs.Save(); }
+
+    }
+            private static int _Gold;
+    public static int Gold
+    {
+        get => _Gold;
+        set
+        {
+            if (_Gold != value)
+                UnityEngine.Debug.Log($"[Gold] {_Gold} -> {value}\n{System.Environment.StackTrace}");
+            _Gold = value;
+        }
+    }
 
 
     #region 강화를 위한 데이터와 함수

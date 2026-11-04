@@ -26,13 +26,13 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] public Image Icon;
 
 
-    public bool isFristPlay = true;
+    
 
     private void Awake()
     {
         ScriptM.Register<StartSceneM>(this, UseSpace.Local);
-        PlayerPrefs.DeleteAll();
-        PlayerPrefs.Save();
+        //PlayerPrefs.DeleteAll();
+        //PlayerPrefs.Save();
     }
 
     private void Start()
@@ -101,7 +101,10 @@ public class StartSceneM : MonoBehaviour
             GameExitBtn.gameObject.SetActive(true);
             SingleBtn.gameObject.SetActive(false);
             MultiBtn.gameObject.SetActive(false);
-            InputData();
+           if( singlePlayer.isFristPlay == true)
+            {
+                InputData();
+            }
             if (ScriptM.TryGet<HP>(out HP hp))
             {
                 if (hp != null) { hp.ShowPanel(); }
@@ -112,8 +115,14 @@ public class StartSceneM : MonoBehaviour
 
     private void openChar()
     {
-        Player.SetActive(true);
-       
+        if (singlePlayer.isFristPlay == true)
+        {
+            Player.SetActive(true);
+        }
+        else
+        {
+            EnterSingleMode();
+        }
     }
 
 
@@ -132,9 +141,9 @@ public class StartSceneM : MonoBehaviour
     private void InputData()
     {
        
-        if(isFristPlay == true)
-        {
-            Debug.Log("데이터 삽입");
+     
+        
+            
             singlePlayer.playerName = PlayerName.text;
 
             if (int.TryParse(PlayerMonth.text, out singlePlayer.birthMonth))
@@ -155,8 +164,8 @@ public class StartSceneM : MonoBehaviour
                 Texts.text = "예) 12일 = 12 식으로 적어주세요.";
             }
 
-            isFristPlay = false;
-        }
+            singlePlayer.isFristPlay = false;
+        
 
       
     }

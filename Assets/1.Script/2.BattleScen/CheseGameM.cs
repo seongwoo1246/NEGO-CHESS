@@ -90,7 +90,7 @@ public class CheseGameM : MonoBehaviour
 
     private void Start()
     {
-        
+       
 
         positionHistory.Clear();
 
@@ -506,7 +506,7 @@ public class CheseGameM : MonoBehaviour
             Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
             return;
         }
-
+        TriggerCharacterInteraction(currentAI.characterType);
         // 소환 모드 해제
         isSpawnMode = false;
         ReadyPanel.SetActive(false);
@@ -666,10 +666,10 @@ public class CheseGameM : MonoBehaviour
 
     private void SelectPiece(int x, int y)
     {
-        Debug.Log("말 선택함");
+        TriggerCharacterInteraction(currentAI.characterType);
 
 
-        ChessPieceM pieceObj = pieceGrid[x, y];
+         ChessPieceM pieceObj = pieceGrid[x, y];
         if (pieceObj == null) return;
 
         // 전에 선택한게 있으면 타일을 되돌리기 위해서 필요
@@ -706,6 +706,7 @@ public class CheseGameM : MonoBehaviour
 
     private void DeselectPiece()
     {
+        TriggerCharacterInteraction(currentAI.characterType);
 
         // 만약 선택된 기물이 있었다면, 그 주변에 칠했던 색상들을 원복
         if (selectedPos != null)
@@ -728,6 +729,8 @@ public class CheseGameM : MonoBehaviour
     /// <param name="toY">도착 Y (0~7)</param>
     public void MovePiece(int fromX, int fromY, int toX, int toY)
     {
+        TriggerCharacterInteraction(currentAI.characterType);
+
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
             Debug.LogError("ChessPieceM 서비스를 찾을 수 없습니다.");
@@ -851,6 +854,8 @@ public class CheseGameM : MonoBehaviour
     /// </summary>
     public void DestroyPiece(int x, int y)
     {
+        TriggerCharacterInteraction(currentAI.characterType);
+
         // 💡 해당 좌표에 기물이 실제로 존재할 때만 제거 실행
         if (pieceGrid[x, y] != null)
         {
@@ -919,6 +924,8 @@ public class CheseGameM : MonoBehaviour
 
     public void TriggerCheckCutin(int targetCharacterId, bool isCheckmateState)
     {
+        TriggerCharacterInteraction(currentAI.characterType);
+
         // 1. 현재 대전 중인 캐릭터 ID와 체크 상태에 맞는 데이터를 찾습니다.
         Cutin target = cutins.Find(c => c.id == targetCharacterId && c.isCheckmate == isCheckmateState);
 
@@ -1012,6 +1019,8 @@ public class CheseGameM : MonoBehaviour
     // UI 버튼에 각각 연결할 함수
     public void TryNegotiateRule(int ruleTypeInt)
     {
+        TriggerCharacterInteraction(currentAI.characterType);
+
         NegotiationType ruleType = (NegotiationType)ruleTypeInt;
 
         bool isNegotiationSuccess = TryNegotiate();
@@ -1056,6 +1065,8 @@ public class CheseGameM : MonoBehaviour
     // 💡 플레이어가 '무르기 협상' 버튼을 눌렀을 때 호출할 함수
     public void TryUndoWithNegotiation()
     {
+        TriggerCharacterInteraction(currentAI.characterType);
+
         // 1. 무를 기보가 아예 없다면 중단
         if (MoveHistory.Count == 0)
         {
@@ -1200,7 +1211,9 @@ public class CheseGameM : MonoBehaviour
     // 1. 도발 성공 시 호출 
     public void OnTauntSuccess()
     {
-        if(myNegoPower>=0)
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        if (myNegoPower>=0)
         {
             myNegoPower -= 5f;
 
@@ -1233,6 +1246,8 @@ public class CheseGameM : MonoBehaviour
     // 3. 프로모션(승진) 시 호출 (기존 코스트와 새 코스트의 차이만큼 증가)
     public void OnPiecePromoted(bool isMyPiece, int oldCost, int newCost)
     {
+        TriggerCharacterInteraction(currentAI.characterType);
+
         int costDifference = newCost - oldCost; // 예: 10 - 1 = 9
 
         if (isMyPiece)
@@ -1248,6 +1263,7 @@ public class CheseGameM : MonoBehaviour
     }
     public void RequestPromotion(ChessPieceM pawn, int x, int y ,bool isAi)
     {
+        TriggerCharacterInteraction(currentAI.characterType);
         if (isAi)
         {
             if(canUsePromotion)
@@ -1479,7 +1495,7 @@ public class CheseGameM : MonoBehaviour
     #endregion
 
     #region 대사 관련 함수
-    public void TriggerCharacterInteraction(CharacterType characterType, bool isBattle)
+    public void TriggerCharacterInteraction(CharacterType characterType, bool isBattle = true)
     {
         if (ScriptM.TryGet<DialogueController>(out DialogueController service))
         {
@@ -1596,18 +1612,18 @@ public class CheseGameM : MonoBehaviour
 
                 // 승리 시 다음 캐릭터 잠금 해제 실행
                 UnlockNextCharacter(currentAI.characterId);
-                if(ScriptM.TryGet<AchievementM>(out AchievementM achievement))
-                {
+               
+                
                     switch(currentAI.characterId)
                     {
-                        case 0: achievement.AddSeoWin(1); break;
-                        case 1: achievement.AddReonWin(1); break;
-                        case 2: achievement.AddCloeWin(1); break;
+                        case 0: singlePlayer.seoWin++; break;
+                        case 1: singlePlayer.reonWin++; break;
+                        case 2: singlePlayer.cloeWin++; break;
                     }
-                }
 
-                
                 break;
+                
+                
 
             case GameResultType.Lose:
                 int loseMultiplier = 5;
@@ -1651,11 +1667,6 @@ public class CheseGameM : MonoBehaviour
         {
             service1.ShowPanel();
         }
-        if(ScriptM.TryGet<AchievementM>(out AchievementM service2))
-        {
-            service2.ReturnFromBattle();
-        }
-
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
             

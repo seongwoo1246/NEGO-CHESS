@@ -10,79 +10,21 @@ public class AchievementM : MonoBehaviour
     
     public int MaxSeoWin = 50; 
 
-    
     public event Action<int> OnSeoWinChanged;
 
-    public int SeoWin
-    {
-        get =>singlePlayer.seoWin;
-        set
-        {
-            if (singlePlayer.seoWin != value)
-            {
-                singlePlayer.seoWin = value;
-                
-                OnSeoWinChanged?.Invoke(singlePlayer.seoWin);
-            }
-        }
-    }
-
-
-    
     public int MaxReonWin = 50;
 
     public event Action<int> OnReonWinChanged;
 
-    public int ReonWin
-    {
-        get => singlePlayer.reonWin;
-        set
-        {
-            if (singlePlayer.reonWin != value)
-            {
-                singlePlayer.reonWin = value;
-                OnReonWinChanged?.Invoke(singlePlayer.reonWin);
-            }
-        }
-    }
-
-
-   
     public int MaxCloeWin = 50;
 
     public event Action<int> OnCloeWinChanged;
 
-    public int CloeWin
-    {
-        get => singlePlayer.cloeWin;
-        set
-        {
-            if (singlePlayer.cloeWin != value)
-            {
-                singlePlayer.cloeWin = value;
-                OnCloeWinChanged?.Invoke(singlePlayer.cloeWin);
-            }
-        }
-    }
-
-
-   
     public int MaxUseHp = 3000;
 
     public event Action<int> OnUseHpChanged;
 
-    public int UseHp
-    {
-        get => singlePlayer.useHp;
-        set
-        {
-            if (singlePlayer.useHp != value)
-            {
-                singlePlayer.useHp = value;
-                OnUseHpChanged?.Invoke(singlePlayer.useHp);
-            }
-        }
-    }
+    
 
     [Header("UI References")]
     [SerializeField] private CanvasGroup panelCanvasGroup; // 패널에 붙은 CanvasGroup
@@ -104,28 +46,26 @@ public class AchievementM : MonoBehaviour
 
     private void Awake()
     {
-        ScriptM.Register<AchievementM>(this, UseSpace.Global);
-
+        ScriptM.Register<AchievementM>(this, UseSpace.Local);
+        ReturnFromBattle();
         bool isReonUnlocked = PlayerPrefs.GetInt("Character_Unlock_1", 0) == 1;
         bool isCloeUnlocked = PlayerPrefs.GetInt("Character_Unlock_2", 0) == 1;
 
         if (LockedReon != null) LockedReon.SetActive(!isReonUnlocked); // 해제되었다면 자물쇠 비활성화(!isReonUnlocked -> false)
         if (LockedCloe != null) LockedCloe.SetActive(!isCloeUnlocked);
     }
-    public void AddSeoWin(int amount)
+
+    private void OnEnable()
     {
-        SeoWin += amount;
+        RefreshAll();
     }
-    public void AddReonWin(int amount)
+
+    public void RefreshAll()
     {
-        ReonWin += amount;
+        OnSeoWinChanged?.Invoke(singlePlayer.seoWin);
+        OnReonWinChanged?.Invoke(singlePlayer.reonWin);
+        OnCloeWinChanged?.Invoke(singlePlayer.cloeWin);
+        OnUseHpChanged?.Invoke(singlePlayer.useHp);
     }
-    public void AddCloeWin(int amount)
-    {
-        CloeWin += amount;
-    }
-    public void AddUseHp(int amount)
-    {
-        UseHp += amount;
-    }
+   
 }
