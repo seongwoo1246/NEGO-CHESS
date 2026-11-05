@@ -2,12 +2,12 @@
 using System.ComponentModel;
 using UnityEngine;
 
-public class Pawn : ChessPieceM
+public class Pawn : ChessPieceM, IPoolReset
 {
     [Header("폰 전용 상태")]
     public bool isFirstMove = true;      // 첫 이동 여부 (2칸 전진 가능 여부 판단)
     public bool movedTwoSquaresLastTurn = false; // 직전 턴에 2칸 이동했는지 (상대방이 앙파상할 때 사용)
-    
+    public void ResetForPool() { isFirstMove = true; movedTwoSquaresLastTurn = false;  }
 
     // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
     private void Reset()

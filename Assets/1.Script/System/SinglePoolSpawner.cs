@@ -1,69 +1,92 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.Audio.ProcessorInstance;
+using UnityEngine.SceneManagement;
+
+/// <summary>풀에서 꺼낼 때 상태를 되돌려야 하는 컴포넌트가 구현합니다. (폰의 첫 이동, 킹/룩의 hasMoved 등)</summary>
+public interface IPoolReset
+{
+    void ResetForPool();
+}
 
 public class SinglePoolSpawner : MonoBehaviour, IPieceSpawner
 {
-    private Dictionary<GameObject, Queue<GameObject>> PoolDict = new();
+    private readonly Dictionary<GameObject, Queue<GameObject>> PoolDict = new();
+    private readonly HashSet<GameObject> _inPool = new();   // 지금 풀에 들어 있는 기물 (중복 반환 방지)
 
-   public void Awake()
+    public void Awake()
     {
         ScriptM.Register<SinglePoolSpawner>(this, UseSpace.Global);
     }
 
- 
+    private void OnEnable() { SceneManager.sceneUnloaded += OnSceneUnloaded; }
+    private void OnDisable() { SceneManager.sceneUnloaded -= OnSceneUnloaded; }
 
-    public GameObject Spawn(GameObject prefab,Vector3 position, Quaternion rotation)
+    private void OnSceneUnloaded(Scene scene)
     {
-        if(!PoolDict.ContainsKey(prefab))
+        // 풀 안의 기물은 씬과 함께 파괴됩니다. 남은 참조를 모두 비웁니다.
+        PoolDict.Clear();
+        _inPool.Clear();
+    }
+
+    public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)
+    {
+        if (prefab == null)
         {
-            PoolDict[prefab] = new Queue<GameObject>();
+            Debug.LogError("[SinglePoolSpawner] prefab이 비어 있습니다.");
+            return null;
         }
 
-        GameObject piece;
-        if (PoolDict[prefab].Count > 0)
+        if (!PoolDict.TryGetValue(prefab, out var queue))
         {
-            piece = PoolDict[prefab].Dequeue();
-            piece.transform.position = position;
-            piece.transform.rotation = rotation;
+            queue = new Queue<GameObject>();
+            PoolDict[prefab] = queue;
+        }
+
+        GameObject piece = null;
+        while (queue.Count > 0)
+        {
+            GameObject candidate = queue.Dequeue();
+            if (candidate == null) continue;          // 파괴된 것은 버리고 다음 것
+            _inPool.Remove(candidate);
+            piece = candidate;
+            break;
+        }
+
+        if (piece != null)
+        {
+            piece.transform.SetPositionAndRotation(position, rotation);
             piece.SetActive(true);
+            foreach (var r in piece.GetComponents<IPoolReset>()) r.ResetForPool();   // 이전 판 상태 초기화
         }
         else
         {
-            piece = GameObject.Instantiate(prefab,position,rotation);
+            piece = Instantiate(prefab, position, rotation);
 
-            // 나중에 반환 하기 위해서 필요한 프리팹 정보
+            // 나중에 반환하기 위해 필요한 프리팹 정보
             var pooledObj = piece.AddComponent<PooledObject>();
             pooledObj.OriginPrefab = prefab;
         }
-        
+
         return piece;
     }
 
-
     public void Despawn(GameObject piece)
     {
-       piece.SetActive(false);
+        if (piece == null) return;
+        if (_inPool.Contains(piece)) return;          // 이미 반환된 기물
 
-        //등록한 프리랩 키 가져오기
-        if (piece.TryGetComponent<PooledObject>(out var pooledObj))
+        piece.SetActive(false);
+
+        if (piece.TryGetComponent<PooledObject>(out var pooledObj)
+            && pooledObj.OriginPrefab != null
+            && PoolDict.TryGetValue(pooledObj.OriginPrefab, out var queue))
         {
-            GameObject key = pooledObj.OriginPrefab;
-
-            // 딕셔너리의 큐에 다시 넣어주기!
-            if (PoolDict.TryGetValue(key, out var queue))
-            {
-                queue.Enqueue(piece);
-            }
+            queue.Enqueue(piece);
+            _inPool.Add(piece);
         }
         else
         {
-            // 혹시 풀에서 관리되지 않는 오브젝트라면 그냥 파괴
-            Object.Destroy(piece);
+            Destroy(piece);   // 풀에서 관리되지 않는 오브젝트
         }
     }
-
 }
-
-
-

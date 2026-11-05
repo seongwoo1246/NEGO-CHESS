@@ -923,6 +923,8 @@ MonoBehaviour:
   hpBar: {fileID: 420995744}
   baseMaxHp: 100
   baseUseHp: 20
+  regenAmount: 5
+  regenInterval: 120
   hpPanelRect: {fileID: 420995743}
 --- !u!1 &75972976
 GameObject:

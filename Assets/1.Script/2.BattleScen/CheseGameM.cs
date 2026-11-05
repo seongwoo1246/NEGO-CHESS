@@ -90,8 +90,6 @@ public class CheseGameM : MonoBehaviour
 
     private void Start()
     {
-       
-
         positionHistory.Clear();
 
         whiteTimer.TimerTime = 300;
@@ -111,6 +109,9 @@ public class CheseGameM : MonoBehaviour
             currentAI = activeCharacter;
             activeCharacter.SetupBoard(this); // 자식(Seo 등)이 각자 기물 배치 진행
         }
+
+        currentCost = 0;
+        UpdateCostUI();
 
         canUseEnPassant = true;
         canUseCastling = true;
@@ -183,12 +184,15 @@ public class CheseGameM : MonoBehaviour
     public GameObject gamePanel;
     public Button ResetBtn;
     public Button ReadyBtn;
+    public TextMeshProUGUI costText;
+   
 
     private int currentCost;
 
     private PieceData? selectedPieceData = null;
     private bool isSpawnMode = false;
     private SinglePoolSpawner spawner;
+    public bool IsSetupPhase => ReadyPanel != null && ReadyPanel.activeInHierarchy;
 
     // 체스판 위에 존재하는 모든 기물 오브젝트를 논리 좌표(x, y)로 추적하기 위한 2차원 배열
     // (x: 0~7, y: 0~7) 위치에 존재하는 기물 GameObject를 저장합니다.
@@ -254,7 +258,7 @@ public class CheseGameM : MonoBehaviour
             return;
         }
 
-        if (!isMovedone)
+        if (!isMovedone&&!isSpawnMode)
         {
             
             
@@ -315,6 +319,73 @@ public class CheseGameM : MonoBehaviour
     }
 
     #endregion
+
+    #region 프리셋 함수
+
+    private void UpdateCostUI()
+    {
+        if (costText != null) costText.text = $"현재 코스트 : {currentCost}/{singlePlayer.maxCost}";
+    }
+    public void CollectMyPieces(List<PresetPiece> output)
+    {
+        output.Clear();
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 3; y++)
+            {
+                ChessPieceM p = pieceGrid[x, y];
+                if (p == null || p.data.Color != PieceColor.white) continue;
+                output.Add(new PresetPiece { x = x, y = y, type = (int)p.data.Type });
+            }
+        }
+    }
+
+    public int ApplyPreset(IReadOnlyList<PresetPiece> pieces)
+    {
+        if (!IsSetupPhase || pieces == null || spawner == null) return 0;
+
+        isSpawnMode = true;        // 배치 단계 표시 (DestroyPiece가 킹 제거를 패배로 처리하지 않게)
+        selectedPieceData = null;
+        ResetAllPieces();          // 내 진영을 비우고 개수/코스트/UI를 복구
+        ClearTileHighlights();
+
+        int placed = 0;
+        var seen = new HashSet<Vector2Int>();
+        foreach (PresetPiece p in pieces)
+        {
+            if (p.x < 0 || p.x > 7 || p.y < 0 || p.y > 7) continue;
+            if (!IsValidSpawnZone(p.x, p.y, PieceColor.white)) continue;
+            if (!seen.Add(new Vector2Int(p.x, p.y))) continue;
+
+            pieceType type = (pieceType)p.type;
+            int max = GetMaxPieceOf(type);
+            if (max < 0 || GetSpawnedCount(type) >= max) continue;      // 개수 제한 준수
+
+            GameObject prefab = PieceDatabase != null ? PieceDatabase.GetPrefab(type, PieceColor.white) : null;
+            if (prefab == null) continue;
+
+            ChessPieceM prefabPiece = prefab.GetComponent<ChessPieceM>();
+            if (prefabPiece != null && currentCost + prefabPiece.data.cost > singlePlayer.maxCost) continue;
+
+            SpawnPiece(prefab, p.x, p.y, PieceColor.white);
+            AddSpawnedCount(type);                                      // 타일 클릭 배치와 같은 처리
+            placed++;
+        }
+
+        RefreshButtonUI();
+        return placed;
+    }
+
+    private int GetMaxPieceOf(pieceType type)
+    {
+        foreach (var btn in pieceButtonUIs)
+            if (btn.pieceData.Type == type) return btn.pieceData.maxPiece;
+        return -1;
+    }
+
+    #endregion
+
+
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
     public void OnClickPieceButton(PieceData pieceData)
     {
@@ -323,7 +394,10 @@ public class CheseGameM : MonoBehaviour
         int currentCount = GetSpawnedCount(pieceData.Type);
         if (currentCount >= pieceData.maxPiece)
         {
-            Debug.Log($"{pieceData.pieceName}은(는) 더 이상 소환할 수 없습니다!");
+            return;
+        }
+        if (currentCost + pieceData.cost > singlePlayer.maxCost)
+        {
             return;
         }
 
@@ -424,12 +498,14 @@ public class CheseGameM : MonoBehaviour
         // 4. 생성된 오브젝트에서 ChessPieceM 컴포넌트 추출
         ChessPieceM newPiece = newPieceObj.GetComponent<ChessPieceM>();
 
-        if (singlePlayer.maxCost >= currentCost)
+        // 새 코드: 배치 단계의 내(백) 기물만 센다 (AI 기물, 게임 중 프로모션은 제외)
+        if (newPiece != null && color == PieceColor.white && IsSetupPhase)
         {
             currentCost += newPiece.data.cost;
+            UpdateCostUI();
         }
 
-        
+
         if (newPiece != null)
         {
             newPiece.data.Color = color;
@@ -487,6 +563,9 @@ public class CheseGameM : MonoBehaviour
 
         // 3. 선택 상태 초기화
         DeselectPiece();
+
+        currentCost = 0;
+        UpdateCostUI();
     }
 
     private void SetReady()
@@ -851,7 +930,11 @@ public class CheseGameM : MonoBehaviour
         {
             ChessPieceM pieceToDestroy = pieceGrid[x, y];
 
-            currentCost -= pieceToDestroy.data.cost;
+            if (pieceToDestroy.data.Color == PieceColor.white && IsSetupPhase)
+            {
+                currentCost = Mathf.Max(0, currentCost - pieceToDestroy.data.cost);
+                UpdateCostUI();
+            }
 
             ReturnSpawnedCount(pieceToDestroy.data.Type);
 

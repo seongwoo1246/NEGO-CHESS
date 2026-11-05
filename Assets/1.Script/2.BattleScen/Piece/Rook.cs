@@ -1,13 +1,14 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class Rook : ChessPieceM
+public class Rook : ChessPieceM, IPoolReset
 {
     public bool hasMoved = false; // 캐슬링 조건용 (한 번이라도 움직였는지)
-
+    public void ResetForPool() { hasMoved = false; }
     // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
     private void Reset()
     {
+
         data = new PieceData(pieceType.Rook, PieceColor.white, 5,2, "Rook");
         data_B = new PieceData(pieceType.Rook, PieceColor.black, 5, 2, "Rook");
     }
