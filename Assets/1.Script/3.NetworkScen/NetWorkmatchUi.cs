@@ -2,6 +2,7 @@
 using Fusion;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -62,6 +63,9 @@ public class NetworkMatchUI : MonoBehaviour
     private float _toastHideAt;
     private float _resignArmedUntil;
 
+    [SerializeField] private InputActionReference readyAction;
+    [SerializeField] private InputActionReference endTurnAction;
+
     // ───────────── 켜기 / 끄기 ─────────────
 
     private void OnEnable()
@@ -84,6 +88,15 @@ public class NetworkMatchUI : MonoBehaviour
 
         rematchText.text = "한 판 더 하기";
         lobbyText.text = "로비로 가기";
+
+        if (readyAction == null) return;
+        readyAction.action.performed += OnReadyKey;
+        readyAction.action.Enable();
+
+        if (endTurnAction == null) return;
+        endTurnAction.action.performed += OnEndTurnKey;
+        endTurnAction.action.Enable();
+
     }
 
     private void OnDisable()
@@ -100,6 +113,8 @@ public class NetworkMatchUI : MonoBehaviour
         NetworkGameM.Notice -= ShowToast;
 
         Unbind();
+        if (readyAction != null) readyAction.action.performed -= OnReadyKey;
+        if (endTurnAction != null) endTurnAction.action.performed -= OnEndTurnKey;
     }
 
     private void Bind(NetworkGameM game)
@@ -118,13 +133,6 @@ public class NetworkMatchUI : MonoBehaviour
 
     private void Update()
     {
-#if ENABLE_LEGACY_INPUT_MANAGER
-        if (enterKeyEndsTurn && (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)))
-        {
-            OnClickEndTurn();
-        }
-#endif
-
         // 안내 문구는 잠깐 보였다가 사라져요
         if (_toastHideAt > 0f && Time.unscaledTime >= _toastHideAt)
         {
@@ -138,6 +146,18 @@ public class NetworkMatchUI : MonoBehaviour
             _resignArmedUntil = 0f;
             if (resignButtonText != null) resignButtonText.text = "기권";
         }
+    }
+
+    private void OnReadyKey(InputAction.CallbackContext ctx)
+    {
+        if (_game == null || _game.State != GameState.GameStart) return;   // 배치 단계에서만
+        OnClickReady();                                                    // 버튼을 누른 것과 똑같이
+    }
+
+    private void OnEndTurnKey(InputAction.CallbackContext ctx)
+    {
+        if (!enterKeyEndsTurn) return;   // 기존 설정 그대로 존중
+        OnClickEndTurn();
     }
 
     // ───────────── 화면 갱신 ─────────────

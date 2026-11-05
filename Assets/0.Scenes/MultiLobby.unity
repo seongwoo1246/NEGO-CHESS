@@ -9222,6 +9222,7 @@ MonoBehaviour:
   launcher: {fileID: 1312919361}
   browser: {fileID: 1750004021}
   lobbyPanel: {fileID: 1094747264}
+  startAction: {fileID: -3486820084886834411, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!1 &1887072193
 GameObject:
   m_ObjectHideFlags: 0

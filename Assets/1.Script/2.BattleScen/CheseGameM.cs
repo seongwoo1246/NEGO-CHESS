@@ -407,9 +407,7 @@ public class CheseGameM : MonoBehaviour
             Debug.LogError("ChessBoardM 서비스를 찾을 수 없습니다.");
             return null;
         }
-
-
-
+        
         // 1. 이미 해당 위치에 기물이 있다면 기존 기물 제거 (또는 예외 처리)
         if (pieceGrid[x, y] != null)
         {
@@ -442,21 +440,13 @@ public class CheseGameM : MonoBehaviour
             {
                 OnSpawnKing(newPiece, newPiece.isWhite);
             }
-
-
         }
-
-
-
         activePieces.Add(newPiece);
-
-
+        
         // 5. 2차원 배열에 기물 등록 및 반환
         pieceGrid[x, y] = newPiece;
 
         return newPiece;
-
-
     }
 
     // 킹 스폰 시점에 미리 할당해둠

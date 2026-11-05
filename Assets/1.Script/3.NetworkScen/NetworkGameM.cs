@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Fusion;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 멀티 체스 한 판의 "심판" (게임 씬에 놓는 NetworkObject).
@@ -48,13 +49,15 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     [Header("재대결")]
     [Tooltip("켜면 재대결 때 흑/백을 서로 바꿉니다.")]
-    [SerializeField] private bool swapSidesOnRematch = false;
+    [SerializeField] private bool swapSidesOnRematch = true;
+    [SerializeField] private Toggle swapToggle;
 
     [Header("연결")]
     [Tooltip("IChessBoardAdapter를 구현한 컴포넌트 (예: SingleChessGameM)")]
     [SerializeField] private MonoBehaviour boardAdapter;
 
     // ───────────── 네트워크로 공유되는 값 ─────────────
+    [Networked] public NetworkBool SwapSidesOnRematch { get; private set; }
     [Networked] public PlayerRef WhitePlayer { get; private set; }
     [Networked] public PlayerRef BlackPlayer { get; private set; }
     [Networked] public GameState State { get; private set; }
@@ -132,7 +135,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         _lastSignature = int.MinValue;
 
         if (Object.HasStateAuthority) InitializeMatch();
-
+        if (Object.HasStateAuthority) SwapSidesOnRematch = swapSidesOnRematch;
         InstanceReady?.Invoke(this);
 
         // "저 게임 씬에 들어왔어요" 하고 방장에게 알림 (놓칠 수 있으니 Render에서 주기적으로 다시 보냄)
@@ -712,9 +715,31 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         else BlackChoice = choice;
     }
 
+    private void RefreshSwapToggle()
+    {
+        if (swapToggle == null) return;
+
+        bool show = State == GameState.GameEnd && Object.HasStateAuthority;   // 방장 = 상태 권한자
+        swapToggle.gameObject.SetActive(show);
+        if (!show) return;
+
+        swapToggle.SetIsOnWithoutNotify(SwapSidesOnRematch);
+
+        // 방장이 재대결을 누른 뒤에는 색 변경 잠금
+        bool lockedIn = TryGetLocalColor(out PieceColor me) && GetChoice(me) == PostGameChoice.Rematch;
+        swapToggle.interactable = !lockedIn;
+    }
+
+    public void SetSwapSidesOnRematch(bool value)
+    {
+        if (!Object.HasStateAuthority || State != GameState.GameEnd) return;
+        if (TryGetLocalColor(out PieceColor me) && GetChoice(me) == PostGameChoice.Rematch) return;   // 잠금
+        SwapSidesOnRematch = value;
+    }
+
     private void StartRematch()
     {
-        if (swapSidesOnRematch)
+        if (SwapSidesOnRematch)
         {
             PlayerRef white = WhitePlayer;
             WhitePlayer = BlackPlayer;
@@ -755,6 +780,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     public override void Render()
     {
         EnsureRound(MatchRound);
+        
 
         bool whiteTurn = IsWhiteTurn;
         bool stateChanged = _shownState == null || _shownState.Value != State;
@@ -777,6 +803,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         {
             _lastSignature = signature;
             ApplyInputPermissions();
+            RefreshSwapToggle();
             Changed?.Invoke();
         }
     }

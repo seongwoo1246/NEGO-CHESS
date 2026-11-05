@@ -233,8 +233,6 @@ public class HP : MonoBehaviour
 
             if (totalHeal > 0)
             {
-                // 체력 반영 (최대 체력 넘지 않도록 자동 클램프)
-                Hp = Mathf.Min(Hp + totalHeal, maxHp);
                 singlePlayer.keepHp = totalHeal;
             }
         }

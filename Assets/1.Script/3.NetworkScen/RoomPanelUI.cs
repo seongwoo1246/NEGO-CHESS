@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Cysharp.Threading.Tasks;
+using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
@@ -67,6 +68,7 @@ public class RoomPanelUI : MonoBehaviour
     private bool _isLeaving;
     private int _teamResyncTicket;
 
+    [SerializeField] private InputActionReference startAction;
     // ───────────── 켜기 / 끄기 ─────────────
 
     private void Awake()
@@ -91,6 +93,10 @@ public class RoomPanelUI : MonoBehaviour
 
         if (RoomState.Instance != null) BindState(RoomState.Instance);
         else ClearScreen();
+
+        if (startAction == null) return;
+        startAction.action.performed += OnStartKey;
+        startAction.action.Enable();
     }
 
     private void OnDisable()
@@ -102,6 +108,13 @@ public class RoomPanelUI : MonoBehaviour
         RoomState.InstanceLost -= OnRoomLost;
 
         UnbindState();
+        if (startAction != null) startAction.action.performed -= OnStartKey;
+    }
+
+    private void OnStartKey(InputAction.CallbackContext ctx)
+    {
+        if (!startAction) return;   // 기존 설정 그대로 존중
+        OnClickReady();
     }
 
     private void BindState(RoomState state)
