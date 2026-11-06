@@ -11,6 +11,10 @@ public class BookPage
     [TextArea(3, 12)] public string body;
     [Tooltip("비워 두면 그림 없이 글만 보여 줍니다.")]
     public Sprite image;
+    [Tooltip("Resources/Manual 폴더의 그림 파일 이름 (확장자 없이). image가 비어 있을 때만 사용합니다.")]
+    public string imageName;
+
+    public static implicit operator BookPage(string body) => new BookPage { body = body };
 }
 
 /// <summary>책자의 한 장(목차 항목): 제목 + 여러 쪽</summary>
@@ -133,13 +137,14 @@ public class TutorialBookM : MonoBehaviour
         if (chapterTitleText != null) chapterTitleText.text = ch.title;
         if (bodyText != null) bodyText.text = current != null ? current.body : "";
 
+        Sprite sprite = ResolveSprite(current);
         if (pageImage != null)
         {
-            bool hasImage = current != null && current.image != null;
+            bool hasImage = sprite != null;
             pageImage.gameObject.SetActive(hasImage);
             if (hasImage)
             {
-                pageImage.sprite = current.image;
+                pageImage.sprite = sprite;
                 pageImage.preserveAspect = true;
             }
         }
@@ -166,6 +171,13 @@ public class TutorialBookM : MonoBehaviour
         }
     }
 
+    private static Sprite ResolveSprite(BookPage page)
+    {
+        if (page == null) return null;
+        if (page.image != null) return page.image;
+        if (string.IsNullOrEmpty(page.imageName)) return null;
+        return Resources.Load<Sprite>("Manual/" + page.imageName);
+    }
     // ───────────── 에디터 도우미 ─────────────
 
     /// <summary>비어 있을 때만 싱글 설명 초안을 채웁니다. (이미 입력한 내용은 절대 덮어쓰지 않습니다)</summary>
