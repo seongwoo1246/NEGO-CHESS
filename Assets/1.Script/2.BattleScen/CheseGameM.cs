@@ -119,7 +119,6 @@ public class CheseGameM : MonoBehaviour
 
         if (ResetBtn != null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
         if (ReadyBtn != null) { ReadyBtn.onClick.AddListener(SetReady); }
-        if (SettingBtn != null) SettingBtn.onClick.AddListener(ActiveSelfSetting);
         if (NegoBtn != null) NegoBtn.onClick.AddListener(ActiveSelfNegoPanel);
         if (enPassantBtn != null) enPassantBtn.onClick.AddListener(()=> TryNegotiateRule(0));
         if (CastlingBtn != null) CastlingBtn.onClick.AddListener(()=> TryNegotiateRule(1));
@@ -137,38 +136,33 @@ public class CheseGameM : MonoBehaviour
 
     private void OnEnable()
     {
-        
-            
-        if(KeySettingM.Instance != null)
-        {
+
             // 확실하게 이벤트 연결
-            KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover; // 중복 방지
-            KeySettingM.Instance.OnTurnoverTriggered += HandleTurnover;
+        KeySettingM.OnTurnoverTriggered -= HandleTurnover; // 중복 방지
+        KeySettingM.OnTurnoverTriggered += HandleTurnover;
 
-            KeySettingM.Instance.OnNegotiationTriggered -= HandleNegotiation;
-            KeySettingM.Instance.OnNegotiationTriggered += HandleNegotiation;
+        KeySettingM.OnNegotiationTriggered -= HandleNegotiation;
+        KeySettingM.OnNegotiationTriggered += HandleNegotiation;
 
-            KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
-            KeySettingM.Instance.OnGiveUpTriggered += HandleGiveUp;
-        }
+        KeySettingM.OnGiveUpTriggered -= HandleGiveUp;
+        KeySettingM.OnGiveUpTriggered += HandleGiveUp;
 
-           
-
-       
+        KeySettingM.OnReadyTriggered -= SetReady;
+        KeySettingM.OnReadyTriggered += SetReady;
     }
 
     private void OnDisable()
     {
 
         if (timerCts != null) { timerCts.Cancel(); timerCts.Dispose(); timerCts = null; }
-        if (KeySettingM.Instance != null)
-            {
-                KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
-                KeySettingM.Instance.OnNegotiationTriggered -= HandleNegotiation;
-                KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
-            }
+        
+        KeySettingM.OnTurnoverTriggered -= HandleTurnover;
+        KeySettingM.OnNegotiationTriggered -= HandleNegotiation;
+        KeySettingM.OnGiveUpTriggered -= HandleGiveUp;
+        KeySettingM.OnReadyTriggered -= SetReady;
 
-            ScriptM.Unregister<CheseGameM>();
+
+        ScriptM.Unregister<CheseGameM>();
         
     }
    
@@ -592,7 +586,6 @@ public class CheseGameM : MonoBehaviour
     #region 선언부
     [Header("게임 중 필요한 것")]
     //버튼들
-    public Button SettingBtn;
     public Button ProvokeBtn;
     public Button NegoBtn;
     public Button TimerBtn;
@@ -683,10 +676,6 @@ public class CheseGameM : MonoBehaviour
         ActiveSelfNegoPanel();
     }
 
-    public void ActiveSelfSetting()
-    {
-        SettingPanel.SetActive(!SettingPanel.activeSelf);
-    }
     public void ActiveSelfNegoPanel()
     {
       float successChance = NegoSuccessChance();
@@ -1100,7 +1089,7 @@ public class CheseGameM : MonoBehaviour
 
         if (isNegotiationSuccess)
         {
-            Debug.Log($"협상 성공! [{ruleType}] 규칙이 금지(봉쇄)됩니다.");
+            ShowMyCheckMessage($"협상 성공! [{ruleType}] 규칙이 금지(봉쇄)됩니다.");
 
             // 2. 성공 시 해당 룰을 비활성화(막아버림)
             ApplyRuleBan(ruleType);
@@ -1112,7 +1101,7 @@ public class CheseGameM : MonoBehaviour
             // 3. 실패 시 페널티 (예: 협상력 10% 감소)
             myNegoPower -= 10f;
             ClampNegoPower();
-            Debug.Log($"협상 실패... 페널티로 협상력이 10% 감소했습니다. (현재: {myNegoPower}%)");
+            ShowMyCheckMessage($"협상 실패... 페널티로 협상력이 10% 감소했습니다. (현재: {myNegoPower}%)");
         }
     }
     // 규칙을 실제로 차단하는 함수
@@ -1143,7 +1132,7 @@ public class CheseGameM : MonoBehaviour
         // 1. 무를 기보가 아예 없다면 중단
         if (MoveHistory.Count == 0)
         {
-            Debug.Log("무를 수 있는 기보가 없습니다.");
+            ShowMyCheckMessage("무를 수 있는 기보가 없습니다.");
             return;
         }
 
@@ -1152,7 +1141,7 @@ public class CheseGameM : MonoBehaviour
 
         if (isNegotiationSuccess)
         {
-            Debug.Log("무르기 협상 성공! 기물을 되돌리고 협상력을 원상복귀합니다.");
+            ShowMyCheckMessage("무르기 협상 성공! 기물을 되돌리고 협상력을 원상복귀합니다.");
 
             // 3. 가장 마지막 기보 가져오기 (실제 되돌리기 전 데이터 확인용)
             int lastIndex = MoveHistory.Count - 1;
@@ -1199,7 +1188,7 @@ public class CheseGameM : MonoBehaviour
         myNegoPower = whiteCostSum + singlePlayer.bonusNegoPower;
         characterNegoPower = blackCostSum;
 
-        Debug.Log($"[협상력 갱신 완료] 내 협상력: {myNegoPower} | 상대 협상력: {characterNegoPower}");
+       
     }
 
     // 💡 해당 수가 진행될 때 변동되었던 협상력을 '원상복귀' 시키는 함수
@@ -1406,7 +1395,7 @@ public class CheseGameM : MonoBehaviour
         isWaitingForPromotion = false;
         pendingPromotionPawn = null;
 
-        Debug.Log($"프로모션 성공! 코스트 차이({newCost - oldCost})만큼 협상력이 반영되었습니다.");
+       
     }
 
     // 적 프로모션
@@ -1459,7 +1448,7 @@ public class CheseGameM : MonoBehaviour
         move.IsPromotion = true;
         MoveHistory.Add(move);
 
-        Debug.Log($"[AI 프로모션] 폰이 여왕으로 승진했습니다! 코스트 차이({newCost - oldCost})만큼 협상력이 반영되었습니다.");
+       
     }
 
     // 4. 협상력 범위를 0 ~ 100 사이로 제한하는 방어 코드
@@ -1480,12 +1469,10 @@ public class CheseGameM : MonoBehaviour
 
         if (randomValue <= successChance)
         {
-            Debug.Log($"협상 성공! (성공 확률: {successChance}%, 나온 값: {randomValue:F1})");
             return true;
         }
         else
         {
-            Debug.Log($"협상 실패... (성공 확률: {successChance}%, 나온 값: {randomValue:F1})");
             return false;
         }
     }

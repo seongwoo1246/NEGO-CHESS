@@ -4,7 +4,7 @@ using UnityEngine.InputSystem;
 using Debug = DebugM<KeySettingM>;
 public class KeySettingM : MonoBehaviour
 {
-    public static KeySettingM Instance;
+    
 
     [Header("Input Action Asset 참조")]
     [SerializeField] private InputActionAsset inputActions;
@@ -34,12 +34,12 @@ public class KeySettingM : MonoBehaviour
 
     private const string BINDING_SAVE_KEY = "CustomKeyBindings";
 
-    public event System.Action OnTurnoverTriggered;
-    public event System.Action OnNegotiationTriggered;
-    public event System.Action OnGiveUpTriggered;
-    public event System.Action OnOpenMenuTriggered;
-    public event System.Action OnReadyTriggered;
-    public event System.Action OnGameStartTriggered;
+    public static event System.Action OnTurnoverTriggered;
+    public static event System.Action OnNegotiationTriggered;
+    public static event System.Action OnGiveUpTriggered;
+    public static event System.Action OnOpenMenuTriggered;
+    public static event System.Action OnReadyTriggered;
+    public static event System.Action OnGameStartTriggered;
 
     private InputAction turnoverAction;
     private InputAction negotiationAction;
@@ -57,8 +57,6 @@ public class KeySettingM : MonoBehaviour
 
     private void Awake()
     {
-        Instance=this;
-
         if (turnoverT != null) defaultTurnoverText = turnoverT.text;
         if (negotiationT != null) defaultNegotiationText = negotiationT.text;
         if (giveUpT != null) defaultGiveUpText = giveUpT.text;
@@ -95,11 +93,12 @@ public class KeySettingM : MonoBehaviour
         if (openMenuAction != null) openMenuAction.performed += OnOpenMenu;
         if (readyAction != null) readyAction.performed += OnReady;
         if (gameStartAction != null) gameStartAction.performed += OnGameStart;
+        
     }
 
     private void OnDisable()
     {
-        if (inputActions != null) inputActions.Disable();
+        
 
         // 메모리 누수 방지를 위한 이벤트 해제
         if (turnoverAction != null) turnoverAction.performed -= OnTurnover;

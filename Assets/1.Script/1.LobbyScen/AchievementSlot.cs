@@ -23,7 +23,10 @@ public class AchievementSlot : MonoBehaviour
     [SerializeField] Slider hpbar;
     [SerializeField] TextMeshProUGUI hpbarText;
 
-    private void OnEnable() => Refresh();
+    private void OnEnable()
+    {
+        Refresh();  
+    }
 
     public void Refresh()
     {
@@ -39,8 +42,8 @@ public class AchievementSlot : MonoBehaviour
     private AchievementM FindAchievement()
     {
         if (achievement != null) return achievement;
-        if (ScriptM.TryGet<AchievementM>(out AchievementM found) && found != null) achievement = found;
-        else achievement = GetComponentInParent<AchievementM>(true);
+        achievement = GetComponentInParent<AchievementM>(true);
+        if (achievement == null && ScriptM.TryGet<AchievementM>(out AchievementM found)) achievement = found;
         return achievement;
     }
 

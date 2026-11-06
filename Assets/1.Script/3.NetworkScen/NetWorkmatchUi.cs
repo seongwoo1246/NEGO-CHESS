@@ -63,8 +63,8 @@ public class NetworkMatchUI : MonoBehaviour
     private float _toastHideAt;
     private float _resignArmedUntil;
 
-    [SerializeField] private InputActionReference readyAction;
-    [SerializeField] private InputActionReference endTurnAction;
+   
+    
 
     // ───────────── 켜기 / 끄기 ─────────────
 
@@ -90,14 +90,10 @@ public class NetworkMatchUI : MonoBehaviour
         rematchText.text = "한 판 더 하기";
         lobbyText.text = "로비로 가기";
 
-        if (readyAction == null) return;
-        readyAction.action.performed += OnReadyKey;
-        readyAction.action.Enable();
-
-        if (endTurnAction == null) return;
-        endTurnAction.action.performed += OnEndTurnKey;
-        endTurnAction.action.Enable();
-
+        KeySettingM.OnReadyTriggered -= OnReadyKey;
+        KeySettingM.OnGiveUpTriggered -= OnClickResign;
+        KeySettingM.OnReadyTriggered += OnReadyKey;
+        KeySettingM.OnGiveUpTriggered += OnClickResign;
     }
 
     private void OnDisable()
@@ -114,8 +110,9 @@ public class NetworkMatchUI : MonoBehaviour
         NetworkGameM.Notice -= ShowToast;
 
         Unbind();
-        if (readyAction != null) readyAction.action.performed -= OnReadyKey;
-        if (endTurnAction != null) endTurnAction.action.performed -= OnEndTurnKey;
+
+        KeySettingM.OnReadyTriggered -= OnReadyKey;
+        KeySettingM.OnGiveUpTriggered -= OnClickResign;
     }
 
     private void Bind(NetworkGameM game)
@@ -154,17 +151,13 @@ public class NetworkMatchUI : MonoBehaviour
         }
     }
 
-    private void OnReadyKey(InputAction.CallbackContext ctx)
+    private void OnReadyKey()
     {
         if (_game == null || _game.State != GameState.GameStart) return;   // 배치 단계에서만
         OnClickReady();                                                    // 버튼을 누른 것과 똑같이
     }
 
-    private void OnEndTurnKey(InputAction.CallbackContext ctx)
-    {
-        if (!enterKeyEndsTurn) return;   // 기존 설정 그대로 존중
-        OnClickEndTurn();
-    }
+
 
     private void OnHostClosedRoom()
     {

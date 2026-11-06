@@ -21,6 +21,7 @@ public class SaveData
     public int maxcost;
     public float pulsNego;
     public int seoWin, reonWin,cloeWin;
+    public int seoStep, reonStep, cloeStep, hpStep;
     public int useHp, Hp;
     public bool fristPlay;
     public int maxPawn, maxBishop, maxKnight, maxRook, maxQueen;

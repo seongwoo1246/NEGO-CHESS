@@ -9,12 +9,16 @@ public static class singlePlayer
      public static int birthDay;
      public static bool isGirl = true;
      public static string gender = "여";
-    public static int maxCost = 49;
+    public static int maxCost = 48;
     public static float bonusNegoPower = 0;
     public static int selectedCharacterId;
     public static int seoWin =0;
+    public static int seoTier =0;
     public static int reonWin =0;
+    public static int reonTier = 0;
     public static int cloeWin = 0;
+    public static int cloeTier = 0;
+    public static int hpTier = 0;
     public static int bonusUseHp = 0;
     public static int useHp = 0;
     public static bool hpInitialized = false;
@@ -158,6 +162,10 @@ public static class singlePlayer
         data.cloeWin = cloeWin;
         data.useHp = useHp;
         data.Hp = currentHp;
+        data.seoStep = seoTier;
+        data.reonStep = reonTier;
+        data.cloeStep = cloeTier;
+        data.hpStep = hpTier;
       
 
         ExportUpgrades(data.upgradeSaveList);   // 강화 레벨 (ReinforceM 없이 저장)
@@ -189,7 +197,11 @@ public static class singlePlayer
         currentHp = data.Hp;
         bonusMaxHp = data.bonusMaxHp;
         bonusUseHp = data.bonusUseHp;
-       
+        seoTier =  data.seoStep;
+        reonTier = data.reonStep;
+        cloeTier =  data.cloeStep;
+        hpTier =  data.hpStep;
+
 
         hpInitialized = true;
 

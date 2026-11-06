@@ -1314,7 +1314,6 @@ GameObject:
   - component: {fileID: 4175226026276409880}
   - component: {fileID: 1117009171959856429}
   - component: {fileID: 5460954398416274788}
-  - component: {fileID: 33304238617160561}
   - component: {fileID: 5956447988046310518}
   m_Layer: 5
   m_Name: Setting
@@ -1419,19 +1418,6 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 0
   m_IgnoreParentGroups: 0
---- !u!114 &33304238617160561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1782426948529196010}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  isOpen: 0
 --- !u!114 &5956447988046310518
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2498,7 +2484,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAC8C\uC784 \uC2DC\uC791(\uBA40\uD2F0)"
+  m_text: "\uAC8C\uC784 \uC2DC\uC791"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
@@ -5121,7 +5107,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6739944459027768477}
   - component: {fileID: 5429847893599322896}
-  - component: {fileID: 1713078413732978516}
   - component: {fileID: 3187085634051516267}
   m_Layer: 5
   m_Name: Panel
@@ -5157,19 +5142,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4666782860765643971}
   m_CullTransparentMesh: 1
---- !u!114 &1713078413732978516
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4666782860765643971}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  isOpen: 0
 --- !u!114 &3187085634051516267
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6716,7 +6688,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uC900\uBE44 \uC644\uB8CC(\uBA40\uD2F0)"
+  m_text: "\uC900\uBE44 \uC644\uB8CC"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}

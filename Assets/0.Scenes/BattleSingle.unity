@@ -5164,6 +5164,7 @@ MonoBehaviour:
   ResultText: {fileID: 1843790223}
   NegoText: {fileID: 663152802}
   TimeText: {fileID: 706610493}
+  isNetworkScene: 0
 --- !u!4 &1156926532
 Transform:
   m_ObjectHideFlags: 0

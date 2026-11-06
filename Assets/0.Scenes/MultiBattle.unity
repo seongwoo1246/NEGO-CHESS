@@ -5562,8 +5562,6 @@ MonoBehaviour:
   rematchButton: {fileID: 195440835}
   lobbyButton: {fileID: 830199944}
   lobbySceneName: MultiLobby
-  readyAction: {fileID: 6512884241383446494, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
-  endTurnAction: {fileID: -8816988064901003061, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
 --- !u!114 &1051166866
 MonoBehaviour:
   m_ObjectHideFlags: 0

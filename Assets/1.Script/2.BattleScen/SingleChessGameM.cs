@@ -28,7 +28,6 @@ public partial class SingleChessGameM : MonoBehaviour
         if (ReadyBtn_W != null) { ReadyBtn_W.onClick.AddListener(SetReady); }
         if (ResetBtn_B != null) { ResetBtn_B.onClick.AddListener(ResetAllPieces_B); }
         if (ReadyBtn_B != null) { ReadyBtn_B.onClick.AddListener(SetReady_B); }
-        if (SettingBtn != null) SettingBtn.onClick.AddListener(ActiveSelfSetting);
         if (QueenBtn_W != null) QueenBtn_W.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase, pieceType.Queen));
         if (KnightBtn_W != null) KnightBtn_W.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase, pieceType.Knight));
         if (BishopBtn_W != null) BishopBtn_W.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase, pieceType.Bishop));
@@ -43,25 +42,28 @@ public partial class SingleChessGameM : MonoBehaviour
     }
     private void OnEnable()
     {
-        if (KeySettingM.Instance != null)
-        {
-            // 확실하게 이벤트 연결
-            KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
-            KeySettingM.Instance.OnTurnoverTriggered += HandleTurnover;
+        // 확실하게 이벤트 연결
+        KeySettingM.OnTurnoverTriggered -= HandleTurnover; // 중복 방지
+        KeySettingM.OnTurnoverTriggered += HandleTurnover;
 
-            KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
-            KeySettingM.Instance.OnGiveUpTriggered += HandleGiveUp;
-        }
+        KeySettingM.OnGiveUpTriggered -= HandleGiveUp;
+        KeySettingM.OnGiveUpTriggered += HandleGiveUp;
+
+        KeySettingM.OnReadyTriggered -= SetReady;
+        KeySettingM.OnReadyTriggered += SetReady;
+
+        KeySettingM.OnGameStartTriggered -= SetReady_B;
+        KeySettingM.OnGameStartTriggered += SetReady_B;
     }
 
     private void OnDisable()
     {
         if (timerCts != null) { timerCts.Cancel(); timerCts.Dispose(); timerCts = null; }
-        if (KeySettingM.Instance != null)
-        {
-            KeySettingM.Instance.OnTurnoverTriggered -= HandleTurnover;
-            KeySettingM.Instance.OnGiveUpTriggered -= HandleGiveUp;
-        }
+
+        KeySettingM.OnTurnoverTriggered -= HandleTurnover;
+        KeySettingM.OnGiveUpTriggered -= HandleGiveUp;
+        KeySettingM.OnReadyTriggered -= SetReady;
+        KeySettingM.OnGameStartTriggered -= SetReady_B;
         ScriptM.Unregister<SingleChessGameM>();
     }
 
@@ -435,7 +437,6 @@ public partial class SingleChessGameM : MonoBehaviour
     #region 선언부
     [Header("게임 중 필요한 것")]
     //버튼들
-    public Button SettingBtn;
     public Button TimerBtn;
     //프로모션 버튼들
     public Button QueenBtn_W;
@@ -492,14 +493,6 @@ public partial class SingleChessGameM : MonoBehaviour
     {
         TurnEnd();
     }
-
-
-    public void ActiveSelfSetting()
-    {
-        SettingPanel.SetActive(!SettingPanel.activeSelf);
-    }
-
-
 
 
     private bool IsMyTurnAndPiece(int x, int y)
@@ -759,11 +752,12 @@ public partial class SingleChessGameM : MonoBehaviour
 
         if (isWhiteTurn)
         {
+            isMovedone = false;
             StartTurnTimer(PieceColor.white);
         }
         else
         {
-            //isMovedone = false;
+            isMovedone = false;
             StartTurnTimer(PieceColor.black);
         }
     }

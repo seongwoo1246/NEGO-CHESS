@@ -9319,7 +9319,7 @@ PrefabInstance:
     - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
       propertyPath: popupUIObject
       value: 
-      objectReference: {fileID: 3820796266707054034}
+      objectReference: {fileID: 0}
     - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
       propertyPath: panelCanvasGroup
       value: 
@@ -9469,22 +9469,19 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: open
       objectReference: {fileID: 0}
+    - target: {fileID: 6680828794828823618, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+      propertyPath: m_text
+      value: "\uC900\uBE44 \uC644\uB8CC"
+      objectReference: {fileID: 0}
+    - target: {fileID: 7030969431058321030, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
+      propertyPath: m_text
+      value: "\uAC8C\uC784 \uC2DC\uC791"
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
---- !u!114 &3820796266707054034 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 33304238617160561, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
-  m_PrefabInstance: {fileID: 1546185508477963491}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
 --- !u!114 &4071436438828603822 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
