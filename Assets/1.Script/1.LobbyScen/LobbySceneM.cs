@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using static Fusion.Editor.FusionHubWindow;
 
 public class LobbySceneM : MonoBehaviour
 {
@@ -24,6 +25,7 @@ public class LobbySceneM : MonoBehaviour
 
     private void Start()
     {
+       
         if (BattlePanel != null) BattleBtn.onClick.AddListener(ActiveSelfBattle);
         if (ReinforceBtn != null) ReinforceBtn.onClick.AddListener(ActiveSelfReinforce);
         if (AchievementBtn != null) AchievementBtn.onClick.AddListener(ActiveSelfAchievement);

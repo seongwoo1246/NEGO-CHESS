@@ -14,6 +14,8 @@ public static class MatchExit
 
     public static async UniTask ReturnToLobbyAsync(NetworkRunner runner, string lobbySceneName)
     {
+        if (runner == null) runner = Object.FindFirstObjectByType<NetworkRunner>();
+
         if (_leaving) return;   // 두 번 눌러도 한 번만
         _leaving = true;
 
@@ -24,6 +26,7 @@ public static class MatchExit
             MatchRoster.Clear();
 
             if (runner != null) await runner.Shutdown(destroyGameObject: true);
+           
 
             SceneManager.LoadScene(lobbySceneName);
         }

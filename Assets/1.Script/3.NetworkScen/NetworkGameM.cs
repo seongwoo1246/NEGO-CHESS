@@ -56,6 +56,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Tooltip("IChessBoardAdapter를 구현한 컴포넌트 (예: SingleChessGameM)")]
     [SerializeField] private MonoBehaviour boardAdapter;
 
+    public event Action HostClosedRoom;
     // ───────────── 네트워크로 공유되는 값 ─────────────
     [Networked] public NetworkBool SwapSidesOnRematch { get; private set; }
     [Networked] public PlayerRef WhitePlayer { get; private set; }
@@ -335,6 +336,12 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         RPC_Notice(target.PlayerId, message);
     }
 
+    [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
+    private void RPC_CloseRoom()
+    {
+        if (Object.HasStateAuthority) return;   // 방장 본인은 이미 나가는 중
+        HostClosedRoom?.Invoke();
+    }
     // ───────────── 방장만 쓰는 "심판" 기능 ─────────────
 
     private void InitializeMatch()
@@ -764,6 +771,13 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         BlackChoice = PostGameChoice.None;
 
         State = GameState.GameStart;
+    }
+
+    /// <summary>방장이 "로비로" 누를 때 호출 → 상대도 같이 나가게 함</summary>
+    public void RequestCloseRoom()
+    {
+        if (!Object.HasStateAuthority) return;
+        RPC_CloseRoom();
     }
 
     // ───────────── 모든 컴퓨터가 매 프레임 하는 일 ─────────────

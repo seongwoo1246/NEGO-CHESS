@@ -44,7 +44,7 @@ public class TutorialBookM : MonoBehaviour
     [SerializeField] private Button closeButton;
 
     [Header("목차")]
-    [SerializeField] private List<Button> _chapterButtons;
+    [SerializeField] private List<Button> _chapterButtons = new List<Button>();
 
     [Header("본문")]
     [SerializeField] private TMP_Text chapterTitleText;
@@ -67,8 +67,8 @@ public class TutorialBookM : MonoBehaviour
         if (prevButton != null) prevButton.onClick.AddListener(Prev);
         if (nextButton != null) nextButton.onClick.AddListener(Next);
 
-        RebuildChapterList();
         FillSingleDefaults();
+        RebuildChapterList();
         if (bookRoot != null && bookRoot != gameObject) bookRoot.SetActive(false);
     }
 
@@ -163,11 +163,11 @@ public class TutorialBookM : MonoBehaviour
     }
 
     private void RebuildChapterList()
-    { for (int i = 0; i < chapters.Count; i++)
+    {
+        for (int i = 0; i < _chapterButtons.Count; i++)
         {
-            int index = i;
+            int index = i;   // 람다가 올바른 번호를 기억하도록 복사
             _chapterButtons[i].onClick.AddListener(() => Show(index, 0));
-           
         }
     }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Analytics;
 using UnityEngine.UI;
 
 public class StartSceneM : MonoBehaviour
@@ -172,22 +173,9 @@ public class StartSceneM : MonoBehaviour
 
     private void ChangeGender()
     {
-        singlePlayer.isGirl = !singlePlayer.isGirl;
-
-        if (singlePlayer.isGirl == true)
-        {
-            singlePlayer.gender = "여";
-           List<Sprite> sprites = characterData.GetSprites(3);
-            singlePlayer.icon = sprites[0];
-            Icon.sprite = singlePlayer.icon;
-        }
-        else
-        {
-            singlePlayer.gender = "남";
-            List<Sprite> sprites = characterData.GetSprites(3);
-            singlePlayer.icon = sprites[1];
-            Icon.sprite = singlePlayer.icon;
-        }
+        singlePlayer.isGirl = !singlePlayer.isGirl;               // 먼저 바꾸고
+        singlePlayer.gender = singlePlayer.isGirl ? "여" : "남";
+        Icon.sprite = singlePlayer.icon;
     }
 
    

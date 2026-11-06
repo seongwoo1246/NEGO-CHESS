@@ -78,9 +78,10 @@ public class NetworkMatchUI : MonoBehaviour
         if (endTurnButton != null) endTurnButton.onClick.AddListener(OnClickEndTurn);
 
         NetworkGameM.InstanceReady += Bind;
+        NetworkGameM.InstanceLost += OnInstanceLost;
         NetworkGameM.InstanceLost += Unbind;
         NetworkGameM.Notice += ShowToast;
-
+        
         if (NetworkGameM.Instance != null) Bind(NetworkGameM.Instance);
         else ShowOnlyBanner("상대방을 기다리는 중이에요...");
 
@@ -122,12 +123,17 @@ public class NetworkMatchUI : MonoBehaviour
         Unbind();
         _game = game;
         _game.Changed += Refresh;
+        _game.HostClosedRoom += OnHostClosedRoom;
         Refresh();
     }
 
     private void Unbind()
     {
-        if (_game != null) _game.Changed -= Refresh;
+        if (_game != null)
+        {
+            _game.Changed -= Refresh;
+            _game.HostClosedRoom -= OnHostClosedRoom;   // 추가
+        }
         _game = null;
     }
 
@@ -160,6 +166,40 @@ public class NetworkMatchUI : MonoBehaviour
         OnClickEndTurn();
     }
 
+    private void OnHostClosedRoom()
+    {
+        ShowToast("방장이 방을 닫았어요. 로비로 이동합니다.");
+        LeaveToLobby().Forget();
+    }
+
+    private async UniTaskVoid LeaveToLobby()
+    {
+        lobbyButton.interactable = false;
+        NetworkRunner runner = _game != null ? _game.Runner : null;
+        await MatchExit.ReturnToLobbyAsync(runner, lobbySceneName);
+    }
+
+    private async UniTaskVoid OnClickLobbyAsync()
+    {
+        lobbyButton.interactable = false;
+
+        // 방장이면 먼저 상대에게 알리고, 메시지가 전송될 시간을 잠깐 줍니다.
+        if (_game != null && _game.Object != null && _game.Object.HasStateAuthority)
+        {
+            _game.RequestCloseRoom();
+            await UniTask.Delay(300, ignoreTimeScale: true);
+        }
+
+        NetworkRunner runner = _game != null ? _game.Runner : null;
+        await MatchExit.ReturnToLobbyAsync(runner, lobbySceneName);
+    }
+
+    private void OnInstanceLost()
+    {
+        if (_game == null) return;   // 내가 직접 나가는 중이면 이미 Unbind됨
+        ShowToast("방장이 나갔어요. 로비로 이동합니다.");
+        LeaveToLobby().Forget();
+    }
     // ───────────── 화면 갱신 ─────────────
 
     private void Refresh()
@@ -354,10 +394,5 @@ public class NetworkMatchUI : MonoBehaviour
         _game.RequestPostGameChoice(PostGameChoice.Rematch);
     }
 
-    private void OnClickLobby()
-    {
-        lobbyButton.interactable = false;
-        NetworkRunner runner = _game != null ? _game.Runner : null;
-        MatchExit.ReturnToLobbyAsync(runner, lobbySceneName).Forget();
-    }
+    private void OnClickLobby() => OnClickLobbyAsync().Forget();
 }

@@ -29,24 +29,13 @@ public class CharacterM : MonoBehaviour
         // 각 버튼을 누르면 입력 모드를 바꾸고 입력 필드를 활성화
         nameBtn.onClick.AddListener(() => { currentEdit = EditMode.Name; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
         MessageBtn.onClick.AddListener(() => { currentEdit = EditMode.Message; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
-        genderBtn.onClick.AddListener(() => {
-          if(singlePlayer.isGirl == true)
-            {
-                singlePlayer.gender = "여";
-                gender.text = singlePlayer.gender;
-                icon.sprite = character.GetSprites(3)[0];
-                singlePlayer.icon = icon.sprite;
-                singlePlayer.isGirl = false ;
-            }
-            else
-            {
-                singlePlayer.gender = "남";
-                gender.text = singlePlayer.gender;
-                icon.sprite = character.GetSprites(3)[1];
-                singlePlayer.icon = icon.sprite;
-                singlePlayer.isGirl = true;
-            }
-            });
+        genderBtn.onClick.AddListener(() => 
+        {
+            singlePlayer.isGirl = !singlePlayer.isGirl;
+            singlePlayer.gender = singlePlayer.isGirl ? "여" : "남";
+            gender.text = singlePlayer.gender;
+            icon.sprite = singlePlayer.icon;
+        });
 
         // 확인/완료 버튼을 눌렀을 때
         if (submitBtn != null)

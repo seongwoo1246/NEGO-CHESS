@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 public static class singlePlayer 
 {
@@ -9,7 +10,6 @@ public static class singlePlayer
      public static bool isGirl = true;
      public static string gender = "여";
     public static int maxCost = 49;
-    public static Sprite icon;
     public static float bonusNegoPower = 0;
     public static int selectedCharacterId;
     public static int seoWin =0;
@@ -21,7 +21,17 @@ public static class singlePlayer
     public static int keepHp;
 
     public static event System.Action OnHpStatChanged;
-
+    public static Sprite icon
+    {
+        get
+        {
+            var db = CharacterDB.Db;
+            if (db == null) return null;
+            var sprites = db.GetSprites(3);
+            int index = isGirl ? 0 : 1;   // 0 = 여, 1 = 남 (기존 코드와 동일)
+            return (sprites != null && sprites.Count > index) ? sprites[index] : null;
+        }
+    }
     private static int _bonusMaxHp = 0;
     public static int bonusMaxHp
     {
@@ -148,6 +158,7 @@ public static class singlePlayer
         data.cloeWin = cloeWin;
         data.useHp = useHp;
         data.Hp = currentHp;
+      
 
         ExportUpgrades(data.upgradeSaveList);   // 강화 레벨 (ReinforceM 없이 저장)
 
@@ -178,6 +189,8 @@ public static class singlePlayer
         currentHp = data.Hp;
         bonusMaxHp = data.bonusMaxHp;
         bonusUseHp = data.bonusUseHp;
+       
+
         hpInitialized = true;
 
 
