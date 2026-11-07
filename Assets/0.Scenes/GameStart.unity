@@ -2057,7 +2057,29 @@ MonoBehaviour:
   FadeInSource: {fileID: 566168957}
   SfxSource: {fileID: 566168956}
   bgmList: []
-  sfxList: []
+  sfxList:
+  - soundName: "\uAC15\uD654"
+    clip: {fileID: 8300000, guid: 3e9f9382d09bc40da80e5b3799ddc1c9, type: 3}
+  - soundName: "\uB3C8\uBCC0\uD654"
+    clip: {fileID: 8300000, guid: 5719d7182d0ae460587eb23817816a26, type: 3}
+  - soundName: "\uB9D0\uC774\uB3D9"
+    clip: {fileID: 8300000, guid: 21218d1e6bd61423b8fc905cd086c9aa, type: 3}
+  - soundName: "\uCCB4\uD06C"
+    clip: {fileID: 8300000, guid: 7e8f58bb7edaf41ebbdd030b3730ed4a, type: 3}
+  - soundName: "\uBC84\uD2BC"
+    clip: {fileID: 8300000, guid: 8aad2a67a808b402b854bcdc0e6a905f, type: 3}
+  - soundName: "\uC2B9\uB9AC"
+    clip: {fileID: 8300000, guid: 89677150164ac41e7b2b26a1612f6928, type: 3}
+  - soundName: "\uD328\uBC30"
+    clip: {fileID: 8300000, guid: f3f487b0e9519422f9bff76f5e1feab4, type: 3}
+  - soundName: "\uC52C\uC774\uB3D9"
+    clip: {fileID: 8300000, guid: 64e948382e0d24a0da40b6968d21f041, type: 3}
+  - soundName: "\uD134\uC774\uB3D9"
+    clip: {fileID: 8300000, guid: a8d60e9314d1c43dd90f6dfe29b89c89, type: 3}
+  - soundName: "\uD611\uC0C1\uC131\uACF5"
+    clip: {fileID: 8300000, guid: 9980d6ae4738ecb4183f39ae92d43734, type: 3}
+  - soundName: "\uD611\uC0C1\uC2E4\uD328"
+    clip: {fileID: 8300000, guid: e485bfcc0441c4f1d978ba06d27acd42, type: 3}
   audioMixer: {fileID: 24100000, guid: 85399b436f099014897f60a9e30ff56e, type: 2}
 --- !u!4 &566168960
 Transform:
