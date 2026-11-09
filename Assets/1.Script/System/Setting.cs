@@ -20,30 +20,30 @@ public class Setting : MonoBehaviour
     private void Start()
     {
         
-        if (ScriptM.TryGet<SoundM>(out SoundM service))
+        
         {
             if (MasterMute != null)
             {
                 MasterMute.onValueChanged.RemoveAllListeners();
-                MasterMute.onValueChanged.AddListener((isMasterMuted) => service.SoundMute(VolumeType.Master));
+                MasterMute.onValueChanged.AddListener((isMasterMuted) => SoundService.Current.SoundMute(VolumeType.Master));
             }
 
             if (BGMMute != null)
             {
                 BGMMute.onValueChanged.RemoveAllListeners();
-                BGMMute.onValueChanged.AddListener((isBGMMuted) => service.SoundMute(VolumeType.BGM));
+                BGMMute.onValueChanged.AddListener((isBGMMuted) => SoundService.Current.SoundMute(VolumeType.BGM));
             }
 
             if (SFXMute != null)
             {
                 SFXMute.onValueChanged.RemoveAllListeners();
-                SFXMute.onValueChanged.AddListener((isSFXMuted) => service.SoundMute(VolumeType.SFX));
+                SFXMute.onValueChanged.AddListener((isSFXMuted) => SoundService.Current.SoundMute(VolumeType.SFX));
             }
 
             if (ResetBtn != null)
             {
                 ResetBtn.onClick.RemoveAllListeners();
-                ResetBtn.onClick.AddListener(service.ResetAllSoundSettings);
+                ResetBtn.onClick.AddListener(SoundService.Current.ResetAllSoundSettings);
             }
 
             if(SoundBtn != null)
@@ -57,13 +57,13 @@ public class Setting : MonoBehaviour
                 GoToStratScene.onClick.AddListener(GoToStartScenes);
             }
 
-            VolumeSlider.OnMasterVolumeChanged -= service.SetMasterVolume;
-            VolumeSlider.OnBGMVolumeChanged -= service.SetBGMVolume;
-            VolumeSlider.OnSFXVolumeChanged -= service.SetSFXVolume;
+            VolumeSlider.OnMasterVolumeChanged -= SoundService.Current.SetMasterVolume;
+            VolumeSlider.OnBGMVolumeChanged -= SoundService.Current.SetBGMVolume;
+            VolumeSlider.OnSFXVolumeChanged -= SoundService.Current.SetSFXVolume;
             
-            VolumeSlider.OnMasterVolumeChanged += service.SetMasterVolume;
-            VolumeSlider.OnBGMVolumeChanged += service.SetBGMVolume;
-            VolumeSlider.OnSFXVolumeChanged += service.SetSFXVolume;
+            VolumeSlider.OnMasterVolumeChanged += SoundService.Current.SetMasterVolume;
+            VolumeSlider.OnBGMVolumeChanged += SoundService.Current.SetBGMVolume;
+            VolumeSlider.OnSFXVolumeChanged += SoundService.Current.SetSFXVolume;
         }  
     }
 
