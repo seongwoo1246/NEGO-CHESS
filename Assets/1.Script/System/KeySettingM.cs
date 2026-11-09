@@ -257,7 +257,7 @@ public class KeySettingM : MonoBehaviour
     /// </summary>
     public void ResetToDefault()
     {
-
+        SoundService.Current.playSFX("버튼");
         if (inputActions == null) return;
 
         // 1. 메모리에 남아있는 키 변경 오버라이드 제거

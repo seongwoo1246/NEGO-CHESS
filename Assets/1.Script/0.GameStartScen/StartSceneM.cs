@@ -15,6 +15,7 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] private Button GameExitBtn;
     [SerializeField] private Button SingleBtn;
     [SerializeField] private Button MultiBtn;
+    [SerializeField] private Button credicBtn;
     
 
     [Header("캐릭터 설정")]
@@ -27,14 +28,14 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] private TextMeshProUGUI Texts;
     [SerializeField] public Image Icon;
 
-    
-    
+    [SerializeField] private GameObject credicPanel;
+
 
     private void Awake()
     {
         ScriptM.Register<StartSceneM>(this, UseSpace.Local);
-        PlayerPrefs.DeleteAll();
-        PlayerPrefs.Save();
+        //PlayerPrefs.DeleteAll();
+        //PlayerPrefs.Save();
     }
 
     private void Start()
@@ -45,6 +46,11 @@ public class StartSceneM : MonoBehaviour
         {
             GameStartBtn.onClick.RemoveAllListeners();
             GameStartBtn.onClick.AddListener(SelectMode);
+        }
+        if (credicBtn != null)
+        {
+            credicBtn.onClick.RemoveAllListeners();
+            credicBtn.onClick.AddListener(OpenCredic);
         }
 
         if(GameExitBtn  != null)
@@ -88,6 +94,11 @@ public class StartSceneM : MonoBehaviour
         MultiBtn.gameObject.SetActive(true);
     }
 
+    private void OpenCredic()
+    {
+        SoundService.Current.playSFX("버튼");
+        credicPanel.SetActive(!credicPanel.activeSelf);
+    }
    
 
    private void ExitGame()

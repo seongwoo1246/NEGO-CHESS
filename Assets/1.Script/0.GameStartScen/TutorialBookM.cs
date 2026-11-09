@@ -192,7 +192,7 @@ public class TutorialBookM : MonoBehaviour
     {
         if (chapters.Count > 0)
         {
-            Debug.LogWarning("[TutorialBook] 이미 내용이 있어서 덮어쓰지 않았어요. 채우려면 Chapters 목록을 먼저 비워 주세요.");
+           
             return;
         }
 
@@ -201,6 +201,6 @@ public class TutorialBookM : MonoBehaviour
 #if UNITY_EDITOR
         UnityEditor.EditorUtility.SetDirty(this);
 #endif
-        Debug.Log("[TutorialBook] 싱글 설명 초안을 채웠어요. 실제 게임과 다른 부분은 인스펙터에서 고쳐 주세요.");
+       
     }
 }

@@ -50,7 +50,7 @@ public static class singlePlayer
         set
         {
             if (_currentHp != value)
-                UnityEngine.Debug.Log($"[currentHp] {_currentHp} -> {value}\n{System.Environment.StackTrace}");
+              
             _currentHp = value;
         }
     }
@@ -68,7 +68,7 @@ public static class singlePlayer
         set
         {
             if (_Gold != value)
-                UnityEngine.Debug.Log($"[Gold] {_Gold} -> {value}\n{System.Environment.StackTrace}");
+           
             _Gold = value;
         }
     }
@@ -93,11 +93,11 @@ public static class singlePlayer
                 data.maxPiece += amount;
                 pieceDataList[i] = data; // 구조체 값 갱신
 
-                Debug.Log($"{type} 최대 개수가 {amount}만큼 증가했습니다! 현재 최대치: {data.maxPiece}");
+                
                 return;
             }
         }
-        Debug.LogWarning($"해당 기물 데이터를 찾지 못했습니다: {type}");
+        
 
     }
 

@@ -84,6 +84,8 @@ public partial class SingleChessGameM : MonoBehaviour
     private bool isSpawnMode = false;
     private SinglePoolSpawner spawner;
 
+    public bool IsSetupPhase => ReadyPanel_W != null && ReadyPanel_W.activeInHierarchy || ReadyPanel_B != null && ReadyPanel_B.activeInHierarchy;
+
     // 체스판 위에 존재하는 모든 기물 오브젝트를 논리 좌표(x, y)로 추적하기 위한 2차원 배열
     // (x: 0~7, y: 0~7) 위치에 존재하는 기물 GameObject를 저장합니다.
     public ChessPieceM[,] pieceGrid = new ChessPieceM[8, 8];
@@ -219,6 +221,70 @@ public partial class SingleChessGameM : MonoBehaviour
     }
 
     #endregion
+
+    #region 프리셋 함수
+
+  
+    public void CollectMyPieces(List<PresetPiece> output)
+    {
+        output.Clear();
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 3; y++)
+            {
+                ChessPieceM p = pieceGrid[x, y];
+                if (p == null || p.data.Color != PieceColor.white) continue;
+                output.Add(new PresetPiece { x = x, y = y, type = (int)p.data.Type });
+            }
+        }
+    }
+
+    public int ApplyPreset(IReadOnlyList<PresetPiece> pieces)
+    {
+        SoundService.Current.playSFX("버튼");
+        if (!IsSetupPhase || pieces == null || spawner == null) return 0;
+
+        isSpawnMode = true;        // 배치 단계 표시 (DestroyPiece가 킹 제거를 패배로 처리하지 않게)
+        selectedPieceData = null;
+        ResetAllPieces();          // 내 진영을 비우고 개수/코스트/UI를 복구
+        ClearTileHighlights();
+
+        int placed = 0;
+        var seen = new HashSet<Vector2Int>();
+        foreach (PresetPiece p in pieces)
+        {
+            if (p.x < 0 || p.x > 7 || p.y < 0 || p.y > 7) continue;
+            if (!IsValidSpawnZone(p.x, p.y, PieceColor.white)) continue;
+            if (!seen.Add(new Vector2Int(p.x, p.y))) continue;
+
+            pieceType type = (pieceType)p.type;
+            int max = GetMaxPieceOf(type);
+            if (max < 0 || GetSpawnedCount(type) >= max) continue;      // 개수 제한 준수
+
+            GameObject prefab = PieceDatabase != null ? PieceDatabase.GetPrefab(type, PieceColor.white) : null;
+            if (prefab == null) continue;
+
+            ChessPieceM prefabPiece = prefab.GetComponent<ChessPieceM>();
+           
+
+            SpawnPiece(prefab, p.x, p.y, PieceColor.white);
+            AddSpawnedCount(type);                                      // 타일 클릭 배치와 같은 처리
+            placed++;
+        }
+
+        RefreshButtonUI();
+        return placed;
+    }
+
+    private int GetMaxPieceOf(pieceType type)
+    {
+        foreach (var btn in pieceButtonUIs)
+            if (btn.pieceData.Type == type) return btn.pieceData.maxPiece;
+        return -1;
+    }
+
+    #endregion
+
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
     public void OnClickPieceButton(PieceData pieceData)
     {
@@ -410,10 +476,10 @@ public partial class SingleChessGameM : MonoBehaviour
 
     private void SetReady()
     {
+        SoundService.Current.playSFX("버튼");
         if (IsNetworkMatch) return;
         if (whiteKing == null)
         {
-            Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
             return;
         }
         spawnedPieceCounts.Clear();
@@ -423,10 +489,10 @@ public partial class SingleChessGameM : MonoBehaviour
     }
     private void SetReady_B()
     {
+        SoundService.Current.playSFX("버튼");
         if (IsNetworkMatch) return;
         if (blackKing == null)
         {
-            Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
             return;
         }
         // 소환 모드 해제

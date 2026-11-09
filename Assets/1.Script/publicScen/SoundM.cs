@@ -72,6 +72,7 @@ using UnityEngine.UI;
 
     public void ResetAllSoundSettings()
     {
+        SoundService.Current.playSFX("버튼");
         // 1. 각 볼륨의 기본값 정의
         float defaultMaster = 1f;
         float defaultBGM = 1f;
@@ -109,7 +110,8 @@ using UnityEngine.UI;
 
     public void SoundMute(VolumeType type)
     {
-        switch(type)
+        SoundService.Current.playSFX("버튼");
+        switch (type)
         {
             case VolumeType.Master:
                 isMasterMuted = !isMasterMuted; 
