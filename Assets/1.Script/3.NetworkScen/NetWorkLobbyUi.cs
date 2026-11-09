@@ -363,6 +363,8 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void GoToLobby()
     {
+        
+             SoundService.Current.FadeSound("평소", 3f).Forget();
         if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
         {
             scenesM.LoadScene(SceneNumber.GameStart);

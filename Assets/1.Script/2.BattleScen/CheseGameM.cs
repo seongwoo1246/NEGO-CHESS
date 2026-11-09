@@ -1727,10 +1727,11 @@ public class CheseGameM : MonoBehaviour
         {
             service1.ShowPanel();
         }
+
+        SoundService.Current.FadeSound("평소", 3f).Forget();
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
-            
-            ScriptM.ClearSceneLocalServices();
+           ScriptM.ClearSceneLocalServices();
             service.LoadScene(SceneNumber.Lobby);
         }
     }

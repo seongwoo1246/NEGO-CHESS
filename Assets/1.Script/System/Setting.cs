@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class Setting : MonoBehaviour
@@ -76,7 +77,9 @@ public class Setting : MonoBehaviour
 
     public void GoToStartScenes()
     {
-        if(ScriptM.TryGet<HP>(out  HP hp))
+
+        SoundService.Current.FadeSound("평소", 3f).Forget();
+        if (ScriptM.TryGet<HP>(out  HP hp))
         {
             if(hp!=null) { hp.HidePanel(); }
         }

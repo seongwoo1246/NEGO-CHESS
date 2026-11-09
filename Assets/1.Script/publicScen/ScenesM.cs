@@ -29,6 +29,9 @@ public class ScenesM : MonoBehaviour
     /// </summary>
     public void LoadScene(SceneNumber scene)
     {
+
+        SoundService.Current.playSFX("씬이동");
+
         // 씬 enum을 문자열로 변환 한다.
         string sceneName = scene.ToString();
         ScriptM.ClearSceneLocalServices();

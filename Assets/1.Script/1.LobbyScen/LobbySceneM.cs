@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using Cysharp.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -84,6 +85,9 @@ public class LobbySceneM : MonoBehaviour
 
     public void GoToPractice()
     {
+
+        SoundService.Current.FadeSound("전투", 3f).Forget();
+
         if (ScriptM.TryGet<HP>(out HP hp))
             hp.HidePanel();
 

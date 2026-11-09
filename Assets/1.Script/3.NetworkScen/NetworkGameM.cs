@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 using UnityEngine.UI;
@@ -243,9 +244,11 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_RequestResign(RpcInfo info = default)
     {
+        
         if (State != GameState.Playing) return;
         if (!TryGetColor(info.Source, out PieceColor color)) return;
 
+        SoundService.Current.FadeSound("로비", 3f).Forget();
         EndGame(PlayerOf(Opposite(color)), GameEndReason.Resign);
     }
 
@@ -339,6 +342,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_CloseRoom()
     {
+
+        SoundService.Current.FadeSound("로비", 3f).Forget();
         if (Object.HasStateAuthority) return;   // 방장 본인은 이미 나가는 중
         HostClosedRoom?.Invoke();
     }

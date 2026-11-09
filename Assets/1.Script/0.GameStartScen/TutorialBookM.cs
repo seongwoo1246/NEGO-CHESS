@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -57,6 +58,7 @@ public class TutorialBookM : MonoBehaviour
    
     private int _chapter;
     private int _page;
+    
 
     // ───────────── 켜기 ─────────────
 
@@ -76,12 +78,14 @@ public class TutorialBookM : MonoBehaviour
 
     public void Open()
     {
+        SoundService.Current.playSFX("버튼");
         if (bookRoot != null) bookRoot.SetActive(true);
         Show(0, 0);
     }
 
     public void Close()
     {
+        SoundService.Current.playSFX("버튼");
         if (bookRoot != null && bookRoot != gameObject) bookRoot.SetActive(false);
     }
 
@@ -89,6 +93,7 @@ public class TutorialBookM : MonoBehaviour
 
     public void Next()
     {
+        SoundService.Current.playSFX("버튼");
         if (chapters.Count == 0) return;
 
         int count = chapters[_chapter].pages != null ? chapters[_chapter].pages.Count : 0;
@@ -98,6 +103,7 @@ public class TutorialBookM : MonoBehaviour
 
     public void Prev()
     {
+        SoundService.Current.playSFX("버튼");
         if (chapters.Count == 0) return;
 
         if (_page > 0)

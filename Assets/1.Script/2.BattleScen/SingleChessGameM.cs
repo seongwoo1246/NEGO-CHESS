@@ -1099,6 +1099,7 @@ public partial class SingleChessGameM : MonoBehaviour
             service1.ShowPanel();
         }
 
+        SoundService.Current.FadeSound("평소", 3f).Forget();
         if (ScriptM.TryGet<ScenesM>(out ScenesM service))
         {
             ResultPanel.SetActive(false);

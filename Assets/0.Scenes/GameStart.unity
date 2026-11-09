@@ -1862,7 +1862,7 @@ AudioSource:
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -1959,7 +1959,7 @@ AudioSource:
   m_PlayOnAwake: 1
   m_Volume: 1
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -2056,7 +2056,13 @@ MonoBehaviour:
   FadeOutSource: {fileID: 566168958}
   FadeInSource: {fileID: 566168957}
   SfxSource: {fileID: 566168956}
-  bgmList: []
+  bgmList:
+  - soundName: "\uC804\uD22C"
+    clip: {fileID: 8300000, guid: 710cf4f8e8180a2409baeff37635cda4, type: 3}
+  - soundName: "\uD3C9\uC18C"
+    clip: {fileID: 8300000, guid: e67410f288657734e9ec1714cd342b14, type: 3}
+  - soundName: "\uB85C\uBE44"
+    clip: {fileID: 8300000, guid: a965e47b4c0200f49a2b6464de91f715, type: 3}
   sfxList:
   - soundName: "\uAC15\uD654"
     clip: {fileID: 8300000, guid: 3e9f9382d09bc40da80e5b3799ddc1c9, type: 3}

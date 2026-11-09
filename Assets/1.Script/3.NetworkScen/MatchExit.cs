@@ -26,8 +26,9 @@ public static class MatchExit
             MatchRoster.Clear();
 
             if (runner != null) await runner.Shutdown(destroyGameObject: true);
-           
 
+
+            SoundService.Current.FadeSound("로비", 3f).Forget();
             SceneManager.LoadScene(lobbySceneName);
         }
         finally

@@ -1,5 +1,7 @@
 ﻿
 
+using Cysharp.Threading.Tasks;
+using Unity.VisualScripting;
 using UnityEngine;
 
 /// <summary>
@@ -7,7 +9,19 @@ using UnityEngine;
 /// </summary>
 public interface IGameMessage { };
 
+public interface ISoundService
+{
+    void playBGM(string soundName, bool loop = true);
+    void playSFX(string soundName);
+    void StopBGM();
+    UniTask FadeSound(string newSound, float fadeTime);
 
+    void SetMasterVolume(float linearVolume);
+    void SetBGMVolume(float linearVolume);
+    void SetSFXVolume(float linearVolume);
+    void SoundMute(VolumeType type);
+    void ResetAllSoundSettings();
+}
 
 public interface IPieceSpawner
 {

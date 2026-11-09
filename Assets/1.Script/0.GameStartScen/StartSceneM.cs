@@ -1,4 +1,5 @@
 ﻿
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -26,7 +27,7 @@ public class StartSceneM : MonoBehaviour
     [SerializeField] private TextMeshProUGUI Texts;
     [SerializeField] public Image Icon;
 
-
+    
     
 
     private void Awake()
@@ -80,6 +81,7 @@ public class StartSceneM : MonoBehaviour
 
     private void SelectMode()
     {
+        SoundService.Current.playSFX("버튼");
         GameStartBtn.gameObject.SetActive(false);
         GameExitBtn.gameObject.SetActive(false);
         SingleBtn.gameObject.SetActive(true);
@@ -90,13 +92,14 @@ public class StartSceneM : MonoBehaviour
 
    private void ExitGame()
     {
-      
+        SoundService.Current.playSFX("버튼");
         Application.Quit();
     }
 
     private void EnterSingleMode()
     {
-        if(ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
+        SoundService.Current.playSFX("버튼");
+        if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
         {
             GameStartBtn.gameObject.SetActive(true);
             GameExitBtn.gameObject.SetActive(true);
@@ -116,6 +119,7 @@ public class StartSceneM : MonoBehaviour
 
     private void openChar()
     {
+        SoundService.Current.playSFX("버튼");
         if (singlePlayer.isFristPlay == true)
         {
             Player.SetActive(true);
@@ -129,7 +133,9 @@ public class StartSceneM : MonoBehaviour
 
     private void EnterMultiMode()
     {
-        if(ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
+        SoundService.Current.playSFX("버튼");
+        SoundService.Current.FadeSound("로비", 3f).Forget();
+        if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM))
         {
             GameStartBtn.gameObject.SetActive(true);
             GameExitBtn.gameObject.SetActive(true);
@@ -140,11 +146,7 @@ public class StartSceneM : MonoBehaviour
     }
 
     private void InputData()
-    {
-       
-     
-        
-            
+    {    
             singlePlayer.playerName = PlayerName.text;
 
             if (int.TryParse(PlayerMonth.text, out singlePlayer.birthMonth))
@@ -173,6 +175,7 @@ public class StartSceneM : MonoBehaviour
 
     private void ChangeGender()
     {
+        SoundService.Current.playSFX("버튼");
         singlePlayer.isGirl = !singlePlayer.isGirl;               // 먼저 바꾸고
         singlePlayer.gender = singlePlayer.isGirl ? "여" : "남";
         Icon.sprite = singlePlayer.icon;

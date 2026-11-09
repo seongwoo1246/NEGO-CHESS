@@ -161,6 +161,7 @@ public class NetworkMatchUI : MonoBehaviour
 
     private void OnHostClosedRoom()
     {
+        
         ShowToast("방장이 방을 닫았어요. 로비로 이동합니다.");
         LeaveToLobby().Forget();
     }
@@ -175,7 +176,7 @@ public class NetworkMatchUI : MonoBehaviour
     private async UniTaskVoid OnClickLobbyAsync()
     {
         lobbyButton.interactable = false;
-
+        
         // 방장이면 먼저 상대에게 알리고, 메시지가 전송될 시간을 잠깐 줍니다.
         if (_game != null && _game.Object != null && _game.Object.HasStateAuthority)
         {

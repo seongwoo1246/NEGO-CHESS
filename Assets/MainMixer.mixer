@@ -82,13 +82,13 @@ AudioMixerController:
   m_EnableSuspend: 1
   m_UpdateMode: 0
   m_ExposedParameters:
-  - guid: 26edf080e2b3d614ca7da0726ac2346c
+  - guid: 4af923c64379bae469b00722d1af454a
     name: FadeIn
-  - guid: cb811f1c8163e5341a85d457fcbdca5c
+  - guid: 348e6d72fde88794387ebf1bec848957
     name: FadeOut
-  - guid: 0aa778228f422a648957ffe8fa57a949
+  - guid: 787efce069b1ecf489b61bf53f45546b
     name: MasterVolume
-  - guid: 307d8f3773a39a24c82978bfa1e7bac6
+  - guid: f6980422138bc484086503b011f2fe8f
     name: SFX
   m_AudioMixerGroupViews:
   - guids:

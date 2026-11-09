@@ -16,7 +16,7 @@ using Debug = DebugM<SoundM>;
 
 
 
-    public class SoundM : MonoBehaviour
+    public class SoundM : MonoBehaviour ,ISoundService
     {
         [Header("오디오 소스")]
         [SerializeField] public AudioSource FadeOutSource;
@@ -51,19 +51,20 @@ using Debug = DebugM<SoundM>;
 
         private void Awake()
         {
-           ScriptM.Register<SoundM>(this,UseSpace.Global);
+            ScriptM.Register<ISoundService>(this);
+         
         }
 
-   
 
 
+  
     private void Start()
     {
         InittializeDictionary();
+        playBGM("평소");
         SetMasterVolume(PlayerPrefs.GetFloat("MasterSound", lastMasterVolume));
         SetBGMVolume(PlayerPrefs.GetFloat("BGMSound", lastMasterVolume));
         SetSFXVolume(PlayerPrefs.GetFloat("SFXSound", lastMasterVolume));
-        
     }
 
    
@@ -72,9 +73,9 @@ using Debug = DebugM<SoundM>;
     public void ResetAllSoundSettings()
     {
         // 1. 각 볼륨의 기본값 정의
-        float defaultMaster = 0.5f;
-        float defaultBGM = 0.5f;
-        float defaultSFX = 0.5f;
+        float defaultMaster = 1f;
+        float defaultBGM = 1f;
+        float defaultSFX = 1f;
 
         // 2. PlayerPrefs에 기본값 저장
         PlayerPrefs.SetFloat("MasterSound", defaultMaster);

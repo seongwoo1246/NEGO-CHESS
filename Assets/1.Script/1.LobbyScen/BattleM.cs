@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Cysharp.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class BattleM : MonoBehaviour
@@ -40,6 +41,8 @@ public class BattleM : MonoBehaviour
             if (ScriptM.TryGet<ScenesM>(out ScenesM scenesM)&& hp.TryStartGame())
             {
                 PrepareForBattle();
+
+                SoundService.Current.FadeSound("전투", 3f).Forget();
                 scenesM.LoadScene(SceneNumber.Battle);
             }
         }
