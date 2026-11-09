@@ -119,7 +119,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         _adapter = boardAdapter as IChessBoardAdapter;
         if (_adapter == null)
         {
-            Debug.LogError("[NetworkGameM] boardAdapter가 비어 있거나 IChessBoardAdapter가 아니에요. Inspector에서 연결해 주세요.");
+           
         }
     }
 

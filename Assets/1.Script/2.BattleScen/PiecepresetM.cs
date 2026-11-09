@@ -68,6 +68,7 @@ public class PiecePresetM : MonoBehaviour
 
     private void OnClickSave(int index)
     {
+        SoundService.Current.playSFX("버튼");
         if (!TryGetGame(out CheseGameM game) || !game.IsSetupPhase) return;   // 배치 단계에서만
 
         game.CollectMyPieces(_buffer);
@@ -89,6 +90,7 @@ public class PiecePresetM : MonoBehaviour
 
     private void OnConfirmName()
     {
+        SoundService.Current.playSFX("버튼");
         int index = _pendingSlot;
         if (index < 0 || !TryGetGame(out CheseGameM game) || !game.IsSetupPhase)
         {
@@ -117,6 +119,7 @@ public class PiecePresetM : MonoBehaviour
 
     private void OnClickLoad(int index)
     {
+        SoundService.Current.playSFX("버튼");
         if (!TryGetGame(out CheseGameM game) || !game.IsSetupPhase) return;
 
         PresetSlot slot = PiecePresetStore.Get(index);
@@ -158,7 +161,7 @@ public class PiecePresetM : MonoBehaviour
 
     private void Notice(string message)
     {
-        Debug.Log("[Preset] " + message);
+       
         if (noticeText == null) return;
 
         noticeText.text = message;

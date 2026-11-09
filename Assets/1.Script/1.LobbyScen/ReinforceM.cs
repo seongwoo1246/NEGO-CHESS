@@ -69,6 +69,7 @@ public class ReinforceM : MonoBehaviour
     }
     private void RefreshGold()
     {
+        SoundService.Current.playSFX("돈변화");
         if (GoldText != null) GoldText.text = $"현재 소유 금액 {singlePlayer.Gold}";
     }
     public void InitAllUpgrades()
@@ -81,6 +82,7 @@ public class ReinforceM : MonoBehaviour
     }
     public void TryUpgrade(Upgrade stat)
     {
+        SoundService.Current.playSFX("강화");
         if (stat.currentLevel >= stat.maxLevel)
         {
             notion.text = "최대 레벨에 도달했습니다!";

@@ -232,7 +232,7 @@ public class CheseGameM : MonoBehaviour
     // 타일 선택시 호출하는 함수
     public void OnTileClicked(int x, int y)
     {
-
+        SoundService.Current.playSFX("버튼");
         // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
         if (isSpawnMode && selectedPieceData != null)
         {
@@ -336,6 +336,7 @@ public class CheseGameM : MonoBehaviour
 
     public int ApplyPreset(IReadOnlyList<PresetPiece> pieces)
     {
+        SoundService.Current.playSFX("버튼");
         if (!IsSetupPhase || pieces == null || spawner == null) return 0;
 
         isSpawnMode = true;        // 배치 단계 표시 (DestroyPiece가 킹 제거를 패배로 처리하지 않게)
@@ -383,7 +384,7 @@ public class CheseGameM : MonoBehaviour
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
     public void OnClickPieceButton(PieceData pieceData)
     {
-
+        SoundService.Current.playSFX("버튼");
         // 남은 개수 제한 체크 (예: maxPiece 이상 소환했다면 리턴)
         int currentCount = GetSpawnedCount(pieceData.Type);
         if (currentCount >= pieceData.maxPiece)
@@ -542,6 +543,7 @@ public class CheseGameM : MonoBehaviour
 
     public void ResetAllPieces()
     {
+        SoundService.Current.playSFX("버튼");
         // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
         for (int x = 0; x < 8; x++)
         {
@@ -564,6 +566,7 @@ public class CheseGameM : MonoBehaviour
 
     private void SetReady()
     {
+        SoundService.Current.playSFX("버튼");
         if (whiteKing == null)
         {
             Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
@@ -678,7 +681,8 @@ public class CheseGameM : MonoBehaviour
 
     public void ActiveSelfNegoPanel()
     {
-      float successChance = NegoSuccessChance();
+        SoundService.Current.playSFX("버튼");
+        float successChance = NegoSuccessChance();
 
         NegoPanel.SetActive(!NegoPanel.activeSelf);
         enPassantText.text = $"앙파상 제한 = {successChance:F0}%";
@@ -787,6 +791,7 @@ public class CheseGameM : MonoBehaviour
     /// <param name="toY">도착 Y (0~7)</param>
     public void MovePiece(int fromX, int fromY, int toX, int toY)
     {
+        SoundService.Current.playSFX("말이동");
         TriggerCharacterInteraction(currentAI.characterType);
 
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
@@ -896,11 +901,14 @@ public class CheseGameM : MonoBehaviour
         if (isMyTurn && IsKingInCheck(false, pieceGrid)) // 검은색(상대) 킹이 체크당했는지 검사
         {
             // 내가 체크했을 때 -> MyText 연출
+            SoundService.Current.playSFX("체크");
+           
             ShowMyCheckMessage("체크입니다. 자 어떤 식으로 대응 하실건가요^^");
         }
         else if (!isMyTurn && IsKingInCheck(true, pieceGrid)) // 흰색(내) 킹이 체크당했는지 검사
         {
             // 상대가 나를 체크했을 때 -> 상대 캐릭터 Cutin 연출
+            SoundService.Current.playSFX("체크");
             int enemyCharacterId = singlePlayer.selectedCharacterId;
             TriggerCheckCutin(enemyCharacterId, false);
         }
@@ -1053,6 +1061,7 @@ public class CheseGameM : MonoBehaviour
 
     public void TurnEnd()
     {
+        SoundService.Current.playSFX("턴이동");
         if (isGameEnded) return;
         isWhiteTurn = !isWhiteTurn;
         currentTurn = isWhiteTurn? PieceColor.white : PieceColor.black;
@@ -1089,6 +1098,7 @@ public class CheseGameM : MonoBehaviour
 
         if (isNegotiationSuccess)
         {
+            SoundService.Current.playSFX("협상성공");
             ShowMyCheckMessage($"협상 성공! [{ruleType}] 규칙이 금지(봉쇄)됩니다.");
 
             // 2. 성공 시 해당 룰을 비활성화(막아버림)
@@ -1098,6 +1108,7 @@ public class CheseGameM : MonoBehaviour
         }
         else
         {
+            SoundService.Current.playSFX("협상실패");
             // 3. 실패 시 페널티 (예: 협상력 10% 감소)
             myNegoPower -= 10f;
             ClampNegoPower();
@@ -1127,6 +1138,7 @@ public class CheseGameM : MonoBehaviour
     // 💡 플레이어가 '무르기 협상' 버튼을 눌렀을 때 호출할 함수
     public void TryUndoWithNegotiation()
     {
+        SoundService.Current.playSFX("버튼");
         TriggerCharacterInteraction(currentAI.characterType);
 
         // 1. 무를 기보가 아예 없다면 중단
@@ -1229,7 +1241,7 @@ public class CheseGameM : MonoBehaviour
     private void ExecuteUndoLastMove(MoveData lastMove, int lastIndex)
     {
         MoveHistory.RemoveAt(lastIndex);
-
+        SoundService.Current.playSFX("되감기");
         // 1. 이동한 기물 제자리로 원복
         pieceGrid[lastMove.From.x, lastMove.From.y] = lastMove.MovedPiece;
 
@@ -1273,6 +1285,7 @@ public class CheseGameM : MonoBehaviour
     // 1. 도발 성공 시 호출 
     public void OnTauntSuccess()
     {
+        SoundService.Current.playSFX("버튼");
         TriggerCharacterInteraction(currentAI.characterType);
 
         if (myNegoPower>=0)
@@ -1349,6 +1362,7 @@ public class CheseGameM : MonoBehaviour
     }
     public void OnPromotionPieceSelected(PieceDatabase piecedatabase, pieceType selectedType)
     {
+        SoundService.Current.playSFX("버튼");
         if (!isWaitingForPromotion || pendingPromotionPawn == null) return;
 
         int x = pendingPromotionPos.x;
@@ -1548,7 +1562,6 @@ public class CheseGameM : MonoBehaviour
     private void OnTimeOut()
     {
         isTimerRunning = false;
-        Debug.Log("제한 시간 초과! 자동으로 턴을 넘깁니다.");
         TurnEnd();
 
     }
@@ -1638,6 +1651,7 @@ public class CheseGameM : MonoBehaviour
 
     public void HandleGiveUp()
     {
+        SoundService.Current.playSFX("패배");
         ShowGameResultAsync(GameResultType.Giveup, 0, 0).Forget();
     }
     /// <summary>
@@ -1661,6 +1675,7 @@ public class CheseGameM : MonoBehaviour
         switch (resultType)
         {
             case GameResultType.Win:
+                SoundService.Current.playSFX("승리");
                 int winMultiplier = 10;
                 float negoMoneyWin = currentNegotiationPower * winMultiplier;
                 int timeMoneyWin = Mathf.FloorToInt(remainingSeconds) * winMultiplier;
@@ -1686,6 +1701,7 @@ public class CheseGameM : MonoBehaviour
                 
 
             case GameResultType.Lose:
+                SoundService.Current.playSFX("패배");
                 int loseMultiplier = 5;
                 float negoMoneyLose = currentNegotiationPower * loseMultiplier;
                 int timeMoneyLose = Mathf.FloorToInt(remainingSeconds) * loseMultiplier;
@@ -1697,6 +1713,7 @@ public class CheseGameM : MonoBehaviour
                 break;
 
             case GameResultType.Draw:
+                SoundService.Current.playSFX("패배");
                 // 무승부 시 고정 1000원 지급
                 totalMoney = 1000;
                 resultTextStr = "무승부";
@@ -1706,6 +1723,7 @@ public class CheseGameM : MonoBehaviour
 
                 break;
             case GameResultType.Giveup:
+                SoundService.Current.playSFX("패배");
                 resultTextStr = "항복";
                 totalMoney = 0;
                 if (NegoText != null) NegoText.text = "대국을 포기했습니다.";

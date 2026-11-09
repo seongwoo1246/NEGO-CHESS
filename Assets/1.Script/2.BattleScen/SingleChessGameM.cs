@@ -128,6 +128,7 @@ public partial class SingleChessGameM : MonoBehaviour
     // 타일 선택시 호출하는 함수
     public void OnTileClicked(int x, int y)
     {
+        SoundService.Current.playSFX("버튼");
         if (NetHandleBoardClick(x, y)) return;
 
         // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
@@ -221,6 +222,7 @@ public partial class SingleChessGameM : MonoBehaviour
     // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
     public void OnClickPieceButton(PieceData pieceData)
     {
+        SoundService.Current.playSFX("버튼");
         if (IsNetworkMatch)
         {
             if (!_netSetupEnabled) return;
@@ -230,7 +232,7 @@ public partial class SingleChessGameM : MonoBehaviour
         int currentCount = GetSpawnedCount(pieceData.Type);
         if (currentCount >= pieceData.maxPiece)
         {
-            Debug.Log($"{pieceData.pieceName}은(는) 더 이상 소환할 수 없습니다!");
+           
             return;
         }
 
@@ -261,6 +263,7 @@ public partial class SingleChessGameM : MonoBehaviour
     // 모든 버튼의 텍스트를 현재 남은 개수에 맞춰 갱신
     private void RefreshButtonUI()
     {
+        SoundService.Current.playSFX("버튼");
         foreach (var btnUI in pieceButtonUIs)
         {
             int max = btnUI.pieceData.maxPiece;
@@ -366,6 +369,7 @@ public partial class SingleChessGameM : MonoBehaviour
 
     public void ResetAllPieces()
     {
+       
         if (IsNetworkMatch) return;
         // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
         for (int x = 0; x < 8; x++)
@@ -385,6 +389,7 @@ public partial class SingleChessGameM : MonoBehaviour
     }
     public void ResetAllPieces_B()
     {
+        
         if (IsNetworkMatch) return;
         // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
         for (int x = 0; x < 8; x++)
@@ -514,6 +519,7 @@ public partial class SingleChessGameM : MonoBehaviour
 
     private void SelectPiece(int x, int y)
     {
+        SoundService.Current.playSFX("버튼");
         ChessPieceM pieceObj = pieceGrid[x, y];
         if (pieceObj == null) return;
 
@@ -573,16 +579,17 @@ public partial class SingleChessGameM : MonoBehaviour
     /// <param name="toY">도착 Y (0~7)</param>
     public void MovePiece(int fromX, int fromY, int toX, int toY)
     {
+        SoundService.Current.playSFX("말이동");
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
-            Debug.LogError("ChessPieceM 서비스를 찾을 수 없습니다.");
+            
             return;
         }
         // 1. 출발지에 기물이 존재하는지 검증
         ChessPieceM pieceToMove = pieceGrid[fromX, fromY];
         if (pieceToMove == null)
         {
-            Debug.LogWarning($"[{fromX}, {fromY}] 위치에 이동시킬 기물이 없습니다!");
+          
             return;
         }
 
@@ -745,6 +752,7 @@ public partial class SingleChessGameM : MonoBehaviour
     }
     public void TurnEnd()
     {
+        SoundService.Current.playSFX("턴이동");
         if (isGameEnded) return;
         if (IsNetworkMatch) return;
         isWhiteTurn = !isWhiteTurn;
@@ -823,6 +831,7 @@ public partial class SingleChessGameM : MonoBehaviour
     // 기존에 올리셨던 무르기 코드의 실제 실행부 분리
     private void ExecuteUndoLastMove(MoveData lastMove, int lastIndex)
     {
+        SoundService.Current.playSFX("되감기");
         MoveHistory.RemoveAt(lastIndex);
 
         // 1. 이동한 기물 제자리로 원복
@@ -864,6 +873,7 @@ public partial class SingleChessGameM : MonoBehaviour
     // 프로모션 할때 사용
     public void RequestPromotion(ChessPieceM pawn, int x, int y, bool isBlack)
     {
+        SoundService.Current.playSFX("버튼");
         if (IsNetworkMatch) return;
         if (isBlack)
         {
@@ -891,6 +901,7 @@ public partial class SingleChessGameM : MonoBehaviour
     }
     public void OnPromotionPieceSelected(PieceDatabase piecedatabase, pieceType selectedType)
     {
+        SoundService.Current.playSFX("버튼");
         // 멀티: 내 판을 바로 바꾸지 않고 방장에게 부탁합니다. (허락이 오면 모든 컴퓨터가 똑같이 승급)
         if (IsNetworkMatch)
         {
@@ -1033,6 +1044,7 @@ public partial class SingleChessGameM : MonoBehaviour
 
     public void HandleGiveUp()
     {
+        SoundService.Current.playSFX("패배");
         // 멀티: 항복은 방장에게 요청 (결과 화면은 NetworkMatchUI가 보여 줌)
         if (IsNetworkMatch)
         {
@@ -1064,6 +1076,7 @@ public partial class SingleChessGameM : MonoBehaviour
         {
             case GameResultType.Win:
 
+                SoundService.Current.playSFX("승리");
                 resultTextStr = " 백 승리";
 
                 if (NegoText != null) NegoText.text = $"백 플레이어 승리";
@@ -1072,7 +1085,7 @@ public partial class SingleChessGameM : MonoBehaviour
                 break;
 
             case GameResultType.Lose:
-
+                SoundService.Current.playSFX("승리");
                 resultTextStr = "흑 승리";
 
                 if (NegoText != null) NegoText.text = $"흑 플레이어 승리";
@@ -1080,6 +1093,7 @@ public partial class SingleChessGameM : MonoBehaviour
                 break;
 
             case GameResultType.Giveup:
+                SoundService.Current.playSFX("패배");
                 resultTextStr = "항복";
 
                 if (NegoText != null) NegoText.text = "대국을 포기했습니다.";

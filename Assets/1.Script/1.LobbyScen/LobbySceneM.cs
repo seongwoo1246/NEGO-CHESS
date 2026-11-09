@@ -37,28 +37,32 @@ public class LobbySceneM : MonoBehaviour
 
     public void ActiveSelfBattle()
     {
+        SoundService.Current.playSFX("버튼");
         BattlePanel.SetActive(!BattlePanel.activeSelf);
 
     }
     public void ActiveSelfReinforce()
     {
+        SoundService.Current.playSFX("버튼");
         ReinforcePanel.SetActive(!ReinforcePanel.activeSelf);
 
     }
     public void ActiveSelfAchievement()
     {
+        SoundService.Current.playSFX("버튼");
         AchievementPanel.SetActive(!AchievementPanel.activeSelf);
 
     }
     public void ActiveSelfCharacter()
     {
+        SoundService.Current.playSFX("버튼");
         CharacterPanel.SetActive(!CharacterPanel.activeSelf);
-
     }
   
    
     public void SaveData()
     {
+        SoundService.Current.playSFX("버튼");
         SaveM.Save(singlePlayer.CreateSaveData());
         SaveText.text = $"오늘까지의 일은 적어두도록 하겠습니다. {singlePlayer.playerName}";
         if (ScriptM.TryGet<DialogueController>(out DialogueController dialogueController))
@@ -70,7 +74,7 @@ public class LobbySceneM : MonoBehaviour
 
     public void LoadData()
     {
-        
+        SoundService.Current.playSFX("버튼");
         singlePlayer.ApplySaveData(SaveM.Load());
         SaveText.text = $"적었던 내용이 여기 있습니다.";
         if (ScriptM.TryGet<DialogueController>(out DialogueController dialogueController))
@@ -85,7 +89,7 @@ public class LobbySceneM : MonoBehaviour
 
     public void GoToPractice()
     {
-
+        SoundService.Current.playSFX("버튼");
         SoundService.Current.FadeSound("전투", 3f).Forget();
 
         if (ScriptM.TryGet<HP>(out HP hp))

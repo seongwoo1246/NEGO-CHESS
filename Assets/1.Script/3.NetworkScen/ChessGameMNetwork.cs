@@ -127,10 +127,10 @@ public partial class SingleChessGameM : IChessBoardAdapter
 
     void IChessBoardAdapter.PlacePiece(pieceType type, PieceColor color, int x, int y)
     {
+        SoundService.Current.playSFX("버튼");
         GameObject prefab = PieceDatabase != null ? PieceDatabase.GetPrefab(type, color) : null;
         if (prefab == null)
         {
-            Debug.LogError($"[SingleChessGameM] {color} {type} 프리팹을 찾지 못했어요. PieceDatabase를 확인해 주세요.");
             return;
         }
 
@@ -161,12 +161,14 @@ public partial class SingleChessGameM : IChessBoardAdapter
 
     void IChessBoardAdapter.RemovePiece(int x, int y)
     {
+        SoundService.Current.playSFX("버튼");
         NetDestroyDuringSetup(x, y);
         RefreshButtonUI();
     }
 
     void IChessBoardAdapter.ClearSide(PieceColor color)
     {
+        SoundService.Current.playSFX("되감기");
         bool targetIsWhite = color == PieceColor.white;
 
         for (int x = 0; x < 8; x++)
@@ -245,6 +247,7 @@ public partial class SingleChessGameM : IChessBoardAdapter
 
     bool IChessBoardAdapter.IsLegalMove(PieceColor mover, int fromX, int fromY, int toX, int toY)
     {
+        
         if (fromX < 0 || fromX >= 8 || fromY < 0 || fromY >= 8) return false;
         if (toX < 0 || toX >= 8 || toY < 0 || toY >= 8) return false;
 
@@ -288,13 +291,14 @@ public partial class SingleChessGameM : IChessBoardAdapter
 
     void IChessBoardAdapter.ApplyPromotion(int x, int y, pieceType newType, PieceColor color)
     {
+        SoundService.Current.playSFX("버튼");
         ChessPieceM pawn = pieceGrid[x, y];
         if (pawn == null) return;
 
         GameObject prefab = PieceDatabase != null ? PieceDatabase.GetPrefab(newType, color) : null;
         if (prefab == null)
         {
-            Debug.LogError($"[SingleChessGameM] {color} {newType} 프리팹을 찾지 못했어요. PieceDatabase를 확인해 주세요.");
+            
             return;
         }
 
@@ -316,6 +320,7 @@ public partial class SingleChessGameM : IChessBoardAdapter
 
     ChessOutcome IChessBoardAdapter.EvaluateOutcome(PieceColor sideToMove)
     {
+        SoundService.Current.playSFX("체크");
         // 싱글 규칙 그대로: 왕이 잡히면 끝. 차례가 온 쪽의 왕이 판에 없으면 방금 둔 쪽의 승리입니다.
         bool sideIsWhite = sideToMove == PieceColor.white;
 

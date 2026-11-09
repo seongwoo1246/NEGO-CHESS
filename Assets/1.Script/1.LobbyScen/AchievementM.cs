@@ -65,6 +65,7 @@ public class AchievementM : MonoBehaviour
 
     private void OnEnable()
     {
+        SoundService.Current.playSFX("강화");
         ClaimAllRewards();   // 1) 달성한 업적이 있으면 보상 + 다음 단계로
         ApplyTargets();      // 2) 슬롯이 읽을 목표 갱신
         RefreshAll();        // 3) 화면 갱신

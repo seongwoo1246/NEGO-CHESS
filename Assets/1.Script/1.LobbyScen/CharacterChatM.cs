@@ -84,6 +84,7 @@ public class CharacterChatM : MonoBehaviour
     /// <summary>이 캐릭터와 대화를 시작합니다. (이미 대화 중인 캐릭터를 다시 누르면 새 대사로 다시 시작)</summary>
     public void StartChat(CharacterType character)
     {
+        SoundService.Current.playSFX("버튼");
         if (onlyUnlocked && !IsUnlocked(character)) return;
 
         StopLoop();
@@ -99,6 +100,7 @@ public class CharacterChatM : MonoBehaviour
     /// <summary>대화를 끝내고 캐릭터를 숨깁니다.</summary>
     public void EndChat()
     {
+        SoundService.Current.playSFX("버튼");
         StopLoop();
         _hasCurrent = false;
         RefreshCharacterObjects(false, default);
@@ -163,6 +165,7 @@ public class CharacterChatM : MonoBehaviour
         used.Add(pick.dialogueText);
         _lastText[character] = pick.dialogueText;
 
+       
         dialogue.ShowLine(pick, holdSeconds);
     }
 

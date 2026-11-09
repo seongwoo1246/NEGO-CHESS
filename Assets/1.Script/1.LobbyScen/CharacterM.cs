@@ -46,6 +46,7 @@ public class CharacterM : MonoBehaviour
 
     private void ApplyInputData()
     {
+        SoundService.Current.playSFX("버튼");
         string inputStr = ChangeText.text;
 
         switch (currentEdit)
