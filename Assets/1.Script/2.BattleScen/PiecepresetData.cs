@@ -56,7 +56,10 @@ public static class PiecePresetStore
         }
         catch (Exception e)
         {
-            Debug.LogWarning("[Preset] 저장된 프리셋을 읽지 못해 새로 시작합니다: " + e.Message);
+            
+            
+            
+           
         }
 
         if (data == null) data = new PresetSaveData();

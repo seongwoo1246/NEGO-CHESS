@@ -11,6 +11,7 @@ public class settingUi : MonoBehaviour
 
     public void open()
     {
+        SoundService.Current.playSFX("버튼");
         isOpen = !isOpen;
         
         if(isOpen)

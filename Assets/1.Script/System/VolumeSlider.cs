@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
-using Debug = DebugM<VolumeSlider>;
+
 public class VolumeSlider : MonoBehaviour
 {
     public VolumeType type;
@@ -16,10 +16,7 @@ public class VolumeSlider : MonoBehaviour
     {
         // 1. 컴포넌트 캐싱 및 예외 처리
         slider = GetComponent<Slider>();
-        if (slider == null)
-        {
-            Debug.LogError($"[VolumeSlider] '{gameObject.name}'에 Slider 컴포넌트가 없습니다!");
-        }
+     
     }
 
 

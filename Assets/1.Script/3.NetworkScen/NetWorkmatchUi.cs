@@ -161,7 +161,6 @@ public class NetworkMatchUI : MonoBehaviour
 
     private void OnHostClosedRoom()
     {
-        
         ShowToast("방장이 방을 닫았어요. 로비로 이동합니다.");
         LeaveToLobby().Forget();
     }
@@ -348,11 +347,13 @@ public class NetworkMatchUI : MonoBehaviour
 
     private void OnClickReset()
     {
+        SoundService.Current.playSFX("버튼");
         if (ScriptM.TryGet<NetworkChessPieceM>(out NetworkChessPieceM pieces)) pieces.RequestClearMySide();
     }
 
     private void OnClickReady()
     {
+       
         if (_game == null || !_game.TryGetLocalColor(out PieceColor me)) return;
         _game.RequestSetupReady(!_game.IsSetupReady(me));   // 준비 ↔ 준비 취소
     }

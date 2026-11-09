@@ -2,7 +2,7 @@
 using UnityEngine;
 // 스토브 PCSDK3 네임스페이스 및 Base static 연동
 using static Stove.PCSDK.Base;
-using Debug = DebugM<StovePcSdkM>;
+
 
 public class StovePcSdkM : MonoBehaviour
 {
@@ -58,11 +58,11 @@ public class StovePcSdkM : MonoBehaviour
     {
         if (IsInitialized)
         {
-            Debug.LogWarning("[StovePCSDK] 이미 초기화되어 있습니다.");
+           
             return;
         }
 
-        Debug.Log("[StovePCSDK3] 초기화 진행 중...");
+    
 
         // 1. 파라미터 구성
         StovePCInitializeParamEx2 initParam = new StovePCInitializeParamEx2();
@@ -77,7 +77,7 @@ public class StovePcSdkM : MonoBehaviour
         {
             if (restartAppIfNecessary)
             {
-                Debug.Log("[StovePCSDK] 스토브 런처를 통해 다시 실행해야 합니다. 게임을 종료합니다.");
+                
                 Application.Quit();
                 return;
             }
@@ -89,7 +89,7 @@ public class StovePcSdkM : MonoBehaviour
                 if (initResult.result.IsSuccessful())
                 {
                     IsInitialized = true;
-                    Debug.Log("[StovePCSDK3] 초기화 성공!");
+                    
                     OnInitializeSuccess?.Invoke();
                    // 초기화 성공 후 유저 정보(로그인) 요청
                     RequestUserInfo();
@@ -97,7 +97,7 @@ public class StovePcSdkM : MonoBehaviour
                 else
                 {
                     string errorMsg = $"[StovePCSDK3] 초기화 실패 - Code: {initResult.result.resultCode}, Msg: {initResult.errorMessage}";
-                    Debug.LogError(errorMsg);
+                    
                     OnInitializeFailed?.Invoke(errorMsg);
                 }
             });
@@ -120,15 +120,12 @@ public class StovePcSdkM : MonoBehaviour
             IsLoggedIn = true;
 
             // StovePCUser 내부 필드 접근 (nickname, gameUserId)
-            Debug.Log($" 로그인 성공! 유저 닉네임: {user.nickname}, GameUserId: {user.gameUserId}");
+           
 
             // 이벤트로 유저 정보 전달
             OnLoginSuccess?.Invoke(user);
         }
-        else
-        {
-            Debug.LogError($" 유저 정보 조회 실패 - Code: {result.resultCode}");
-        }
+      
     }
 
     /// <summary>
@@ -141,7 +138,7 @@ public class StovePcSdkM : MonoBehaviour
             ScriptM.Reset();
             Base_UnInitialize();
             IsInitialized = false;
-            Debug.Log("[StovePCSDK3] Uninitialized.");
+           
         }
     }
 }

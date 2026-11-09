@@ -1,7 +1,7 @@
 ﻿using Fusion;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using Debug = DebugM<ScenesM>;
+
 
 
 public class ScenesM : MonoBehaviour
@@ -46,10 +46,7 @@ public class ScenesM : MonoBehaviour
                 SetRunner(runner);
                 runner.LoadScene(SceneRef.FromPath(scenePath));
             }
-            else
-            {
-                Debug.LogError($"[ScenesM] Build Settings에서 {sceneName} 씬 경로를 찾을 수 없습니다.");
-            }
+          
             return;
         }
 

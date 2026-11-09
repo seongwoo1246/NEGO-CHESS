@@ -146,31 +146,25 @@ public class StartSceneM : MonoBehaviour
     }
 
     private void InputData()
-    {    
-            singlePlayer.playerName = PlayerName.text;
+    {
+        if (!int.TryParse(PlayerMonth.text, out int month) || month < 1 || month > 12)
+        {
+            Texts.text = "예) 12월 = 12 식으로 적어주세요.";
+            return;
+        }
 
-            if (int.TryParse(PlayerMonth.text, out singlePlayer.birthMonth))
-            {
+        // 윤년의 2월 29일도 허용하려고 2024년 기준으로 그 달의 마지막 날을 계산
+        int maxDay = System.DateTime.DaysInMonth(2024, month);
+        if (!int.TryParse(PlayerDay.text, out int day) || day < 1 || day > maxDay)
+        {
+            Texts.text = $"예) 12일 = 12 식으로 적어주세요. ({month}월은 1~{maxDay}일)";
+            return;
+        }
 
-            }
-            else
-            {
-                Texts.text = "예) 12월 = 12 식으로 적어주세요.";
-            }
-
-            if (int.TryParse(PlayerDay.text, out singlePlayer.birthDay))
-            {
-
-            }
-            else
-            {
-                Texts.text = "예) 12일 = 12 식으로 적어주세요.";
-            }
-
-            singlePlayer.isFristPlay = false;
-        
-
-      
+        singlePlayer.playerName = PlayerName.text;
+        singlePlayer.birthMonth = month;
+        singlePlayer.birthDay = day;
+        singlePlayer.isFristPlay = false;
     }
 
     private void ChangeGender()

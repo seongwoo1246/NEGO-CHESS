@@ -62,7 +62,7 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
 
             if (!result.Ok)
             {
-                Debug.LogWarning($"[RoomBrowser] 로비 접속 실패: {result.ShutdownReason}");
+                
                 await StopBrowsingAsync();
                 StatusChanged?.Invoke("방 목록을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.");
                
@@ -73,7 +73,7 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
         }
         catch (Exception e)
         {
-            Debug.LogException(e);
+          
             if (_runner == runner) await StopBrowsingAsync();
             StatusChanged?.Invoke("방 목록을 불러오지 못했어요.");
            

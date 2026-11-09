@@ -44,7 +44,8 @@ public static class SaveM
 
         // 지정된 경로에 파일로 작성
         File.WriteAllText(SavePath, json);
-        Debug.Log($"게임 데이터 저장 완료: {SavePath}");
+        
+        
     }
 
     // 2. 게임 데이터 불러오기
@@ -53,7 +54,7 @@ public static class SaveM
         // 파일이 존재하지 않으면 새로 만들어서 반환
         if (!File.Exists(SavePath))
         {
-            Debug.Log("저장된 파일이 없습니다. 기본 데이터를 생성합니다.");
+            
             return new SaveData();
         }
 
@@ -61,7 +62,7 @@ public static class SaveM
         string json = File.ReadAllText(SavePath);
         SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-        Debug.Log("게임 데이터 불러오기 성공!");
+        
         return data;
     }
 

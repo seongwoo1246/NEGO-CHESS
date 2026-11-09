@@ -742,8 +742,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 430.1, y: -291.6925}
-  m_SizeDelta: {x: 692.21, y: 105.385}
+  m_AnchoredPosition: {x: 418.83, y: -287.95}
+  m_SizeDelta: {x: 867.12, y: 158.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &324392623
 MonoBehaviour:
@@ -766,7 +766,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_text: "\uC5EC\uAE30\uC11C \uC0DD\uC77C \uC791\uC131\uC744 \uC548\uD558\uBA74
-    \n\uB2E4\uC2DC\uB294 \uC124\uC815\uC744 \uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+    \n\uB2E4\uC2DC\uB294 \uC124\uC815\uC744 \uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.\n\uC6D4\uC740
+    01~12 \uC77C\uC740 01~31 \uAE4C\uC9C0\uC785\uB2C8\uB2E4."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
@@ -2086,6 +2087,8 @@ MonoBehaviour:
     clip: {fileID: 8300000, guid: 9980d6ae4738ecb4183f39ae92d43734, type: 3}
   - soundName: "\uD611\uC0C1\uC2E4\uD328"
     clip: {fileID: 8300000, guid: e485bfcc0441c4f1d978ba06d27acd42, type: 3}
+  - soundName: "\uB418\uAC10\uAE30"
+    clip: {fileID: 8300000, guid: a82d8ac976a0bc447b5b2953279c3b0e, type: 3}
   audioMixer: {fileID: 24100000, guid: 85399b436f099014897f60a9e30ff56e, type: 2}
 --- !u!4 &566168960
 Transform:
@@ -5391,17 +5394,17 @@ MonoBehaviour:
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
   m_ScrollSensitivity: 1
-  m_ContentType: 0
+  m_ContentType: 2
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 2
   m_LineType: 0
   m_HideMobileInput: 0
   m_HideSoftKeyboard: 0
-  m_CharacterValidation: 0
+  m_CharacterValidation: 2
   m_RegexValue: 
   m_GlobalPointSize: 14
-  m_CharacterLimit: 0
+  m_CharacterLimit: 2
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls: []
@@ -6784,17 +6787,17 @@ MonoBehaviour:
   m_VerticalScrollbarEventHandler: {fileID: 0}
   m_LayoutGroup: {fileID: 0}
   m_ScrollSensitivity: 1
-  m_ContentType: 0
+  m_ContentType: 2
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 2
   m_LineType: 0
   m_HideMobileInput: 0
   m_HideSoftKeyboard: 0
-  m_CharacterValidation: 0
+  m_CharacterValidation: 2
   m_RegexValue: 
   m_GlobalPointSize: 14
-  m_CharacterLimit: 0
+  m_CharacterLimit: 2
   m_OnEndEdit:
     m_PersistentCalls:
       m_Calls: []

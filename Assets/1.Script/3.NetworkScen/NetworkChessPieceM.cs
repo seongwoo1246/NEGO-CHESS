@@ -115,6 +115,7 @@ public class NetworkChessPieceM : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_BroadcastClearSide(int round, int ownerId, bool isWhite)
     {
+        SoundService.Current.playSFX("되감기");
         if (Runner.LocalPlayer.PlayerId != ownerId) return;
         if (!TryGetGame(out NetworkGameM game)) return;
 

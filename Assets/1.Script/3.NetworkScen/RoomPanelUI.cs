@@ -218,6 +218,7 @@ public class RoomPanelUI : MonoBehaviour
 
     private void OnClickLeave()
     {
+      
         LeaveAsync().Forget();
     }
 
@@ -236,6 +237,7 @@ public class RoomPanelUI : MonoBehaviour
 
     private void ReturnToLobby()
     {
+        SoundService.Current.playSFX("버튼");
         if (!gameObject.activeSelf) return; // 이미 돌아갔다면 두 번 하지 않음
 
         gameObject.SetActive(false);

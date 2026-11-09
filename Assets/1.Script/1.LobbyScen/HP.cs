@@ -4,7 +4,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Debug = DebugM<HP>;
+
 
 public class HP : MonoBehaviour
 {

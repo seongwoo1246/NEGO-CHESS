@@ -1,7 +1,7 @@
-﻿using Fusion;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
-using Debug = DebugM<ChessPieceM>;
+
 
 
 [System.Serializable]

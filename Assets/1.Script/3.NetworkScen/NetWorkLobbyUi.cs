@@ -267,16 +267,20 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void OnClickCreateRoom()
     {
+        SoundService.Current.playSFX("버튼");
         if (!_hasNickname) { ShowMessage("먼저 닉네임을 정하고 '작성 완료'를 눌러 주세요."); return; }
 
         var request = new RoomCreateRequest(roomNameInput.text, roomPasswordInput.text, maxPlayers);
         if (!request.Validate(out string error)) { ShowMessage(error); return; }
-        Debug.Log(roomPasswordInput.text);
+        
+        
+       
         RunRoomOperationAsync(() => launcher.CreateRoomAsync(request), "방을 만드는 중이에요...").Forget();
     }
 
     private void OnClickJoinRoom(RoomListItem room, string rowPassword)
     {
+        SoundService.Current.playSFX("버튼");
         if (!_hasNickname) { ShowMessage("먼저 닉네임을 정하고 '작성 완료'를 눌러 주세요."); return; }
 
         // 방 줄의 입력칸에 적었으면 그 값을, 비었으면 위쪽 공용 칸의 값을 씁니다.
@@ -334,6 +338,7 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void EnterRoomScreen()
     {
+        SoundService.Current.playSFX("버튼");
         if (lobbyPanel != null) lobbyPanel.SetActive(false);
         if (roomPanel != null) roomPanel.SetActive(true);
     }
@@ -349,6 +354,7 @@ public class NetWorkLobbyUi : MonoBehaviour
 
     private void RefreshButtons()
     {
+        SoundService.Current.playSFX("버튼");
         createRoomButton.interactable = _hasNickname && !_isBusy;
         searchButton.interactable = !_isBusy;
     }

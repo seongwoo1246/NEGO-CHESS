@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Debug = DebugM<KeySettingM>;
+
 public class KeySettingM : MonoBehaviour
 {
     
@@ -111,6 +111,7 @@ public class KeySettingM : MonoBehaviour
 
     public void OpenSetting()
     {
+        SoundService.Current.playSFX("버튼");
         Sound.SetActive(false);
         DisPlay.SetActive(false);
         Setting.SetActive(true);
@@ -119,6 +120,7 @@ public class KeySettingM : MonoBehaviour
 
     public void ExitSetting()
     {
+        SoundService.Current.playSFX("버튼");
         Sound.SetActive(false);
         DisPlay.SetActive(false);
         Setting.SetActive(true);
@@ -134,6 +136,7 @@ public class KeySettingM : MonoBehaviour
     /// </summary>
     public void UpdateAllUI()
     {
+        SoundService.Current.playSFX("버튼");
         if (inputActions == null) return;
 
         // 각 액션을 에셋에서 직접 찾아와서 UI 텍스트 업데이트
@@ -150,6 +153,7 @@ public class KeySettingM : MonoBehaviour
     /// </summary>
     private void UpdateActionUI(InputAction action, TMP_Text textUI, int bindingIndex = 0)
     {
+       
         if (action == null || textUI == null) return;
 
         // GetBindingDisplayString을 사용하면 "<Keyboard>/space" -> "Space" 형태로 가독성 있게 변환됨
@@ -164,6 +168,7 @@ public class KeySettingM : MonoBehaviour
     /// <param name="bindingIndex">바꿀 바인딩 인덱스 (기본 0)</param>
     public void StartRebinding(InputAction actionToRebind, TMP_Text targetText, int bindingIndex = 0)
     {
+        SoundService.Current.playSFX("버튼");
         if (actionToRebind == null) return;
 
         // 💡 핵심: 액션이 속한 액션 맵이 꺼져있다면 켜주어야 입력을 감지할 수 있습니다!
@@ -191,7 +196,7 @@ public class KeySettingM : MonoBehaviour
                 }
 
                 SaveKeyBindings();
-                Debug.Log($"[KeySettingM] 키 변경 완료: {actionToRebind.name}");
+               
             })
             .OnCancel(operation =>
             {
@@ -202,11 +207,11 @@ public class KeySettingM : MonoBehaviour
                 {
                     targetText.text = actionToRebind.GetBindingDisplayString(bindingIndex);
                 }
-                Debug.Log($"[KeySettingM] 키 변경 취소됨");
+               
             })
             .Start();
 
-        Debug.Log($"[KeySettingM] 리바인딩 대기 시작: {actionToRebind.name}"); // 진입 확인용 로그
+       
     }
 
     /// <summary>
@@ -223,7 +228,7 @@ public class KeySettingM : MonoBehaviour
         PlayerPrefs.SetString(BINDING_SAVE_KEY, bindingsJson);
         PlayerPrefs.Save();
 
-        Debug.Log("[KeySettingM] 키 바인딩 저장 완료");
+        
     }
 
     /// <summary>
@@ -241,7 +246,7 @@ public class KeySettingM : MonoBehaviour
             {
                 // JSON 문자열을 가져와 Input Action 에셋에 덮어씌움
                 inputActions.LoadBindingOverridesFromJson(bindingsJson);
-                Debug.Log("[KeySettingM] 키 바인딩 불러오기 완료");
+               
             }
         }
         UpdateAllUI();

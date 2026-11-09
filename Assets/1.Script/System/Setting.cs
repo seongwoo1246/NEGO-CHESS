@@ -69,6 +69,7 @@ public class Setting : MonoBehaviour
 
     public void OpenSound()
     {
+        SoundService.Current.playSFX("버튼");
         Sound.SetActive(true);
         DisPlay.SetActive(false);
         setting.SetActive(false);

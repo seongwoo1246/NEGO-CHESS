@@ -43,7 +43,7 @@ public class characterData : ScriptableObject
             return sprites; // 딕셔너리 방식으로 빠르게 반환!
         }
 
-        Debug.LogWarning("해당 ID를 찾을 수 없습니다: " + id);
+       
         return null;
     }
 }

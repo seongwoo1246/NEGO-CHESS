@@ -224,6 +224,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_SetSetupReady(bool ready, RpcInfo info = default)
     {
+        SoundService.Current.playSFX("버튼");
         if (State != GameState.GameStart) return;
         if (!TryGetColor(info.Source, out PieceColor color)) return;
 
@@ -244,7 +245,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_RequestResign(RpcInfo info = default)
     {
-        
+        SoundService.Current.playSFX("버튼");
         if (State != GameState.Playing) return;
         if (!TryGetColor(info.Source, out PieceColor color)) return;
 
@@ -256,6 +257,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_RequestEndTurn(RpcInfo info = default)
     {
+        SoundService.Current.playSFX("턴이동");
         if (State != GameState.Playing || _movePending || IsRevealing) return;
         if (!TryGetColor(info.Source, out PieceColor color)) return;
 
@@ -270,6 +272,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_SubmitPostGameChoice(int choiceId, RpcInfo info = default)
     {
+        SoundService.Current.playSFX("버튼");
         if (State != GameState.GameEnd) return;
         if (!TryGetColor(info.Source, out PieceColor color)) return;
 
@@ -296,6 +299,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_RevealPieces(int round, byte[] packed)
     {
+        SoundService.Current.playSFX("강화");
         EnsureRound(round);
         if (_adapter == null || packed == null || !TryGetLocalColor(out PieceColor me)) return;
 
@@ -506,6 +510,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     private void OnTimeOut()
     {
+        SoundService.Current.playSFX("턴이동");
         if (_movePending || _promotionInFlight) return;   // 방금 허락한 수/승급이 적용되는 중이면 먼저 처리
 
         // 승급을 고르다가 시간이 다 되면 퀸으로 자동 승급
@@ -729,6 +734,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     private void RefreshSwapToggle()
     {
+        SoundService.Current.playSFX("버튼");
         if (swapToggle == null) return;
 
         bool show = State == GameState.GameEnd && Object.HasStateAuthority;   // 방장 = 상태 권한자
@@ -744,6 +750,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     public void SetSwapSidesOnRematch(bool value)
     {
+        SoundService.Current.playSFX("버튼");
         if (!Object.HasStateAuthority || State != GameState.GameEnd) return;
         if (TryGetLocalColor(out PieceColor me) && GetChoice(me) == PostGameChoice.Rematch) return;   // 잠금
         SwapSidesOnRematch = value;

@@ -222,12 +222,4 @@ public class AchievementM : MonoBehaviour
             default: singlePlayer.useHp = value; break;
         }
     }
-
-#if UNITY_EDITOR
-    [ContextMenu("테스트: 세오 승수를 목표까지 채우기")]
-    private void DebugFillSeo() => singlePlayer.seoWin = GetTarget(AchievementType.SeoWin);
-
-    [ContextMenu("테스트: 체력 사용량을 목표까지 채우기")]
-    private void DebugFillHp() => singlePlayer.useHp = GetTarget(AchievementType.UseHp);
-#endif
 }

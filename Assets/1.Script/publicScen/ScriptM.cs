@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Debug = DebugM;
+
 
 // 서비스 로케스터 구조
 public static class ScriptM 
@@ -33,8 +33,6 @@ public static class ScriptM
         var type = typeof(T);
         if (_services.ContainsKey(type))
         {
-            Debug.LogWarningWithTag("ServiceLocator", $"이미 등록된 서비스");
-
             // 💡 핵심: 이미 존재하는 서비스라면, 새로 등록하려 한 중복 오브젝트를 즉시 파괴합니다!
             if (service is Component component)
             {
@@ -88,7 +86,7 @@ public static class ScriptM
             return true;
         }
 
-        Debug.LogErrorWithTag("ServiceLocator", $"{typeof(T).Name}을 찾을 수 없음");
+      
         service = null;
         return false;
     }

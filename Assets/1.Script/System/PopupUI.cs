@@ -21,6 +21,7 @@ public class PopupUI : MonoBehaviour
     // 키가 눌린 순간에만 단 한 번 호출되는 함수
     public void OnOpenMenuPerformed()
     {
+        SoundService.Current.playSFX("버튼");
         isOpen = !isOpen;
 
         if (isOpen)

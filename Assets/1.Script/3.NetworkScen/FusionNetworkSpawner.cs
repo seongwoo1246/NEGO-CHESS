@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using Fusion;
-using Debug = DebugM<FusionNetworkSpawner>;
+
 public class FusionNetworkSpawner : IPieceSpawner
 {
   private NetworkRunner runner;
@@ -14,7 +14,7 @@ public class FusionNetworkSpawner : IPieceSpawner
     {
         if(runner == null|| !runner.IsServer)
         {
-            Debug.LogWarning("기물 생성 권한이 없거나 NetworkRunner가 준비되지 않았습니다.");
+           return null;
         }
 
         NetworkObject netObj = runner.Spawn(prefab, position, rotation);

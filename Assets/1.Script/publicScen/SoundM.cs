@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
-using Debug = DebugM<SoundM>;
+
 
 
     [Serializable]
@@ -187,10 +187,6 @@ using Debug = DebugM<SoundM>;
                 FadeOutSource.loop = loop;
                 FadeOutSource.Play();
             }
-            else
-            {
-                Debug.LogWarning($"{soundName}BGM이 없습니다.");
-            }
         }
 
         /// <summary>
@@ -203,10 +199,6 @@ using Debug = DebugM<SoundM>;
             {
                 SfxSource.PlayOneShot(sfx);
 
-            }
-            else
-            {
-                Debug.LogWarning($"{soundName}SFX가 없습니다.");
             }
         }
 
@@ -228,7 +220,7 @@ using Debug = DebugM<SoundM>;
         audioMixer.SetFloat(MASTER_KEY, dB);
         lastMasterVolume = linearVolume;
         PlayerPrefs.SetFloat("MasterSound", linearVolume);
-        Debug.Log($"마스터사운드가 변경되었습니다.{linearVolume}");
+       
     }
 
     public void SetBGMVolume(float linearVolume)
@@ -240,7 +232,7 @@ using Debug = DebugM<SoundM>;
         audioMixer.SetFloat(BGMOut_KEY, dB);
         lastBGMVolume = linearVolume;
         PlayerPrefs.SetFloat("BGMSound", linearVolume);
-        Debug.Log($"BGM사운드가 변경되었습니다.{linearVolume}");
+       
     }
 
     public void SetSFXVolume(float linearVolume)
@@ -251,7 +243,7 @@ using Debug = DebugM<SoundM>;
         audioMixer.SetFloat(SFX_KEY, dB);
         lastSFXVolume = linearVolume;
         PlayerPrefs.SetFloat("SFXSound", linearVolume);
-        Debug.Log($"SFX사운드가 변경되었습니다.{linearVolume}");
+      
     }
 
     /// <summary>

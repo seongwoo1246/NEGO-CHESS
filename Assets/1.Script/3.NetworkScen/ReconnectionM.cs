@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using Debug = DebugM<ReconnectionM>;
+
 
 
 /// <summary>
@@ -39,7 +39,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
  
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason)
     {
-        Debug.LogWarning($" 연결이 끊어졌습니다. 사유: {shutdownReason}");
+        
 
         if( !_isReconnecting )
         {
@@ -70,7 +70,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
 
             if (string.IsNullOrEmpty(sessionToJoin))
             {
-                Debug.LogWarning("[Network] 재접속할 세션 정보가 없습니다.");
+                
                 return;
             }
 
@@ -82,7 +82,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
 
             await UniTask.Delay(TimeSpan.FromSeconds(1.0f), cancellationToken: cancellationToken);
 
-            Debug.Log($"[Network] 세션 '{sessionToJoin}'에 재접속 시도 중...");
+           
 
             // 2. 새 러너 생성 및 재연결
             GameObject runnerObj = new GameObject("NetworkRunner_Reconnecting");
@@ -100,21 +100,14 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
 
             if (result.Ok)
             {
-                Debug.Log("[Network] 재접속 성공!");
+               
                 _lastSessionName = sessionToJoin; // 세션 정보 갱신
             }
-            else
-            {
-                Debug.LogError($"[Network] 재접속 실패: {result.ShutdownReason}");
-            }
+          
         }
         catch (OperationCanceledException)
         {
-            Debug.Log("[Network] 재접속 작업이 취소되었습니다.");
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"[Network] 재접속 중 예외 발생: {ex.Message}");
+            
         }
         finally
         {
@@ -133,7 +126,7 @@ public class ReconnectionM : MonoBehaviour, INetworkRunnerCallbacks
     // 서버와의 연결이 끊어졌을 때 포톤 퓨전이 자동 호출
     public void OnDisconnectedFromServer(NetworkRunner runner, NetDisconnectReason reason)
     {
-        Debug.LogWarning($" 서버 연결 끊김: {reason}");
+      
 
     }
 

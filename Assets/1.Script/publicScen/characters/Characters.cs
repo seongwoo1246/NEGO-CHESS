@@ -93,7 +93,7 @@ public class Characters : MonoBehaviour
 
         if (defaultPieceLayout == null || defaultPieceLayout.Count == 0)
         {
-            Debug.LogWarning("배치할 기물 데이터가 없습니다!");
+            
             return;
         }
 
@@ -106,18 +106,16 @@ public class Characters : MonoBehaviour
             {
                 gameM.SpawnPiece(prefabToSpawn, spawnInfo.position.x, spawnInfo.position.y, PieceColor.black);
             }
-            else
-            {
-                Debug.LogError($"해당 타입({spawnInfo.pieceType})과 색상({spawnInfo.pieceColor})의 프리팹을 찾을 수 없습니다.");
-            }
+          
         }
 
-        Debug.Log("AI 기물 동적 배치 완료!");
+        
     }
 
     // AI 이동 결정 함수 (가상 함수로 만들어 캐릭터마다 다르게 오버라이드 가능)
     public virtual async UniTask OnAITurnAsync()
     {
+       
         if (isThinking) return; // 같은 턴에 두 번 불려도 한 번만 생각
         if (gameM == null && !ScriptM.TryGet<CheseGameM>(out gameM)) return;
 
@@ -143,12 +141,8 @@ public class Characters : MonoBehaviour
                 ChessPieceM mover = gameM.pieceGrid[res.fromX, res.fromY];
                 if (mover == null || mover.data.Color != myColor)
                 {
-                    Debug.LogError($"[AI] 선택한 수의 출발 칸({res.fromX},{res.fromY})에 내 기물이 없습니다. 판이 바뀐 것 같아요.");
                     return;
                 }
-
-                Debug.Log($"[AI] ({res.fromX},{res.fromY})→({res.toX},{res.toY}) 점수 {res.score} 깊이 {res.depth} 노드 {engine.Nodes}");
-
                 ExecuteMove(new Vector2Int(res.fromX, res.fromY), new Vector2Int(res.toX, res.toY));
                 gameM.TurnEnd();
             }

@@ -139,6 +139,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_SetReady(bool ready, RpcInfo info = default)
     {
+        SoundService.Current.playSFX("버튼");
         if (GameStarted) return;
         if (!Players.TryGet(info.Source, out RoomPlayerData me)) return;
 
@@ -149,6 +150,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
     [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
     private void RPC_SetTeam(byte team, RpcInfo info = default)
     {
+        SoundService.Current.playSFX("버튼");
         if (GameStarted || team > (byte)RoomTeam.White) return;
         if (!Players.TryGet(info.Source, out RoomPlayerData me) || me.Team == team) return;
 

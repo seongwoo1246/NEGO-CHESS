@@ -1,7 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using Debug = DebugM<CharacterM>;
+
 
 public class CharacterM : MonoBehaviour
 {
@@ -27,10 +27,11 @@ public class CharacterM : MonoBehaviour
         icon.sprite = singlePlayer.icon;
         message.text = PlayerPrefs.GetString("PlayerMessage", " ");
         // 각 버튼을 누르면 입력 모드를 바꾸고 입력 필드를 활성화
-        nameBtn.onClick.AddListener(() => { currentEdit = EditMode.Name; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
-        MessageBtn.onClick.AddListener(() => { currentEdit = EditMode.Message; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
+        nameBtn.onClick.AddListener(() => { SoundService.Current.playSFX("버튼"); currentEdit = EditMode.Name; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
+        MessageBtn.onClick.AddListener(() => { SoundService.Current.playSFX("버튼"); currentEdit = EditMode.Message; ChangeText.text = ""; ChangeText.gameObject.SetActive(true); });
         genderBtn.onClick.AddListener(() => 
         {
+            SoundService.Current.playSFX("버튼");
             singlePlayer.isGirl = !singlePlayer.isGirl;
             singlePlayer.gender = singlePlayer.isGirl ? "여" : "남";
             gender.text = singlePlayer.gender;
@@ -53,16 +54,16 @@ public class CharacterM : MonoBehaviour
         {
             case EditMode.Name:
                 characterName.text = inputStr;
-                Debug.Log($"이름이 {characterName}(으)로 변경되었습니다.");
+                
                 break;
             case EditMode.Message:
                 message.text = inputStr;
                 PlayerPrefs.SetString("PlayerMessage", message.text);
                 PlayerPrefs.Save();
-                Debug.Log($"메세지가 변경되었습니다.");
+               
                 break;
             case EditMode.None:
-                Debug.Log("변경할 항목을 먼저 선택해주세요.");
+                
                 break;
         }
 

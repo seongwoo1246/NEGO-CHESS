@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Debug = DebugM<DisplayM>;
+
 
 public class DisplayM : MonoBehaviour
 {
@@ -22,6 +22,7 @@ public class DisplayM : MonoBehaviour
         {
             ResetBtn.onClick.RemoveAllListeners();
             ResetBtn.onClick.AddListener(() => {
+                SoundService.Current.playSFX("버튼");
                 // 1. 해상도 및 모드 초기화 실행
                 ChangeResolution(1920, 1080, WindowMode.ExclusiveFullScreen);
 
@@ -62,6 +63,7 @@ public class DisplayM : MonoBehaviour
 
     public void OpenDisplay()
     {
+        SoundService.Current.playSFX("버튼");
         Sound.SetActive(false);
         DisPlay.SetActive(true);
         Setting.SetActive(false);
@@ -77,6 +79,7 @@ public class DisplayM : MonoBehaviour
     /// <param name="mode">화면 모드 Enum</param>
     public void ChangeResolution(int width, int height, WindowMode mode)
     {
+        SoundService.Current.playSFX("버튼");
         FullScreenMode unityMode = FullScreenMode.Windowed;
         
         switch (mode)
@@ -103,12 +106,13 @@ public class DisplayM : MonoBehaviour
         PlayerPrefs.SetInt("WindowMode", (int)mode);
         PlayerPrefs.Save(); // 디스크에 동기화 저장
 
-        Debug.Log($"화면 설정 변경 완료: {width}x{height} / 모드: {unityMode}");
+     
     }
 
     // 해상도 Dropdown(OnValueChanged)에 연결할 함수
     public void OnResolutionDropdownChanged(int index)
     {
+        SoundService.Current.playSFX("버튼");
         int width = 1920;
         int height = 1080;
 
@@ -130,6 +134,7 @@ public class DisplayM : MonoBehaviour
     // 화면 모드 Dropdown(OnValueChanged)에 연결할 함수
     public void OnWindowModeDropdownChanged(int index)
     {
+        SoundService.Current.playSFX("버튼");
         WindowMode mode = WindowMode.Windowed;
 
         switch (index)

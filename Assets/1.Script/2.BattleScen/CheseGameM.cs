@@ -7,7 +7,6 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using CancellationToken = System.Threading.CancellationToken;
-using Debug = DebugM<CheseGameM>;
 
 
 [System.Serializable]
@@ -456,7 +455,7 @@ public class CheseGameM : MonoBehaviour
             return PieceDatabase.GetPrefab(data.Type, data.Color);
         }
 
-        Debug.LogError("PieceDatabase가 연결되지 않았습니다!");
+        
         return null;
     }
 
@@ -473,7 +472,7 @@ public class CheseGameM : MonoBehaviour
 
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
-            Debug.LogError("ChessBoardM 서비스를 찾을 수 없습니다.");
+           
             return null;
         }
         
@@ -569,7 +568,7 @@ public class CheseGameM : MonoBehaviour
         SoundService.Current.playSFX("버튼");
         if (whiteKing == null)
         {
-            Debug.Log("왕을 배치해야 게임을 시작할 수 있습니다!");
+            ShowMyCheckMessage("왕을 설치해야 합니다.");
             return;
         }
         TriggerCharacterInteraction(currentAI.characterType);
@@ -796,14 +795,14 @@ public class CheseGameM : MonoBehaviour
 
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
-            Debug.LogError("ChessPieceM 서비스를 찾을 수 없습니다.");
+           
             return;
         }
         // 1. 출발지에 기물이 존재하는지 검증
         ChessPieceM pieceToMove = pieceGrid[fromX, fromY];
         if (pieceToMove == null)
         {
-            Debug.LogWarning($"[{fromX}, {fromY}] 위치에 이동시킬 기물이 없습니다!");
+            
             return;
         }
 
