@@ -637,6 +637,14 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
     public List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
 
     private PieceAnimator hopping;
+    private float undoLockUntil;
+    private static bool HasPieceMoved(ChessPieceM p)
+    {
+        if (p is Pawn pawn) return !pawn.isFirstMove;
+        if (p is King king) return king.hasMoved;
+        if (p is Rook rook) return rook.hasMoved;
+        return false;
+    }
 
     #endregion
 
@@ -732,21 +740,27 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         SoundService.Current.playSFX("말이동");
         if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
-            
-            return;
+          return;
         }
         // 1. 출발지에 기물이 존재하는지 검증
         ChessPieceM pieceToMove = pieceGrid[fromX, fromY];
         if (pieceToMove == null)
         {
-          
-            return;
+         return;
         }
 
         ChessPieceM capturedPiece = pieceGrid[toX, toY];
-        // 2. 도착지에 이미 상대 기물이 존재한다면 포획(잡기) 처리
+
+        bool movedHadMoved = HasPieceMoved(pieceToMove);
+        pieceType capType = default;
+        PieceColor capColor = default;
+        bool capHadMoved = false;
+
         if (capturedPiece != null)
         {
+            capType = capturedPiece.data.Type;
+            capColor = capturedPiece.data.Color;
+            capHadMoved = HasPieceMoved(capturedPiece);
             DestroyPiece(toX, toY);
         }
 
@@ -770,11 +784,15 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
            1,
            capturedPiece
        );
+        move.MovedHadMoved = movedHadMoved;
+        move.CapturedType = capType;
+        move.CapturedColor = capColor;
+        move.CapturedHadMoved = capHadMoved;
 
         // movedata가 생성 후  기물의 currentpos 갱신
         pieceToMove.CurrentPos = move.To;
 
-        MoveHistory.Add(move);
+      
 
         // 폰이 실제로 이동을 마쳤을 때 실행되는 곳
         if (pieceToMove is Pawn pawn)
@@ -802,33 +820,52 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
             if (Mathf.Abs(fromX - toX) == 2)
             {
                 int y = fromY;
-                if (toX > fromX) // 우측 캐슬링
+                bool isRight = toX > fromX; // 우측 캐슬링 여부
+
+                // 🌟 1. 킹의 출발 위치(fromX) 기준으로 방향에 있는 안 움직인 룩을 동적으로 탐색
+                int rookOriginalX = -1;
+                if (isRight)
                 {
-                    ChessPieceM rook = pieceGrid[7, y];
-                    if (rook != null)
+                    for (int x = fromX + 1; x < 8; x++)
                     {
-                        pieceGrid[7, y] = null;
-                        pieceGrid[5, y] = rook;
-                        rook.CurrentPos = new Vector2Int(5, y);
-                        Vector3 rookPos = boardM.GetWorldPosition(5, y);
-                        var rookAnim = rook.GetComponent<PieceAnimator>();
-                        if (rookAnim != null) rookAnim.SlideTo(rookPos); else rook.transform.position = rookPos;
-                        if (rook is Rook r) r.hasMoved = true;
+                        if (pieceGrid[x, y] is Rook r && !r.hasMoved)
+                        {
+                            rookOriginalX = x;
+                            break;
+                        }
                     }
                 }
-                else // 좌측 캐슬링
+                else
                 {
-                    ChessPieceM rook = pieceGrid[0, y];
-                    if (rook != null)
+                    for (int x = fromX - 1; x >= 0; x--)
                     {
-                        pieceGrid[0, y] = null;
-                        pieceGrid[3, y] = rook;
-                        rook.CurrentPos = new Vector2Int(3, y);
-                        Vector3 rookPos = boardM.GetWorldPosition(3, y);
-                        var rookAnim = rook.GetComponent<PieceAnimator>();
-                        if (rookAnim != null) rookAnim.SlideTo(rookPos); else rook.transform.position = rookPos;
-                        if (rook is Rook r) r.hasMoved = true;
+                        if (pieceGrid[x, y] is Rook r && !r.hasMoved)
+                        {
+                            rookOriginalX = x;
+                            break;
+                        }
                     }
+                }
+
+                // 룩을 찾았다면 동적 캐슬링 수행
+                if (rookOriginalX != -1)
+                {
+                    ChessPieceM rook = pieceGrid[rookOriginalX, y];
+
+                    // 룩의 새로운 목표 위치: 킹이 뛰어넘은 바로 그 칸 (오른쪽이면 fromX + 1, 왼쪽이면 fromX - 1)
+                    int rookTargetX = isRight ? fromX + 1 : fromX - 1;
+
+                    pieceGrid[rookOriginalX, y] = null;
+                    pieceGrid[rookTargetX, y] = rook;
+                    rook.CurrentPos = new Vector2Int(rookTargetX, y);
+
+                    Vector3 rookPos = boardM.GetWorldPosition(rookTargetX, y);
+                    var rookAnim = rook.GetComponent<PieceAnimator>();
+                    if (rookAnim != null) rookAnim.SlideTo(rookPos); else rook.transform.position = rookPos;
+
+                    if (rook is Rook r) r.hasMoved = true;
+
+                    move.RookFrom = new Vector2Int(rookOriginalX, y);
                 }
             }
         }
@@ -836,6 +873,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         {
             rookPiece.hasMoved = true;
         }
+
+        MoveHistory.Add(move);
 
         // 방금 움직인 기물이 흰색이면 플레이어의 턴(행동)입니다!
         bool isMyTurn = pieceToMove.isWhite;
@@ -976,6 +1015,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
     // 💡 플레이어가 '무르기 협상' 버튼을 눌렀을 때 호출할 함수
     public void TryUndoWithNegotiation()
     {
+        if (Time.unscaledTime < undoLockUntil) return;
+        undoLockUntil = Time.unscaledTime + 0.4f;
         if (IsNetworkMatch) return;
         if (MoveHistory.Count == 0)
         {
@@ -998,16 +1039,18 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         {
             int px = lastMove.To.x, py = lastMove.To.y;
             ChessPieceM promoted = pieceGrid[px, py];
-            PieceColor color = promoted != null ? promoted.data.Color : lastMove.MovedPiece.data.Color;
+            if (promoted == null) return;
+            PieceColor color = promoted.data.Color;
 
             DestroyPiece(px, py);                                            // 승급한 기물 제거
-            GameObject pawnPrefab = PieceDatabase.GetPrefab(lastMove.MovedPiece.data.Type, color);
+            GameObject pawnPrefab = PieceDatabase.GetPrefab(pieceType.Pawn, color);
             ChessPieceM pawn = SpawnPiece(pawnPrefab, px, py, color);        // 폰 복구
             if (pawn is Pawn p) p.isFirstMove = false;                       // 끝줄까지 온 폰이니 첫 이동은 끝난 상태
             return;
         }
 
-        ChessPieceM moved = lastMove.MovedPiece;
+        ChessPieceM moved = pieceGrid[lastMove.To.x, lastMove.To.y];
+        if (moved == null) return;
 
         // 1. 이동한 기물 제자리로 원복 (논리 + 위치 + 기물이 가진 좌표)
         pieceGrid[lastMove.To.x, lastMove.To.y] = null;
@@ -1021,49 +1064,52 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
             if (anim != null) anim.SlideTo(fromWorld); else moved.transform.position = fromWorld;
         }
 
-        // 폰 상태 복구 (시작 줄에서 출발했다면 다시 첫 이동 가능)
         if (moved is Pawn pw)
         {
-            pw.isFirstMove = pw.isWhite ? lastMove.From.y == 1 : lastMove.From.y == 6;
+            pw.isFirstMove = !lastMove.MovedHadMoved;
             pw.movedTwoSquaresLastTurn = false;
         }
+        else if (moved is King mk) mk.hasMoved = lastMove.MovedHadMoved;
+        else if (moved is Rook mr) mr.hasMoved = lastMove.MovedHadMoved;
 
         // 캐슬링이었다면 룩도 원위치
         if (moved is King && Mathf.Abs(lastMove.From.x - lastMove.To.x) == 2 && boardM != null)
         {
+
             int y = lastMove.From.y;
             bool right = lastMove.To.x > lastMove.From.x;
-            int rookFrom = right ? 5 : 3, rookHome = right ? 7 : 0;
-            ChessPieceM rook = pieceGrid[rookFrom, y];
+
+            // 💡 현재 룩이 캐슬링 때문에 가 있는 위치 (킹이 뛰어넘었던 자리)
+            int rookCurrentX = right ? lastMove.From.x + 1 : lastMove.From.x - 1;
+
+
+            int rookHomeX = lastMove.RookFrom.x;
+
+            ChessPieceM rook = pieceGrid[rookCurrentX, y];
             if (rook != null)
             {
-                pieceGrid[rookFrom, y] = null;
-                pieceGrid[rookHome, y] = rook;
-                rook.CurrentPos = new Vector2Int(rookHome, y);
-                Vector3 rookWorld = boardM.GetWorldPosition(rookHome, y);
+                pieceGrid[rookCurrentX, y] = null;
+                pieceGrid[rookHomeX, y] = rook;
+                rook.CurrentPos = new Vector2Int(rookHomeX, y);
+
+                Vector3 rookWorld = boardM.GetWorldPosition(rookHomeX, y);
                 var rookAnim = rook.GetComponent<PieceAnimator>();
                 if (rookAnim != null) rookAnim.SlideTo(rookWorld); else rook.transform.position = rookWorld;
-                if (rook is Rook r) r.hasMoved = false;
+
+                if (rook is Rook r) r.hasMoved = false; // 룩의 이동 권한도 다시 복구
             }
         }
 
         // 2. 잡혔던 기물이 있다면 다시 복원
-        ChessPieceM captured = lastMove.CapturedPiece;
-        if (captured != null)
+        if (lastMove.CapturedPiece != null)   // 잡힌 기물이 있었는지만 확인
         {
-            pieceGrid[lastMove.To.x, lastMove.To.y] = captured;
-            captured.CurrentPos = lastMove.To;
-            captured.gameObject.SetActive(true);
+            GameObject capPrefab = PieceDatabase.GetPrefab(lastMove.CapturedType, lastMove.CapturedColor);
+            ChessPieceM restored = SpawnPiece(capPrefab, lastMove.To.x, lastMove.To.y, lastMove.CapturedColor);
 
-            if (ScriptM.TryGet<ChessBoardM>(out var b2))
-            {
-                // 사라지는 연출 도중이면 그 연출을 끊고 제자리에 다시 나타나게 함
-                var capAnim = captured.GetComponent<PieceAnimator>();
-                Vector3 toWorld = b2.GetWorldPosition(lastMove.To.x, lastMove.To.y);
-                if (capAnim != null) capAnim.PlaySpawn(toWorld); else captured.transform.position = toWorld;
-            }
-
-            if (!activePieces.Contains(captured)) activePieces.Add(captured);
+            // 풀에서 꺼낼 때 초기화되므로, 잡히기 전 상태를 다시 입힘
+            if (restored is Pawn cp) cp.isFirstMove = !lastMove.CapturedHadMoved;
+            else if (restored is Rook cr) cr.hasMoved = lastMove.CapturedHadMoved;
+            else if (restored is King ck) ck.hasMoved = lastMove.CapturedHadMoved;
         }
     }
 

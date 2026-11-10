@@ -19,14 +19,19 @@ public struct MoveData
     public bool IsEnPassant; // 앙파상
     public bool IsCastling; // 캐슬링
 
-    /// <summary>
-    /// 기보를 저장하기 위해 움직임 데이터 구조체
-    /// </summary>
-    /// <param name="from">출발칸</param>
-    /// <param name="to">도착칸</param>
-    /// <param name="movedPiece">움직인 말</param>
-    /// <param name="capturedPiece">잡힌 말</param>
-    public MoveData(Vector2Int from, Vector2Int to, ChessPieceM movedPiece, int oldcost, int newcost,ChessPieceM capturedPiece = null)
+    //  자유 배치 캐슬링을 위해 룩이 어디서 왔는지 기억할 변수
+    public Vector2Int RookFrom;
+
+
+
+    // ── 무르기 복구용 (잡히기/이동하기 직전 상태) ──
+    public bool MovedHadMoved;          // 움직인 기물이 이 수 이전에 이미 움직였는지 (폰: !isFirstMove, 킹/룩: hasMoved)
+    public pieceType CapturedType;      // 잡힌 기물의 종류
+    public PieceColor CapturedColor;    // 잡힌 기물의 색
+    public bool CapturedHadMoved;       // 잡힌 기물이 이미 움직였던 기물인지
+    public int CapturedCost;  
+
+    public MoveData(Vector2Int from, Vector2Int to, ChessPieceM movedPiece, int oldcost, int newcost, ChessPieceM capturedPiece = null)
     {
         From = from;
         To = to;
@@ -37,6 +42,13 @@ public struct MoveData
         IsPromotion = false;
         IsEnPassant = false;
         IsCastling = false;
+        RookFrom = Vector2Int.zero;
+
+        MovedHadMoved = false;
+        CapturedType = default;
+        CapturedColor = default;
+        CapturedHadMoved = false;
+        CapturedCost = 0;
     }
 }
 
