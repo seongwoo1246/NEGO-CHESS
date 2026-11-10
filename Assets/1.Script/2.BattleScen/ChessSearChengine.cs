@@ -109,6 +109,8 @@ public sealed class ChessSearchEngine
     }
 
     public void SetSideToMove(int color) { side = color; }
+    /// <summary>방금 두 칸 전진한 폰이 있으면, 그 폰을 앙파상으로 잡을 때 들어갈 칸을 알려 줍니다.</summary>
+    public void SetEnPassant(int x, int y) { ep = x + y * 8; }
 
     public void SetRules(int color, bool castle, bool enPassant, bool promote)
     {
@@ -401,6 +403,14 @@ public sealed class ChessSearchEngine
         u.prevEp = ep;
         u.movedFrom = moved[from];
         u.rookFrom = -1;
+        int rookFrom = -1, rookTo = -1;
+        if ((fl & FlagCastle) != 0)
+        {
+            int cdir = to > from ? 1 : -1;
+            rookTo = from + cdir;                       // 룩은 킹이 넘은 칸에 도착
+            rookFrom = rookTo;
+            while (b[rookFrom] == 0) rookFrom += cdir;  // 킹에서 가장 가까운 기물 = 캐슬링하는 룩
+        }
 
         int capSq = to;
         if ((fl & FlagEp) != 0) capSq = to + (color == 0 ? -8 : 8);
@@ -422,15 +432,12 @@ public sealed class ChessSearchEngine
 
         if ((pc & 7) == K) kingSq[color] = to;
 
-        if ((fl & FlagCastle) != 0)
+        if (rookFrom >= 0)
         {
-            int row = from & ~7; // 같은 줄의 0번 칸
-            int rf, rt;
-            if (to > from) { rf = row + 7; rt = row + 5; }
-            else { rf = row + 0; rt = row + 3; }
-            b[rt] = b[rf]; moved[rt] = true;
-            b[rf] = 0; moved[rf] = false;
-            u.rookFrom = rf; u.rookTo = rt;
+            if (rookFrom != rookTo) { b[rookTo] = b[rookFrom]; b[rookFrom] = 0; }   // 룩이 킹 바로 옆이면 이동 불필요
+            moved[rookFrom] = false;
+            moved[rookTo] = true;
+            u.rookFrom = rookFrom; u.rookTo = rookTo;
         }
 
         ep = ((fl & FlagDouble) != 0) ? (from + to) / 2 : -1;
@@ -448,8 +455,9 @@ public sealed class ChessSearchEngine
 
         if (u.rookFrom >= 0)
         {
-            b[u.rookFrom] = b[u.rookTo]; moved[u.rookFrom] = false;
-            b[u.rookTo] = 0; moved[u.rookTo] = false;
+            if (u.rookFrom != u.rookTo) { b[u.rookFrom] = b[u.rookTo]; b[u.rookTo] = 0; }
+            moved[u.rookFrom] = false;
+            moved[u.rookTo] = false;
         }
 
         b[to] = 0;
@@ -591,22 +599,23 @@ public sealed class ChessSearchEngine
                         else if ((tp >> 3) == enemy) Add(ply, ref n, sq, t, 0);
                     }
 
-                    if (!capsOnly && !moved[sq] && canCastle[color] && x == 4 && !IsAttacked(sq, enemy))
+                    if (!capsOnly && !moved[sq] && canCastle[color] && !IsAttacked(sq, enemy))
                     {
                         int row = y * 8;
-                        // 킹사이드: 룩 x=7, 사이 5,6 비어 있음
-                        if (b[row + 7] == (R | (color << 3)) && !moved[row + 7] &&
-                            b[row + 5] == 0 && b[row + 6] == 0 &&
-                            !IsAttacked(row + 5, enemy))
+                        for (int cd = 1; cd >= -1; cd -= 2)           // 오른쪽, 왼쪽
                         {
-                            Add(ply, ref n, sq, row + 6, FlagCastle);
-                        }
-                        // 퀸사이드: 룩 x=0, 사이 1,2,3 비어 있음
-                        if (b[row + 0] == (R | (color << 3)) && !moved[row + 0] &&
-                            b[row + 1] == 0 && b[row + 2] == 0 && b[row + 3] == 0 &&
-                            !IsAttacked(row + 3, enemy))
-                        {
-                            Add(ply, ref n, sq, row + 2, FlagCastle);
+                            int tx = x + 2 * cd;                      // 킹이 도착할 칸
+                            if (tx < 0 || tx > 7) continue;
+
+                            int rx = x + cd;                          // 킹에서 가장 가까운 기물 찾기
+                            while (rx >= 0 && rx < 8 && b[row + rx] == 0) rx += cd;
+                            if (rx < 0 || rx > 7) continue;
+
+                            if (b[row + rx] != (R | (color << 3)) || moved[row + rx]) continue;   // 내 팀의 안 움직인 룩이어야 함
+                            if (b[row + tx] != 0) continue;                                       // 킹 도착 칸은 비어 있어야 함
+                            if (IsAttacked(row + x + cd, enemy)) continue;                        // 지나가는 칸이 공격받으면 AI는 피함
+
+                            Add(ply, ref n, sq, row + tx, FlagCastle);
                         }
                     }
                     break;

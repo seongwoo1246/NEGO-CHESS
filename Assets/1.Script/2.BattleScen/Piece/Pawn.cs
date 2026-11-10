@@ -1,113 +1,62 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel;
 using UnityEngine;
 
 public class Pawn : ChessPieceM, IPoolReset
 {
     [Header("폰 전용 상태")]
-    public bool isFirstMove = true;      // 첫 이동 여부 (2칸 전진 가능 여부 판단)
-    public bool movedTwoSquaresLastTurn = false; // 직전 턴에 2칸 이동했는지 (상대방이 앙파상할 때 사용)
-    public void ResetForPool() { isFirstMove = true; movedTwoSquaresLastTurn = false;  }
+    public bool isFirstMove = true;              // 첫 이동 여부 (2칸 전진 가능 여부)
+    public bool movedTwoSquaresLastTurn = false; // 직전 수에서 2칸 전진했는지 (앙파상 대상)
 
-    // 프리팹 생성/ 적용 시 기본값 자동 설정 가능
+    /// <summary>협상으로 앙파상이 금지되면 CheseGameM이 true로 바꿉니다. (흑에게만 적용, 백은 항상 가능)</summary>
+    public static bool EnPassantBanned;
+
+    public void ResetForPool() { isFirstMove = true; movedTwoSquaresLastTurn = false; }
+
     private void Reset()
     {
-        data = new PieceData(pieceType.Pawn, PieceColor.white, 1,8,"pawn");
+        data = new PieceData(pieceType.Pawn, PieceColor.white, 1, 8, "pawn");
         data_B = new PieceData(pieceType.Pawn, PieceColor.black, 1, 8, "pawn");
     }
 
-    public override void GetPossibleMoves( ChessPieceM[,] board, List<Vector2Int> possibleMoves)
+    // 이동 후보만 계산합니다. (프로모션 같은 부작용은 여기서 하지 않습니다)
+    public override void GetPossibleMoves(ChessPieceM[,] board, List<Vector2Int> possibleMoves)
     {
-        // 백(White)은 Y+ 방향(위), 흑(Black)은 Y- 방향(아래)으로 전진
         int direction = isWhite ? 1 : -1;
+        int forwardY = CurrentPos.y + direction;
 
-        // 1. 앞으로 1칸 이동
-        int forwardY = CurrentPos.y + direction; // 흑이면 direction이 -1이므로 6 -> 5로 정상 감소
-       
+        // 1. 앞으로 1칸, 첫 이동이면 2칸
         if (IsValidIndex(CurrentPos.x, forwardY) && board[CurrentPos.x, forwardY] == null)
         {
             possibleMoves.Add(new Vector2Int(CurrentPos.x, forwardY));
 
-            // 2. 첫 이동 시 앞으로 2칸 이동 (반드시 '첫 칸(forwardY)'이 비어있을 때만 2칸째도 검사해야 함!)
-            int doubleForwardY = CurrentPos.y + (direction * 2); // 6에서 시작하면 6 + (-2) = 4가 되어야 함!
+            int doubleForwardY = CurrentPos.y + direction * 2;
             if (isFirstMove && IsValidIndex(CurrentPos.x, doubleForwardY) && board[CurrentPos.x, doubleForwardY] == null)
-            {
                 possibleMoves.Add(new Vector2Int(CurrentPos.x, doubleForwardY));
-            }
         }
 
+        bool enPassantAllowed = isWhite || !EnPassantBanned;
 
-        // 3. 대각선 적 기물 잡기 (좌/우 대각선)
-        int[] sideX = { -1, 1 };
-        foreach (int dx in sideX)
+        // 2. 대각선: 적 기물 잡기 / 앙파상
+        for (int dx = -1; dx <= 1; dx += 2)
         {
             int targetX = CurrentPos.x + dx;
             int targetY = CurrentPos.y + direction;
+            if (!IsValidIndex(targetX, targetY)) continue;
 
-            if (IsValidIndex(targetX, targetY))
+            ChessPieceM target = board[targetX, targetY];
+            if (target != null)
             {
-                
-                // 대각선에 적 기물이 있는 경우
-                if (board[targetX, targetY] != null && !IsSameTeam(board[targetX, targetY]))
-                {
-                    possibleMoves.Add(new Vector2Int(targetX, targetY));
-                }
+                if (!IsSameTeam(target)) possibleMoves.Add(new Vector2Int(targetX, targetY));
+                continue;
             }
 
-
-            if (ScriptM.TryGet<CheseGameM>(out CheseGameM gameM))
-            {
-                // 1. 앙파상 규칙 켜져 있는지 체크 (블록으로 감싸서 조건 불일치 시 앙파상만 건너뜀)
-                if ((gameM.canUseEnPassant && this.data_B.Color != PieceColor.white) || this.data.Color != PieceColor.black)
-                {
-                    int sidex = targetX;
-                    int sideY = CurrentPos.y;
-
-                    if (IsValidIndex(sidex, sideY))
-                    {
-                        if (board[sidex, sideY] != null && !IsSameTeam(board[sidex, sideY]))
-                        {
-                            Pawn enemyPawn = board[sidex, sideY].GetComponent<Pawn>();
-                            if (enemyPawn != null && enemyPawn.movedTwoSquaresLastTurn)
-                            {
-                                int targetCaptureY = CurrentPos.y + direction;
-                                if (IsValidIndex(sidex, targetCaptureY))
-                                {
-                                    possibleMoves.Add(new Vector2Int(sidex, targetCaptureY));
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 2. 프로모션 체크 (앙파상과 완전히 독립적으로 실행됨!)
-                if (!gameM.canUsePromotion && this.data.Color == PieceColor.black) return;
-
-                if (CanPromote(CurrentPos.y))
-                {
-                    if (isWhite)
-                    {
-                        gameM.RequestPromotion(this, CurrentPos.x, CurrentPos.y, false);
-                    }
-                    else
-                    {
-                        gameM.RequestPromotion(this, CurrentPos.x, CurrentPos.y, true);
-                    }
-                }
-            }
+            // 앙파상: 도착 칸이 비어 있고, 옆 칸에 "방금 두 칸 전진한" 적 폰이 있을 때
+            if (!enPassantAllowed) continue;
+            ChessPieceM side = board[targetX, CurrentPos.y];
+            if (side is Pawn enemyPawn && !IsSameTeam(side) && enemyPawn.movedTwoSquaresLastTurn)
+                possibleMoves.Add(new Vector2Int(targetX, targetY));
         }
     }
 
-    // 프로모션 조건 체크
-    public bool CanPromote(int currentY)
-    {
-        return (isWhite && currentY == 7) || (!isWhite && currentY == 0);
-    }
-
-   
-
-    private new bool IsValidIndex(int x, int y) => x >= 0 && x < 8 && y >= 0 && y < 8;
+    public bool CanPromote(int currentY) => (isWhite && currentY == 7) || (!isWhite && currentY == 0);
 }
-
-   
-

@@ -7814,6 +7814,7 @@ MonoBehaviour:
   KnightBtn_B: {fileID: 1717471187}
   BishopBtn_B: {fileID: 1136619053}
   RookBtn_B: {fileID: 47343731}
+  UndoBtn: {fileID: 0}
   SettingPanel: {fileID: 2060983168}
   PromotionPanel_W: {fileID: 132239733}
   PromotionPanel_B: {fileID: 1248716072}

@@ -168,11 +168,13 @@ public class Characters : MonoBehaviour
 
         int width = gameM.pieceGrid.GetLength(0);
         int height = gameM.pieceGrid.GetLength(1);
+        int epX = -1, epY = -1;
 
         for (int x = 0; x < width && x < 8; x++)
         {
             for (int y = 0; y < height && y < 8; y++)
             {
+                
                 ChessPieceM piece = gameM.pieceGrid[x, y];
                 if (piece == null) continue;
 
@@ -181,23 +183,28 @@ public class Characters : MonoBehaviour
 
                 int color = piece.data.Color == PieceColor.white ? 0 : 1;
 
-                // 진짜 기물의 "움직인 적 있음" 정보 (캐슬링 / 폰 2칸 전진 판단에 사용)
                 bool hasMoved = false;
                 if (piece is King king) hasMoved = king.hasMoved;
                 else if (piece is Rook rook) hasMoved = rook.hasMoved;
-                else if (piece is Pawn pawn) hasMoved = !pawn.isFirstMove;
-
-                engine.SetPiece(x, y, type, color, hasMoved);
+                else if (piece is Pawn pawn)
+                {
+                    hasMoved = !pawn.isFirstMove;
+                    if (pawn.movedTwoSquaresLastTurn)                          // ← 추가: 방금 두 칸 전진한 폰
+                    {
+                        int dir = piece.data.Color == PieceColor.white ? 1 : -1;
+                        epX = x; epY = y - dir;                                // 그 폰이 지나간 칸
+                    }
+                }
             }
         }
 
         int me = myColor == PieceColor.white ? 0 : 1;
         int opp = me ^ 1;
+        if (epX >= 0) engine.SetEnPassant(epX, epY);
         engine.SetSideToMove(me);
 
         // 협상으로 금지되는 규칙은 AI에게만 적용됩니다. (플레이어는 항상 쓸 수 있다고 보고 대비)
-        // 앙파상은 CheseGameM.MovePiece가 잡힌 폰을 치워주지 않으므로 AI는 스스로 쓰지 않습니다.
-        engine.SetRules(me, gameM.canUseCastling, false, gameM.canUsePromotion);
+        engine.SetRules(me, gameM.canUseCastling, !Pawn.EnPassantBanned, gameM.canUsePromotion);
         engine.SetRules(opp, true, true, true);
     }
 

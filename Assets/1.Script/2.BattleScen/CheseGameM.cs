@@ -116,6 +116,7 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         canUseCastling = true;
         canUsePromotion = true;
         King.CastlingBanned = false;
+        Pawn.EnPassantBanned = false;
 
         if (ResetBtn != null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
         if (ReadyBtn != null) { ReadyBtn.onClick.AddListener(SetReady); }
@@ -822,6 +823,20 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         }
 
         ChessPieceM capturedPiece = pieceGrid[toX, toY];
+        Vector2Int capturedPos = new Vector2Int(toX, toY);
+        bool isEnPassant = false;
+
+        // 앙파상: 폰이 대각선으로 빈 칸에 들어가면, 옆 칸의 상대 폰이 잡히는 것
+        if (capturedPiece == null && pieceToMove is Pawn && fromX != toX)
+        {
+            ChessPieceM passed = pieceGrid[toX, fromY];
+            if (passed is Pawn && passed.isWhite != pieceToMove.isWhite)
+            {
+                capturedPiece = passed;
+                capturedPos = new Vector2Int(toX, fromY);
+                isEnPassant = true;
+            }
+        }
 
         bool movedHadMoved = HasPieceMoved(pieceToMove);
         pieceType capType = default;
@@ -835,7 +850,7 @@ public class CheseGameM : MonoBehaviour, IPresetHost
             capColor = capturedPiece.data.Color;
             capHadMoved = HasPieceMoved(capturedPiece);
             capCost = capturedPiece.data.cost;
-            DestroyPiece(toX, toY);
+            DestroyPiece(capturedPos.x, capturedPos.y);      // toX, toY 대신 capturedPos
         }
 
         // 3. 목적지의 월드 좌표 계산
@@ -862,26 +877,20 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         move.CapturedColor = capColor;
         move.CapturedHadMoved = capHadMoved;
         move.CapturedCost = capCost;
+        move.IsEnPassant = isEnPassant;
 
         // movedata가 생성 후  기물의 currentpos 갱신
         pieceToMove.CurrentPos = move.To;
 
-        
+
 
         // 폰이 실제로 이동을 마쳤을 때 실행되는 곳
+        foreach (var ap in activePieces)
+            if (ap is Pawn otherPawn) otherPawn.movedTwoSquaresLastTurn = false;
+
         if (pieceToMove is Pawn pawn)
         {
-            // 2칸을 이동한 경우 판정 (예: 출발 Y와 도착 Y의 차이가 2인 경우)
-            if (Mathf.Abs(fromY - toY) == 2)
-            {
-                pawn.movedTwoSquaresLastTurn = true;
-            }
-            else
-            {
-                pawn.movedTwoSquaresLastTurn = false;
-            }
-
-            // 첫 이동이 끝났으므로 이후부터는 2칸 전진 불가 처리
+            pawn.movedTwoSquaresLastTurn = Mathf.Abs(fromY - toY) == 2;
             pawn.isFirstMove = false;
         }
 
@@ -950,8 +959,13 @@ public class CheseGameM : MonoBehaviour, IPresetHost
 
         MoveHistory.Add(move);
 
-        // 방금 움직인 기물이 흰색이면 플레이어의 턴(행동)입니다!
         bool isMyTurn = pieceToMove.isWhite;
+        if (pieceToMove is Pawn && pieceToMove.CurrentPos.y == (isMyTurn ? 7 : 0))
+        {
+            RequestPromotion(pieceToMove, pieceToMove.CurrentPos.x, pieceToMove.CurrentPos.y, !isMyTurn);   // 마지막 인자 = AI(흑) 여부
+        }
+
+        
 
         if (isMyTurn && IsKingInCheck(false, pieceGrid)) // 검은색(상대) 킹이 체크당했는지 검사
         {
@@ -1183,6 +1197,7 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         {
             case NegotiationType.EnPassant:
                 canUseEnPassant = false;
+                Pawn.EnPassantBanned = true;
                 break;
             case NegotiationType.Castling:
                 canUseCastling = false;
@@ -1317,11 +1332,13 @@ public class CheseGameM : MonoBehaviour, IPresetHost
             if (promoted == null) return;
             PieceColor color = promoted.data.Color;
 
-            DestroyPiece(px, py);                                            // 승급한 기물 제거
+            DestroyPiece(px, py);
             GameObject pawnPrefab = PieceDatabase.GetPrefab(pieceType.Pawn, color);
-            ChessPieceM pawn = SpawnPiece(pawnPrefab, px, py, color);        // 폰 복구
-            if (pawn is Pawn p) p.isFirstMove = false;                       // 끝줄까지 온 폰이니 첫 이동은 끝난 상태
+            ChessPieceM pawn = SpawnPiece(pawnPrefab, px, py, color);
+            if (pawn is Pawn p) p.isFirstMove = false;
+            RefreshEnPassantFlags();
             return;
+
         }
 
         ChessPieceM moved = pieceGrid[lastMove.To.x, lastMove.To.y];
@@ -1330,15 +1347,17 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         // 1. 이동한 기물 제자리로 원복 (논리 + 위치 + 기물이 가진 좌표)
         pieceGrid[lastMove.To.x, lastMove.To.y] = null;
         pieceGrid[lastMove.From.x, lastMove.From.y] = moved;
-        moved.CurrentPos = lastMove.From;                                    
+        moved.CurrentPos = lastMove.From;
 
-        if (ScriptM.TryGet<ChessBoardM>(out var boardM))
+        bool hasBoard = ScriptM.TryGet<ChessBoardM>(out var boardM);
+        if (hasBoard)
         {
             Vector3 fromWorld = boardM.GetWorldPosition(lastMove.From.x, lastMove.From.y);
             var anim = moved.GetComponent<PieceAnimator>();
             if (anim != null) anim.SlideTo(fromWorld); else moved.transform.position = fromWorld;
         }
 
+        // 이동 전 상태 복구 (캐슬링이든 일반 이동이든 항상 실행)
         if (moved is Pawn pw)
         {
             pw.isFirstMove = !lastMove.MovedHadMoved;
@@ -1348,17 +1367,12 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         else if (moved is Rook mr) mr.hasMoved = lastMove.MovedHadMoved;
 
         // 캐슬링이었다면 룩도 원위치
-        if (moved is King && Mathf.Abs(lastMove.From.x - lastMove.To.x) == 2 && boardM != null)
+        if (moved is King && Mathf.Abs(lastMove.From.x - lastMove.To.x) == 2 && hasBoard)
         {
-
             int y = lastMove.From.y;
             bool right = lastMove.To.x > lastMove.From.x;
-
-            // 💡 현재 룩이 캐슬링 때문에 가 있는 위치 (킹이 뛰어넘었던 자리)
             int rookCurrentX = right ? lastMove.From.x + 1 : lastMove.From.x - 1;
-
-           
-            int rookHomeX = lastMove.RookFrom.x; 
+            int rookHomeX = lastMove.RookFrom.x;
 
             ChessPieceM rook = pieceGrid[rookCurrentX, y];
             if (rook != null)
@@ -1371,19 +1385,29 @@ public class CheseGameM : MonoBehaviour, IPresetHost
                 var rookAnim = rook.GetComponent<PieceAnimator>();
                 if (rookAnim != null) rookAnim.SlideTo(rookWorld); else rook.transform.position = rookWorld;
 
-                if (rook is Rook r) r.hasMoved = false; // 룩의 이동 권한도 다시 복구
+                if (rook is Rook r) r.hasMoved = false;
             }
         }
-        if (lastMove.CapturedPiece != null)   // 잡힌 기물이 있었는지만 확인
-        {
-            GameObject capPrefab = PieceDatabase.GetPrefab(lastMove.CapturedType, lastMove.CapturedColor);
-            ChessPieceM restored = SpawnPiece(capPrefab, lastMove.To.x, lastMove.To.y, lastMove.CapturedColor);
 
-            // 풀에서 꺼낼 때 초기화되므로, 잡히기 전 상태를 다시 입힘
-            if (restored is Pawn cp) cp.isFirstMove = !lastMove.CapturedHadMoved;
+        // 2. 잡혔던 기물이 있다면 다시 복원 (앙파상이면 도착 칸이 아니라 옆 칸에)
+        if (lastMove.CapturedPiece != null)
+        {
+            Vector2Int capPos = lastMove.IsEnPassant
+                ? new Vector2Int(lastMove.To.x, lastMove.From.y)
+                : lastMove.To;
+
+            GameObject capPrefab = PieceDatabase.GetPrefab(lastMove.CapturedType, lastMove.CapturedColor);
+            ChessPieceM restored = SpawnPiece(capPrefab, capPos.x, capPos.y, lastMove.CapturedColor);
+
+            if (restored is Pawn cp)
+            {
+                cp.isFirstMove = !lastMove.CapturedHadMoved;
+              
+            }
             else if (restored is Rook cr) cr.hasMoved = lastMove.CapturedHadMoved;
             else if (restored is King ck) ck.hasMoved = lastMove.CapturedHadMoved;
         }
+        RefreshEnPassantFlags();
     }
 
     // 1. 도발 성공 시 호출 
@@ -1598,6 +1622,20 @@ public class CheseGameM : MonoBehaviour, IPresetHost
     {
         float successChance = 10f + (myNegoPower - characterNegoPower);
         return Mathf.Clamp(successChance, 10f, 90f); // 최소 10%, 최대 90% 보장
+    }
+
+    private void RefreshEnPassantFlags()
+    {
+        foreach (var ap in activePieces)
+            if (ap is Pawn pn) pn.movedTwoSquaresLastTurn = false;
+
+        if (MoveHistory.Count == 0) return;
+        MoveData last = MoveHistory[MoveHistory.Count - 1];
+        if (last.IsPromotion) return;
+
+        ChessPieceM lastPiece = pieceGrid[last.To.x, last.To.y];
+        if (lastPiece is Pawn lp && Mathf.Abs(last.From.y - last.To.y) == 2)
+            lp.movedTwoSquaresLastTurn = true;
     }
 
     #endregion
