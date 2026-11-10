@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5113632545766998276}
   - component: {fileID: 7155091746058672849}
   - component: {fileID: 6885504567569668792}
+  - component: {fileID: 6301420281102670121}
   m_Layer: 0
   m_Name: B_Bishop
   m_TagString: Untagged
@@ -54,6 +55,13 @@ MonoBehaviour:
     maxPiece: 2
     pieceName: Bishop
     icon: {fileID: 21300000, guid: ed72f49bf7af8450ea16c4af1a47f9fe, type: 3}
+  data_B:
+    Type: 0
+    Color: 0
+    cost: 0
+    maxPiece: 0
+    pieceName: 
+    icon: {fileID: 0}
   isWhite: 0
 --- !u!212 &5113632545766998276
 SpriteRenderer:
@@ -187,3 +195,23 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 10.24, y: 10.24}
   m_EdgeRadius: 0
+--- !u!114 &6301420281102670121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7554026422744678105}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c1b3e02170bb244eb421204d6e5cd19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceAnimator
+  up: {x: 0, y: 1, z: 0}
+  dropHeight: 0.6
+  dropTime: 0.3
+  hopHeight: 0.15
+  hopTime: 0.35
+  slideTime: 0.25
+  removeRise: 0.5
+  removeTime: 0.35

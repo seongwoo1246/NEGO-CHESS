@@ -1,6 +1,7 @@
 ﻿
 
 using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -100,4 +101,18 @@ public interface IChessBoardAdapter
 
     /// <summary>승급 선택창을 보이거나 숨깁니다. visible일 때는 localColor 쪽 창만 켭니다.</summary>
     void SetPromotionChoiceVisible(bool visible, PieceColor localColor);
+}
+
+
+/// <summary>기물 프리셋을 쓸 수 있는 판(AI전 / 연습 / 멀티)이 구현하는 약속</summary>
+public interface IPresetHost
+{
+    /// <summary>지금 프리셋을 저장하거나 불러올 수 있는 단계인가요? (배치 단계)</summary>
+    bool CanUsePreset { get; }
+
+    /// <summary>지금 배치 중인 내 쪽 기물을 "내 진영 기준 좌표"로 모아 줍니다.</summary>
+    void CollectMyPieces(List<PresetPiece> output);
+
+    /// <summary>프리셋을 판에 놓습니다. 실제로 놓은 개수를 돌려줍니다.</summary>
+    int ApplyPreset(IReadOnlyList<PresetPiece> pieces);
 }

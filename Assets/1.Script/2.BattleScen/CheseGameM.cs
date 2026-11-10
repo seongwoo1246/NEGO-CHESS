@@ -78,7 +78,7 @@ public struct Cutin
 }
 
 
-public class CheseGameM : MonoBehaviour
+public class CheseGameM : MonoBehaviour, IPresetHost
 {
 
      
@@ -186,6 +186,7 @@ public class CheseGameM : MonoBehaviour
     private bool isSpawnMode = false;
     private SinglePoolSpawner spawner;
     public bool IsSetupPhase => ReadyPanel != null && ReadyPanel.activeInHierarchy;
+    public bool CanUsePreset => IsSetupPhase;
 
     // 체스판 위에 존재하는 모든 기물 오브젝트를 논리 좌표(x, y)로 추적하기 위한 2차원 배열
     // (x: 0~7, y: 0~7) 위치에 존재하는 기물 GameObject를 저장합니다.
@@ -504,7 +505,7 @@ public class CheseGameM : MonoBehaviour
         {
             newPiece.data.Color = color;
             newPiece.isWhite = (color == PieceColor.white);
-
+            newPiece.GetComponent<PieceAnimator>()?.PlaySpawn(spawnWorldPos);
             newPiece.CurrentPos = new Vector2Int(x, y);
             if (newPiece is King)
             {
@@ -667,6 +668,7 @@ public class CheseGameM : MonoBehaviour
     public List<Characters> characterList = new List<Characters>();// 배틀씬 이동시 할 행동
     public List<Cutin> cutins = new List<Cutin>(); // 체크 및 체크메이트시 활용
 
+    private PieceAnimator hopping;
     #endregion
 
     public void HandleTurnover()
@@ -739,6 +741,9 @@ public class CheseGameM : MonoBehaviour
         // 1. 이전 기물이 남겨둔 하이라이트/이동 경로 좌표를 깨끗이 비움
         DeselectPiece();
 
+        hopping = pieceObj.GetComponent<PieceAnimator>();
+        hopping?.SetSelected(true);
+
         // 이동을 위한 좌표 입력
         selectedPos = new Vector2Int(x, y);
 
@@ -767,6 +772,8 @@ public class CheseGameM : MonoBehaviour
 
     private void DeselectPiece()
     {
+        if (hopping != null) { hopping.SetSelected(false); hopping = null; }
+
         TriggerCharacterInteraction(currentAI.characterType);
 
         // 만약 선택된 기물이 있었다면, 그 주변에 칠했던 색상들을 원복
@@ -817,7 +824,8 @@ public class CheseGameM : MonoBehaviour
         Vector3 targetWorldPos = boardM.GetWorldPosition(toX, toY);
 
         // 4. 실제로 기물의 Transform 위치 이동 (직부여 또는 연출용 트윈 적용)
-        pieceToMove.transform.position = targetWorldPos;
+        var anim = pieceToMove.GetComponent<PieceAnimator>();
+        if (anim != null) anim.SlideTo(targetWorldPos); else pieceToMove.transform.position = targetWorldPos;
 
         // 5. 논리 배열 데이터 업데이트 (출발지는 비우고, 목적지로 등록)
         pieceGrid[toX, toY] = pieceToMove;
@@ -871,7 +879,9 @@ public class CheseGameM : MonoBehaviour
                         pieceGrid[7, y] = null;
                         pieceGrid[5, y] = rook;
                         rook.CurrentPos = new Vector2Int(5, y);
-                        rook.transform.position = boardM.GetWorldPosition(5, y);
+                        Vector3 rookPos = boardM.GetWorldPosition(5, y);
+                        var rookAnim = rook.GetComponent<PieceAnimator>();
+                        if (rookAnim != null) rookAnim.SlideTo(rookPos); else rook.transform.position = rookPos;
                         if (rook is Rook r) r.hasMoved = true;
                     }
                 }
@@ -883,7 +893,9 @@ public class CheseGameM : MonoBehaviour
                         pieceGrid[0, y] = null;
                         pieceGrid[3, y] = rook;
                         rook.CurrentPos = new Vector2Int(3, y);
-                        rook.transform.position = boardM.GetWorldPosition(3, y);
+                        Vector3 rookPos = boardM.GetWorldPosition(3, y);
+                        var rookAnim = rook.GetComponent<PieceAnimator>();
+                        if (rookAnim != null) rookAnim.SlideTo(rookPos); else rook.transform.position = rookPos;
                         if (rook is Rook r) r.hasMoved = true;
                     }
                 }
@@ -940,29 +952,34 @@ public class CheseGameM : MonoBehaviour
             OnPieceDestroyed(isMyPiece, pieceToDestroy.data.cost);
 
             // spawner로 반환
-            spawner.Despawn(pieceGrid[x, y].gameObject);
+            GameObject go = pieceToDestroy.gameObject;
+            var anim = go.GetComponent<PieceAnimator>();
+            if (anim != null && !isSpawnMode) anim.PlayRemove(() => spawner.Despawn(go));   // 배치 단계(리셋/프리셋)는 즉시 반환
+            else spawner.Despawn(go);
 
             // 배열 비워주기
             pieceGrid[x, y] = null;
 
             RefreshButtonUI();
 
-            if(isSpawnMode == false)
+
+
+            if (pieceToDestroy.data.Type == pieceType.King)
             {
-                if (pieceToDestroy.data.Type == pieceType.King)
+                bool isWhiteKing = pieceToDestroy.data.Color == PieceColor.white;
+
+                // 킹 참조는 배치 단계에서도 항상 정리 (죽은 킹이 남아 준비 검사를 통과하는 것을 막음)
+                if (isWhiteKing) whiteKing = null;
+                else blackKing = null;
+
+                // 결과 처리는 게임 중일 때만
+                if (isSpawnMode == false)
                 {
-                    if (pieceToDestroy.data.Color == PieceColor.white)
-                    {
-                        whiteKing = null;
-                        ShowGameResultAsync(GameResultType.Lose, myNegoPower, whiteTimer.TimerTime).Forget();
-                    }
-                    else if (pieceToDestroy.data.Color == PieceColor.black)
-                    {
-                        blackKing = null;
-                        ShowGameResultAsync(GameResultType.Win, myNegoPower, whiteTimer.TimerTime).Forget();
-                    }
+                    GameResultType result = isWhiteKing ? GameResultType.Lose : GameResultType.Win;
+                    ShowGameResultAsync(result, myNegoPower, whiteTimer.TimerTime).Forget();
                 }
             }
+
         }
     }
 
@@ -1239,45 +1256,80 @@ public class CheseGameM : MonoBehaviour
     // 기존에 올리셨던 무르기 코드의 실제 실행부 분리
     private void ExecuteUndoLastMove(MoveData lastMove, int lastIndex)
     {
-        MoveHistory.RemoveAt(lastIndex);
         SoundService.Current.playSFX("되감기");
-        // 1. 이동한 기물 제자리로 원복
-        pieceGrid[lastMove.From.x, lastMove.From.y] = lastMove.MovedPiece;
+        MoveHistory.RemoveAt(lastIndex);
+
+        // ── 프로모션 되감기: From == To 이므로 따로 처리하고 끝냅니다 ──
+        if (lastMove.IsPromotion)
+        {
+            int px = lastMove.To.x, py = lastMove.To.y;
+            ChessPieceM promoted = pieceGrid[px, py];
+            PieceColor color = promoted != null ? promoted.data.Color : lastMove.MovedPiece.data.Color;
+
+            DestroyPiece(px, py);                                            // 승급한 기물 제거
+            GameObject pawnPrefab = PieceDatabase.GetPrefab(lastMove.MovedPiece.data.Type, color);
+            ChessPieceM pawn = SpawnPiece(pawnPrefab, px, py, color);        // 폰 복구
+            if (pawn is Pawn p) p.isFirstMove = false;                       // 끝줄까지 온 폰이니 첫 이동은 끝난 상태
+            return;
+        }
+
+        ChessPieceM moved = lastMove.MovedPiece;
+
+        // 1. 이동한 기물 제자리로 원복 (논리 + 위치 + 기물이 가진 좌표)
+        pieceGrid[lastMove.To.x, lastMove.To.y] = null;
+        pieceGrid[lastMove.From.x, lastMove.From.y] = moved;
+        moved.CurrentPos = lastMove.From;                                    // ← 핵심: 이게 빠져 있었음
 
         if (ScriptM.TryGet<ChessBoardM>(out var boardM))
         {
-            lastMove.MovedPiece.transform.position = boardM.GetWorldPosition(lastMove.From.x, lastMove.From.y);
+            Vector3 fromWorld = boardM.GetWorldPosition(lastMove.From.x, lastMove.From.y);
+            var anim = moved.GetComponent<PieceAnimator>();
+            if (anim != null) anim.SlideTo(fromWorld); else moved.transform.position = fromWorld;
+        }
+
+        // 폰 상태 복구 (시작 줄에서 출발했다면 다시 첫 이동 가능)
+        if (moved is Pawn pw)
+        {
+            pw.isFirstMove = pw.isWhite ? lastMove.From.y == 1 : lastMove.From.y == 6;
+            pw.movedTwoSquaresLastTurn = false;
+        }
+
+        // 캐슬링이었다면 룩도 원위치
+        if (moved is King && Mathf.Abs(lastMove.From.x - lastMove.To.x) == 2 && boardM != null)
+        {
+            int y = lastMove.From.y;
+            bool right = lastMove.To.x > lastMove.From.x;
+            int rookFrom = right ? 5 : 3, rookHome = right ? 7 : 0;
+            ChessPieceM rook = pieceGrid[rookFrom, y];
+            if (rook != null)
+            {
+                pieceGrid[rookFrom, y] = null;
+                pieceGrid[rookHome, y] = rook;
+                rook.CurrentPos = new Vector2Int(rookHome, y);
+                Vector3 rookWorld = boardM.GetWorldPosition(rookHome, y);
+                var rookAnim = rook.GetComponent<PieceAnimator>();
+                if (rookAnim != null) rookAnim.SlideTo(rookWorld); else rook.transform.position = rookWorld;
+                if (rook is Rook r) r.hasMoved = false;
+            }
         }
 
         // 2. 잡혔던 기물이 있다면 다시 복원
-        if (lastMove.CapturedPiece != null)
+        ChessPieceM captured = lastMove.CapturedPiece;
+        if (captured != null)
         {
-            pieceGrid[lastMove.To.x, lastMove.To.y] = lastMove.CapturedPiece;
-            lastMove.CapturedPiece.gameObject.SetActive(true);
+            pieceGrid[lastMove.To.x, lastMove.To.y] = captured;
+            captured.CurrentPos = lastMove.To;
+            captured.gameObject.SetActive(true);
 
-            // 만약 activePieces 리스트 관리 중이라면 다시 추가
-            if (!activePieces.Contains(lastMove.CapturedPiece))
+            if (ScriptM.TryGet<ChessBoardM>(out var b2))
             {
-                activePieces.Add(lastMove.CapturedPiece);
+                // 사라지는 연출 도중이면 그 연출을 끊고 제자리에 다시 나타나게 함
+                var capAnim = captured.GetComponent<PieceAnimator>();
+                Vector3 toWorld = b2.GetWorldPosition(lastMove.To.x, lastMove.To.y);
+                if (capAnim != null) capAnim.PlaySpawn(toWorld); else captured.transform.position = toWorld;
             }
-        }
-        else
-        {
-            pieceGrid[lastMove.To.x, lastMove.To.y] = null;
-        }
-        if (lastMove.IsPromotion)
-        {
-            // 1. 프로모션으로 생겼던 새 기물 파괴
-            DestroyPiece(lastMove.To.x, lastMove.To.y);
 
-            // 2. 원래 폰 다시 스폰
-            GameObject pawnPrefab = GetPrefabByData(lastMove.MovedPiece.data);
-            SpawnPiece(pawnPrefab, lastMove.From.x, lastMove.From.y);
-
-            // 3. 프로모션으로 얻었던 협상력 원상복귀 (증가했던 차이만큼 차감)
-            int costDiff = lastMove.newCost - lastMove.oldCost; 
-            myNegoPower -= costDiff;
-            ClampNegoPower();
+            if (!activePieces.Contains(captured)) activePieces.Add(captured);
         }
     }
 
@@ -1382,7 +1434,7 @@ public class CheseGameM : MonoBehaviour
         GameObject selectedPrefab = piecedatabase.GetPrefab(selectedType, pieceColor);
 
         //새 기물 스폰 (이미 만들어두신 SpawnPiece 활용)
-        ChessPieceM newPiece = SpawnPiece(selectedPrefab, x, y);
+        ChessPieceM newPiece = SpawnPiece(selectedPrefab, x, y, pieceColor);
         int newCost = newPiece.data.cost; // 새로 바뀐 기물의 코스트
 
         // 협상력 변동 처리 (코스트 차이만큼 반영)
@@ -1436,7 +1488,7 @@ public class CheseGameM : MonoBehaviour
        
         // 3. 그 자리에 안전하게 새 여왕 스폰
         GameObject queenPrefab = PieceDatabase.GetPrefab(pieceType.Queen, aiColor);
-        ChessPieceM newPiece = SpawnPiece(queenPrefab, x, y);
+        ChessPieceM newPiece = SpawnPiece(queenPrefab, x, y, aiColor);
 
         if (newPiece != null)
         {

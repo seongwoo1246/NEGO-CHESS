@@ -23,8 +23,8 @@ public partial class SingleChessGameM : IChessBoardAdapter
     private bool _netSetupEnabled;                           // 배치 입력이 켜져 있나
     private bool _netPlayEnabled;                            // 기물 선택/이동 입력이 켜져 있나
 
-    /// <summary>지금 멀티 판인가요? (멀티 씬이거나, NetworkGameM이 있으면 true)</summary>
-    private bool IsNetworkMatch => isNetworkScene || ScriptM.TryGet<NetworkGameM>(out NetworkGameM _);
+    /// <summary>지금 멀티 판인가요? </summary>
+    private bool IsNetworkMatch => isNetworkScene;
 
     private bool NetIsMyPiece(int x, int y)
     {
@@ -156,7 +156,7 @@ public partial class SingleChessGameM : IChessBoardAdapter
             else blackKing = null;
         }
 
-        DestroyPiece(x, y);   // 개수 복구와 제거는 기존 함수가 처리
+        DestroyPiece(x, y, false);    // 개수 복구와 제거는 기존 함수가 처리
     }
 
     void IChessBoardAdapter.RemovePiece(int x, int y)

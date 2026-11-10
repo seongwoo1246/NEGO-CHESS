@@ -34,6 +34,7 @@ public class PiecePresetM : MonoBehaviour
     private int _pendingSlot = -1;
     private readonly List<PresetPiece> _buffer = new List<PresetPiece>(32);
 
+    private IPresetHost _host;
     // ───────────── 켜기 ─────────────
 
     private void Awake()
@@ -69,9 +70,10 @@ public class PiecePresetM : MonoBehaviour
     private void OnClickSave(int index)
     {
         SoundService.Current.playSFX("버튼");
-        if (!TryGetGame(out CheseGameM game) || !game.IsSetupPhase) return;   // 배치 단계에서만
+        if (!TryGetHost(out IPresetHost host)) return;
+        if (!host.CanUsePreset) { Notice("기물 배치 단계에서만 쓸 수 있어요."); return; }
 
-        game.CollectMyPieces(_buffer);
+        host.CollectMyPieces(_buffer);
         if (_buffer.Count == 0)
         {
             Notice("배치된 기물이 없어요.");
@@ -83,7 +85,7 @@ public class PiecePresetM : MonoBehaviour
         if (nameInput != null)
         {
             PresetSlot slot = PiecePresetStore.Get(index);
-            nameInput.text = slot.hasData ? slot.name : "";   // 이미 있으면 이름을 미리 채워 둠
+            nameInput.text = slot.hasData ? slot.name : "";
             nameInput.ActivateInputField();
         }
     }
@@ -92,14 +94,13 @@ public class PiecePresetM : MonoBehaviour
     {
         SoundService.Current.playSFX("버튼");
         int index = _pendingSlot;
-        if (index < 0 || !TryGetGame(out CheseGameM game) || !game.IsSetupPhase)
+        if (index < 0 || !TryGetHost(out IPresetHost host) || !host.CanUsePreset)
         {
             ClosePopup();
             return;
         }
 
-        // 창이 열려 있는 동안 바뀌었을 수 있으니 확인 시점의 배치를 저장
-        game.CollectMyPieces(_buffer);
+        host.CollectMyPieces(_buffer);
         if (_buffer.Count == 0)
         {
             ClosePopup();
@@ -120,7 +121,8 @@ public class PiecePresetM : MonoBehaviour
     private void OnClickLoad(int index)
     {
         SoundService.Current.playSFX("버튼");
-        if (!TryGetGame(out CheseGameM game) || !game.IsSetupPhase) return;
+        if (!TryGetHost(out IPresetHost host)) return;
+        if (!host.CanUsePreset) { Notice("기물 배치 단계에서만 쓸 수 있어요."); return; }
 
         PresetSlot slot = PiecePresetStore.Get(index);
         if (!slot.hasData)
@@ -129,7 +131,7 @@ public class PiecePresetM : MonoBehaviour
             return;
         }
 
-        int placed = game.ApplyPreset(slot.pieces);
+        int placed = host.ApplyPreset(slot.pieces);
         if (placed == slot.pieces.Count) Notice($"'{slot.name}' 불러오기 완료!");
         else Notice($"'{slot.name}': {slot.pieces.Count}개 중 {placed}개만 배치됐어요.");
     }
@@ -152,11 +154,17 @@ public class PiecePresetM : MonoBehaviour
         if (namePopup != null) namePopup.SetActive(false);
     }
 
-    private static bool TryGetGame(out CheseGameM game)
+    private bool TryGetHost(out IPresetHost host)
     {
-        if (ScriptM.TryGet<CheseGameM>(out game) && game != null) return true;
-        game = null;
-        return false;
+        // 처음이거나, 씬이 바뀌어 파괴됐으면 다시 찾음
+        if (_host == null || (_host is UnityEngine.Object o && o == null))
+        {
+            CheseGameM ai = FindFirstObjectByType<CheseGameM>();
+            if (ai != null) _host = ai;
+            else _host = FindFirstObjectByType<SingleChessGameM>();   // 연습 모드 / 멀티 씬
+        }
+        host = _host;
+        return host != null;
     }
 
     private void Notice(string message)

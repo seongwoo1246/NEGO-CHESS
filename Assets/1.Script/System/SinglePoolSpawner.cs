@@ -26,6 +26,7 @@ public class SinglePoolSpawner : MonoBehaviour, IPieceSpawner
         // 풀 안의 기물은 씬과 함께 파괴됩니다. 남은 참조를 모두 비웁니다.
         PoolDict.Clear();
         _inPool.Clear();
+
     }
 
     public GameObject Spawn(GameObject prefab, Vector3 position, Quaternion rotation)

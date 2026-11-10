@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -1080309676434757149}
   - component: {fileID: 6177044459597305075}
   - component: {fileID: 8569766146463682316}
+  - component: {fileID: 3501610904608305871}
   m_Layer: 0
   m_Name: W_Queen
   m_TagString: Untagged
@@ -113,6 +114,13 @@ MonoBehaviour:
     maxPiece: 1
     pieceName: Queen
     icon: {fileID: 21300000, guid: 8dde74c05b5674a6b96e6c855da9dc82, type: 3}
+  data_B:
+    Type: 0
+    Color: 0
+    cost: 0
+    maxPiece: 0
+    pieceName: 
+    icon: {fileID: 0}
   isWhite: 1
 --- !u!50 &6177044459597305075
 Rigidbody2D:
@@ -187,3 +195,23 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 10.24, y: 10.24}
   m_EdgeRadius: 0
+--- !u!114 &3501610904608305871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165107445882953213}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c1b3e02170bb244eb421204d6e5cd19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PieceAnimator
+  up: {x: 0, y: 1, z: 0}
+  dropHeight: 0.6
+  dropTime: 0.3
+  hopHeight: 0.15
+  hopTime: 0.35
+  slideTime: 0.25
+  removeRise: 0.5
+  removeTime: 0.35

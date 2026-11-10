@@ -1368,7 +1368,6 @@ MonoBehaviour:
   - {fileID: 1753795621}
   - {fileID: 45260811}
   - {fileID: 675717838}
-  SettingBtn: {fileID: 1298201875}
   ProvokeBtn: {fileID: 1802071319}
   NegoBtn: {fileID: 988967148}
   TimerBtn: {fileID: 1103174901}
@@ -2429,7 +2428,7 @@ PrefabInstance:
     - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
       propertyPath: popupUIObject
       value: 
-      objectReference: {fileID: 2060983166}
+      objectReference: {fileID: 0}
     - target: {fileID: 3170619387559222971, guid: f93fd8564b8966442ab853eec48e9316, type: 3}
       propertyPath: panelCanvasGroup
       value: 
@@ -11942,17 +11941,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
---- !u!114 &2060983166 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 33304238617160561, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
-  m_PrefabInstance: {fileID: 2060983165}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2060983168}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PopupUI
 --- !u!225 &2060983167 stripped
 CanvasGroup:
   m_CorrespondingSourceObject: {fileID: 5460954398416274788, guid: 5f04981054183a44e830c31a6cb151e4, type: 3}
