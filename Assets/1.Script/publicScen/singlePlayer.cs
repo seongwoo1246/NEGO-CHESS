@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.TextCore.Text;
+
 
 public static class singlePlayer 
 {
@@ -26,6 +25,19 @@ public static class singlePlayer
     public static int keepHp;
 
     public static event System.Action OnHpStatChanged;
+
+    public static Sprite charIcon
+    {
+        get
+        {
+            var db = CharacterDB.Db;
+            if (db == null) return null;
+            var sprites = db.GetSprites(selectedCharacterId);
+            int index = 0; // 필요에 따라 조절
+            return (sprites != null && sprites.Count > index) ? sprites[index] : null;
+        }
+    }
+
     public static Sprite icon
     {
         get

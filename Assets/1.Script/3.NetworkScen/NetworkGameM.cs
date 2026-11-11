@@ -86,6 +86,9 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     [Networked] public PostGameChoice WhiteChoice { get; private set; }
     [Networked] public PostGameChoice BlackChoice { get; private set; }
+    [Networked] public NetworkBool NegotiationPending { get; private set; }   // 무르기 협상 중: 시계/이동 정지
+    [Networked] public int TurnSerial { get; private set; }                   // 차례가 넘어갈 때마다 +1 (규칙 금지 기간 계산 기준)
+    public int TurnNumber => (TurnSerial + 1) / 2;                            // UI의 "현재 턴": 흰색이 움직일 때마다 +1
 
     // ───────────── 내 컴퓨터에서만 쓰는 값 ─────────────
     private const int PresenceCheckInterval = 30;   // 30틱마다 "둘 다 아직 있나?" 확인
@@ -258,7 +261,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     private void RPC_RequestEndTurn(RpcInfo info = default)
     {
         SoundService.Current.playSFX("턴이동");
-        if (State != GameState.Playing || _movePending || IsRevealing) return;
+        if (State != GameState.Playing || _movePending || IsRevealing || NegotiationPending) return;
         if (!TryGetColor(info.Source, out PieceColor color)) return;
 
         bool whiteTurn = IsWhiteTurn;
@@ -355,6 +358,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     private void InitializeMatch()
     {
+        
+        
         _model.Clear();
         _movePending = false;
         ClearPromotion();
@@ -363,11 +368,12 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         IsWhiteTurn = true;
         Winner = PlayerRef.None;
         EndReason = GameEndReason.None;
+        TurnSerial = 0;
         MoveCount = 0;
         MatchRound = 0;
         TurnMoved = false;
         RevealTimer = default;
-
+        NegotiationPending = false;
         WhiteLoaded = false;
         BlackLoaded = false;
         WhiteSetupReady = false;
@@ -384,6 +390,31 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         WhiteMainTime = mainTimeSeconds;
         BlackMainTime = mainTimeSeconds;
         CurrentBonusTime = bonusTimeSeconds;
+    }
+
+    internal bool AuthorityCanBeginNegotiation(PieceColor color, out string reason)
+    {
+        reason = null;
+        if (_adapter == null || State != GameState.Playing) { reason = "대국 중에만 할 수 있어요."; return false; }
+        if (NegotiationPending) { reason = "이미 협상이 진행 중이에요."; return false; }
+        if (IsRevealing || _movePending || _promotionInFlight || PromotionPending) { reason = "지금은 할 수 없어요."; return false; }
+        if (IsWhiteTurn != (color == PieceColor.white)) { reason = "내 차례에만 할 수 있어요."; return false; }
+        if (TurnMoved) { reason = "기물을 움직이기 전에만 할 수 있어요."; return false; }
+        return true;
+    }
+
+    internal void AuthoritySetNegotiating(bool value) => NegotiationPending = value;
+
+    /// <summary>협상 종료. 무르기가 성사됐다면 되돌린 수만큼 MoveCount를 줄이고, 아직 내 차례(움직이기 전)로 둡니다.</summary>
+    internal void AuthorityOnNegotiationEnded(int undonePlies)
+    {
+        NegotiationPending = false;
+        if (undonePlies > 0)
+        {
+            MoveCount = Mathf.Max(0, MoveCount - undonePlies);
+            TurnMoved = false;
+            ClearPromotion();
+        }
     }
 
     /// <summary>방(로비)에서 정한 팀대로 흑/백 자리를 정합니다.</summary>
@@ -431,6 +462,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
             case GameState.Playing:
                 if (!IsRevealing) TickClock(Runner.DeltaTime);   // 공개 시간 동안은 시계 정지
+                if (!IsRevealing && !NegotiationPending) TickClock(Runner.DeltaTime);
                 break;
         }
 
@@ -472,6 +504,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     {
         RevealAllPieces();    // 지금까지 숨겨져 있던 서로의 배치를 공개
 
+        TurnSerial = 0;
+        NegotiationPending = false;
         _movePending = false;
         ClearPromotion();
         MoveCount = 0;
@@ -529,6 +563,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     private void SetTurn(PieceColor next)
     {
+        TurnSerial++;
         TurnMoved = false;
         IsWhiteTurn = next == PieceColor.white;
         CurrentBonusTime = bonusTimeSeconds;   // 차례가 바뀔 때마다 초읽기 리셋
@@ -589,7 +624,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         reason = null;
         mover = default;
 
-        if (_adapter == null || State != GameState.Playing || _movePending) return false;
+        if (_adapter == null || State != GameState.Playing || _movePending || NegotiationPending) return false;
         if (!TryGetColor(sender, out mover)) return false;
 
         if (IsRevealing)
@@ -717,6 +752,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     {
         if (State == GameState.GameEnd) return;   // 이미 끝난 게임이면 중복 방지
 
+        NegotiationPending = false;
         _movePending = false;
         ClearPromotion();
         Winner = winner;
@@ -768,7 +804,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         _model.Clear();
         _movePending = false;
         ClearPromotion();
-
+        TurnSerial = 0;
+        NegotiationPending = false;
         MatchRound++;   // 모든 컴퓨터가 이 숫자를 보고 자기 판을 비웁니다
         ResetClocks();
         IsWhiteTurn = true;
@@ -805,6 +842,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     public override void Render()
     {
+        RuleBans.CurrentTurn = TurnSerial;
+
         EnsureRound(MatchRound);
         
 
@@ -861,7 +900,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         bool turnMoved = TurnMoved;
 
         _adapter.SetSetupInputEnabled(State == GameState.GameStart && !IsSetupReady(local), local);
-        _adapter.SetPlayInputEnabled(State == GameState.Playing && !IsRevealing && IsLocalTurn && !turnMoved && !promoting, local);
+        _adapter.SetPlayInputEnabled(State == GameState.Playing && !IsRevealing && IsLocalTurn && !turnMoved && !promoting && !NegotiationPending, local );
         _adapter.SetPromotionChoiceVisible(promoting && IsLocalTurn, local);   // 승급 선택창은 이동한 본인에게만
     }
 
@@ -890,6 +929,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
             hash = hash * 31 + Mathf.CeilToInt(WhiteMainTime);
             hash = hash * 31 + Mathf.CeilToInt(BlackMainTime);
             hash = hash * 31 + Mathf.CeilToInt(CurrentBonusTime);
+            hash = hash * 31 + (NegotiationPending ? 1 : 0);
+            hash = hash * 31 + TurnSerial;
             return hash;
         }
     }

@@ -148,6 +148,7 @@ public class Characters : MonoBehaviour
             }
             else
             {
+               
                 // 둘 수 있는 수가 하나도 없음 (왕이 사라진 경우는 이미 게임이 끝난 상태)
                 gameM.ShowGameResultAsync(GameResultType.Draw, 0, 0).Forget();
             }
@@ -189,12 +190,14 @@ public class Characters : MonoBehaviour
                 else if (piece is Pawn pawn)
                 {
                     hasMoved = !pawn.isFirstMove;
-                    if (pawn.movedTwoSquaresLastTurn)                          // ← 추가: 방금 두 칸 전진한 폰
+                    if (pawn.movedTwoSquaresLastTurn)
                     {
                         int dir = piece.data.Color == PieceColor.white ? 1 : -1;
-                        epX = x; epY = y - dir;                                // 그 폰이 지나간 칸
+                        epX = x; epY = y - dir;
                     }
                 }
+
+                engine.SetPiece(x, y, type, color, hasMoved);   
             }
         }
 

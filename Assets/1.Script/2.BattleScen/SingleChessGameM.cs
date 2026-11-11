@@ -803,6 +803,7 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         move.CapturedColor = capColor;
         move.CapturedHadMoved = capHadMoved;
         move.IsEnPassant = isEnPassant;
+        move.MoverColor = pieceToMove.data.Color;
 
         // movedata가 생성 후  기물의 currentpos 갱신
         pieceToMove.CurrentPos = move.To;

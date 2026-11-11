@@ -57,6 +57,15 @@ public class DialogueController : MonoBehaviour
         ScriptM.Register<DialogueController>(this, UseSpace.Local);
     }
 
+    private void Start()
+    {
+        
+        if (CharIcon != null && singlePlayer.charIcon != null)
+        {
+            CharIcon.sprite = singlePlayer.charIcon;
+        }
+    }
+
     private void OnDestroy()
     {
         ScriptM.Unregister<DialogueController>();   // 추가 (Characters와 같은 방식)

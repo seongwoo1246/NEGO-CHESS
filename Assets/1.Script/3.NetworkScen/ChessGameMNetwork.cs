@@ -209,6 +209,7 @@ public partial class SingleChessGameM : IChessBoardAdapter
         DeselectPiece();
         ClearTileHighlights();
         RefreshButtonUI();
+        RuleBans.ResetAll();
     }
 
     void IChessBoardAdapter.SetSetupInputEnabled(bool enabled, PieceColor localColor)
@@ -271,6 +272,7 @@ public partial class SingleChessGameM : IChessBoardAdapter
 
     bool IChessBoardAdapter.TryFindPromotion(PieceColor mover, out int x, out int y)
     {
+        if (RuleBans.IsBanned(mover, DealRule.Promotion)) { x = -1; y = -1; return false; }
         bool isWhite = mover == PieceColor.white;
         int lastRank = isWhite ? 7 : 0;   // 싱글(MovePiece)과 같은 기준
 

@@ -34,7 +34,7 @@ public class BattleM : MonoBehaviour
     {
         SoundService.Current.playSFX("버튼");
         singlePlayer.selectedCharacterId = characterId;
-
+        
         if (ScriptM.TryGet<HP>(out HP hp))
         {
             hp.HidePanel();

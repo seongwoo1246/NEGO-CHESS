@@ -38,7 +38,7 @@ public class King : ChessPieceM, IPoolReset
             }
         }
 
-        if (hasMoved || (CastlingBanned && !isWhite)) return;
+        if (hasMoved || (CastlingBanned && !isWhite)|| RuleBans.IsBanned(data.Color, DealRule.Castling)) return;
 
         int y = CurrentPos.y;
         int kingX = CurrentPos.x;

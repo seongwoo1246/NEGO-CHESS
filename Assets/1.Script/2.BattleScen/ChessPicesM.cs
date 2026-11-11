@@ -21,7 +21,7 @@ public struct MoveData
 
     //  자유 배치 캐슬링을 위해 룩이 어디서 왔는지 기억할 변수
     public Vector2Int RookFrom;
-
+    public PieceColor MoverColor;
 
 
     // ── 무르기 복구용 (잡히기/이동하기 직전 상태) ──
@@ -49,7 +49,9 @@ public struct MoveData
         CapturedColor = default;
         CapturedHadMoved = false;
         CapturedCost = 0;
-    }
+
+        MoverColor =default;
+}
 }
 
 [System.Serializable]

@@ -116,3 +116,4 @@ public interface IPresetHost
     /// <summary>프리셋을 판에 놓습니다. 실제로 놓은 개수를 돌려줍니다.</summary>
     int ApplyPreset(IReadOnlyList<PresetPiece> pieces);
 }
+

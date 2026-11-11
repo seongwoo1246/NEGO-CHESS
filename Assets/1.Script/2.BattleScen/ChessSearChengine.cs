@@ -15,6 +15,7 @@ using System.Diagnostics;
 /// </summary>
 public sealed class ChessSearchEngine
 {
+    public string FailReason;   // 디버그용
     // ───────────── 상수 ─────────────
     public const int Mate = 30000;
     private const int Inf = 32000;
@@ -136,12 +137,15 @@ public sealed class ChessSearchEngine
         Array.Clear(killers, 0, killers.Length);
         for (int i = 0; i < history.Length; i++) history[i] >>= 2;
 
+       
         if (kingSq[side] < 0) return res; // 내 왕이 없으면 둘 수 없음
+
 
         // 루트 수 생성
         int n = Gen(0, false);
         rootCount = n;
-        if (n == 0) return res;
+        if (n == 0)
+        return res; 
         for (int i = 0; i < n; i++) rootMoves[i] = moves[i];
 
         // ★ 최우선: 상대 왕을 잡을 수 있으면 다른 건 볼 것도 없이 그 수를 둔다.
@@ -205,6 +209,8 @@ public sealed class ChessSearchEngine
             if (bestScore <= -Mate + 200 && depth >= 3) break; // 어차피 지는 판이면 더 볼 필요 없음
             if (rootCount == 1) break;                // 둘 수 있는 수가 하나뿐
         }
+
+       
 
         ReachedDepth = doneDepth;
         return MakeResult(bestMove, bestScore, doneDepth);

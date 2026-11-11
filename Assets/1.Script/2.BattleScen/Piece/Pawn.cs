@@ -34,7 +34,8 @@ public class Pawn : ChessPieceM, IPoolReset
                 possibleMoves.Add(new Vector2Int(CurrentPos.x, doubleForwardY));
         }
 
-        bool enPassantAllowed = isWhite || !EnPassantBanned;
+        bool enPassantAllowed = isWhite || !EnPassantBanned|| RuleBans.IsBanned(data.Color, DealRule.EnPassant);
+
 
         // 2. 대각선: 적 기물 잡기 / 앙파상
         for (int dx = -1; dx <= 1; dx += 2)

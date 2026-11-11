@@ -878,6 +878,7 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         move.CapturedHadMoved = capHadMoved;
         move.CapturedCost = capCost;
         move.IsEnPassant = isEnPassant;
+        move.MoverColor = pieceToMove.data.Color;
 
         // movedata가 생성 후  기물의 currentpos 갱신
         pieceToMove.CurrentPos = move.To;
@@ -1139,25 +1140,24 @@ public class CheseGameM : MonoBehaviour, IPresetHost
         SoundService.Current.playSFX("턴이동");
         if (isGameEnded) return;
         isWhiteTurn = !isWhiteTurn;
-        currentTurn = isWhiteTurn? PieceColor.white : PieceColor.black;
+        currentTurn = isWhiteTurn ? PieceColor.white : PieceColor.black;
 
-        if(isWhiteTurn)
+        // 이제 움직여야 하는 쪽에 둘 곳이 있는지 먼저 확인 (AI 실행보다 앞)
+        if (CheckStalemate(isWhiteTurn, pieceGrid))
+        {
+            ShowGameResultAsync(GameResultType.Draw, myNegoPower, whiteTimer.TimerTime).Forget();
+            return;
+        }
+
+        if (isWhiteTurn)
         {
             StartTurnTimer(PieceColor.white);
-            
         }
         else
         {
             StartTurnTimer(PieceColor.black);
             isMovedone = false;
             currentAI.OnAITurnAsync().Forget();
-            if (CheckStalemate(true, pieceGrid))
-            {
-                // 무승부 처리 함수 호출 (고정 1000원 지급)
-                ShowGameResultAsync(GameResultType.Draw, myNegoPower, whiteTimer.TimerTime).Forget();
-                return;
-            }
-
         }
     }
 
@@ -1959,6 +1959,7 @@ private void UnlockNextCharacter(int currentDefeatedCharacterId)
             }
         }
 
+      
         // 체크도 아닌데 움직일 수 있는 기물이 하나도 없다면 완벽한 스테일메이트(무승부) 성립!
         return true;
     }
