@@ -146,6 +146,3 @@ public enum PostGameChoice
     Lobby     // 로비로
 }
 
-public enum DealRule { EnPassant = 0, Promotion = 1, Castling = 2 }
-
-public enum DealResponse { Accepted = 0, Rejected = 1, TimedOut = 2, Cancelled = 3 }   // Cancelled = 게임 종료/연결 끊김 등으로 협상이 취소됨

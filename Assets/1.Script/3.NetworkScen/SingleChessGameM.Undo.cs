@@ -36,4 +36,9 @@ public partial class SingleChessGameM : IUndoBoard
         isMovedone = false;
         RefreshButtonUI();
     }
+
+    float IUndoBoard.NegoBonus(PieceColor color)
+    {
+        return ScriptM.TryGet<NetworkGameM>(out NetworkGameM game) && game != null ? game.GetNegoBonus(color) : 0f;
+    }
 }

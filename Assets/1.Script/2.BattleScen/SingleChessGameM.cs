@@ -23,6 +23,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
             spawner = service;
         }
 
+        currentCost = 0;
+        UpdateCostUI();
 
         if (ResetBtn_W != null) { ResetBtn_W.onClick.AddListener(ResetAllPieces); }
         if (ReadyBtn_W != null) { ReadyBtn_W.onClick.AddListener(SetReady); }
@@ -80,7 +82,10 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
     public Button ReadyBtn_B;
     public GameObject ReadyPanel;
 
+    public TextMeshProUGUI costText;
 
+
+    private int currentCost;
 
     private PieceData? selectedPieceData = null;
     private bool isSpawnMode = false;
@@ -95,6 +100,26 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
     [SerializeField] private List<PieceButtonUI> pieceButtonUIs;
     private Dictionary<pieceType, int> spawnedPieceCounts = new Dictionary<pieceType, int>(); // 기물을 종류별로 소환해서 실시간으로 개수제한 및 UI 변경용
+
+    /// <summary>이번 판에 적용되는 코스트 상한. 멀티에서 강화 옵션이 꺼져 있으면 기본값</summary>
+    private int CurrentMaxCost => (IsNetworkMatch && !MatchOptions.UpgradesActive) ? singlePlayer.BaseMaxCost : singlePlayer.maxCost;
+
+    /// <summary>배치 단계에서 "지금 배치 중인 내 쪽" 기물만 코스트에 셉니다. (상대 공개분, 게임 중 승급/잡힘은 제외)</summary>
+    private bool CountsTowardCost(PieceColor color)
+    {
+        if (!IsNetworkMatch) return IsSetupPhase && color == PresetSide;
+        return color == _netLocalColor && IsNetSetupState();
+    }
+
+    private bool IsNetSetupState() =>
+        ScriptM.TryGet<NetworkGameM>(out NetworkGameM g) && g != null && g.State == GameState.GameStart;
+
+    private int PrefabCost(pieceType type, PieceColor color)
+    {
+        GameObject prefab = PieceDatabase != null ? PieceDatabase.GetPrefab(type, color) : null;
+        ChessPieceM p = prefab != null ? prefab.GetComponent<ChessPieceM>() : null;
+        return p != null ? p.data.cost : 0;
+    }
     #region 타일 관련 함수
     /// <summary>
     /// 선택한 (x, y) 좌표가 해당 팀의 소환 가능 영역(앞쪽 2줄)인지 판별
@@ -230,6 +255,11 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
     /// <summary>프리셋을 쓸 수 있는 때: 연습 모드는 배치 단계, 멀티는 내 배치 입력이 켜져 있고 아직 준비 전일 때</summary>
     public bool CanUsePreset => IsNetworkMatch ? NetPresetAllowed() : IsSetupPhase;
 
+    private void UpdateCostUI()
+    {
+        if (costText != null) costText.text = $"현재 코스트 : {currentCost}/{CurrentMaxCost}";
+    }
+
     private bool NetPresetAllowed()
     {
         if (!_netSetupEnabled) return false;
@@ -301,6 +331,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
             GameObject prefab = PieceDatabase != null ? PieceDatabase.GetPrefab(type, side) : null;
             if (prefab == null) continue;
+            int pieceCost = PrefabCost(type, side);
+            if (currentCost + pieceCost > CurrentMaxCost) continue;   // SpawnPiece가 currentCost를 올려 줍니다
 
             SpawnPiece(prefab, p.x, y, side);
             AddSpawnedCount(type);
@@ -324,6 +356,7 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         var valid = new List<PresetPiece>(pieces.Count);
         var seen = new HashSet<Vector2Int>();
         var counts = new Dictionary<pieceType, int>();
+        int costSum = 0;
         foreach (PresetPiece p in pieces)
         {
             int y = white ? p.y : 7 - p.y;
@@ -337,6 +370,9 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
             int max = GetMaxPieceOf(type);
             counts.TryGetValue(type, out int n);
             if (max < 0 || n >= max) continue;
+            int pieceCost = PrefabCost(type, side);
+            if (costSum + pieceCost > CurrentMaxCost) continue;
+            costSum += pieceCost;
             counts[type] = n + 1;
 
             valid.Add(new PresetPiece { x = p.x, y = y, type = p.type });
@@ -379,6 +415,7 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
            
             return;
         }
+        if (currentCost + pieceData.cost > CurrentMaxCost) return;   // 코스트 상한 초과
 
         selectedPieceData = pieceData;
         isSpawnMode = true;
@@ -474,6 +511,11 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
         if (newPiece != null)
         {
+            if (newPiece != null && CountsTowardCost(color))
+            {
+                currentCost += newPiece.data.cost;
+                UpdateCostUI();
+            }
             newPiece.data.Color = color;
             newPiece.isWhite = (color == PieceColor.white);
             newPiece.GetComponent<PieceAnimator>()?.PlaySpawn(spawnWorldPos);
@@ -530,6 +572,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
         // 3. 선택 상태 초기화
         DeselectPiece();
+        currentCost = 0;
+        UpdateCostUI();
     }
     public void ResetAllPieces_B()
     {
@@ -550,6 +594,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
         // 3. 선택 상태 초기화
         DeselectPiece();
+        currentCost = 0;
+        UpdateCostUI();
     }
 
     private void SetReady()
@@ -560,6 +606,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         {
             return;
         }
+        currentCost = 0;
+        UpdateCostUI();
         spawnedPieceCounts.Clear();
         RefreshButtonUI();
         ReadyPanel_W.SetActive(false);
@@ -911,6 +959,12 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         if (pieceGrid[x, y] != null)
         {
             ChessPieceM pieceToDestroy = pieceGrid[x, y];
+
+            if (CountsTowardCost(pieceToDestroy.data.Color))
+            {
+                currentCost = Mathf.Max(0, currentCost - pieceToDestroy.data.cost);
+                UpdateCostUI();
+            }
 
             ReturnSpawnedCount(pieceToDestroy.data.Type);
 

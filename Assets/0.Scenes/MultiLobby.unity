@@ -9666,8 +9666,8 @@ MonoBehaviour:
   launcher: {fileID: 1312919361}
   browser: {fileID: 1750004021}
   lobbyPanel: {fileID: 1094747264}
-  upgradeToggle: {fileID: 0}
-  upgradeInfoText: {fileID: 0}
+  upgradeToggle: {fileID: 1865901166}
+  upgradeInfoText: {fileID: 883565786}
 --- !u!1 &1887072193
 GameObject:
   m_ObjectHideFlags: 0

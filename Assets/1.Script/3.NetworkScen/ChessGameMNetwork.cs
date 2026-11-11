@@ -194,6 +194,8 @@ public partial class SingleChessGameM : IChessBoardAdapter
         }
 
         activePieces.Clear();
+        currentCost = 0;
+        UpdateCostUI();
         spawnedPieceCounts.Clear();
         whiteKing = null;
         blackKing = null;

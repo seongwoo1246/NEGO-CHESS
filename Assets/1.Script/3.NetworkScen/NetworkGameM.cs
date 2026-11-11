@@ -59,6 +59,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     public event Action HostClosedRoom;
     // ───────────── 네트워크로 공유되는 값 ─────────────
+    [Networked] public NetworkBool UpgradesEnabled { get; private set; }   // 방장이 정한 "강화 적용" 옵션
     [Networked] public NetworkBool SwapSidesOnRematch { get; private set; }
     [Networked] public PlayerRef WhitePlayer { get; private set; }
     [Networked] public PlayerRef BlackPlayer { get; private set; }
@@ -112,6 +113,21 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     public IChessBoardAdapter Adapter => _adapter;
     public bool AutoEndTurnAfterMove => autoEndTurnAfterMove;
 
+    private readonly Dictionary<pieceType, int>[] _maxReported =            // 방장만: 색별로 신고받은 최대 개수
+   {
+    new Dictionary<pieceType, int>(),   // 백
+    new Dictionary<pieceType, int>()    // 흑
+};
+    private int _sentMaxRound = -1;                                        // 내가 이 라운드에 신고했는지
+
+    [Networked] public int WhiteNegoBonus { get; private set; }            // 강화로 얻은 협상력 보너스 (신고받은 값)
+    [Networked] public int BlackNegoBonus { get; private set; }
+
+    /// <summary>그 색의 협상력 보너스. 강화 옵션이 꺼져 있으면 0</summary>
+    public float GetNegoBonus(PieceColor color) =>
+        UpgradesEnabled ? (color == PieceColor.white ? WhiteNegoBonus : BlackNegoBonus) : 0f;
+    private static readonly pieceType[] ReportTypes =
+        { pieceType.Pawn, pieceType.Knight, pieceType.Bishop, pieceType.Rook, pieceType.Queen };
     // ───────────── 만들어질 때 / 사라질 때 ─────────────
 
     private void Awake()
@@ -121,13 +137,13 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
         _adapter = boardAdapter as IChessBoardAdapter;
         if (_adapter == null)
-        {
-           
-        }
+        { }
+      
     }
 
     private void OnDestroy()
     {
+        MatchOptions.SetActive(false);
         ScriptM.Unregister<NetworkGameM>();
     }
 
@@ -356,10 +372,34 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     }
     // ───────────── 방장만 쓰는 "심판" 기능 ─────────────
 
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    private void RPC_ReportMaxCounts(byte[] counts, int negoBonus, RpcInfo info = default)
+    {
+        if (!UpgradesEnabled || counts == null || counts.Length != ReportTypes.Length) return;
+        if (State != GameState.GameStart) return;
+        if (!TryGetColor(info.Source, out PieceColor color)) return;
+
+        Dictionary<pieceType, int> table = _maxReported[color == PieceColor.white ? 0 : 1];
+        for (int i = 0; i < ReportTypes.Length; i++) table[ReportTypes[i]] = counts[i];
+
+        int bonus = Mathf.Clamp(negoBonus, 0, 1000);   // 협상력은 어차피 0~100으로 잘립니다
+        if (color == PieceColor.white) WhiteNegoBonus = bonus;
+        else BlackNegoBonus = bonus;
+    }
+
+    /// <summary>그 색이 그 기물을 최대 몇 개 놓을 수 있나. (강화 옵션이 켜져 있으면 신고받은 값, 아니면 기본값)</summary>
+    private int MaxCountFor(PieceColor color, pieceType type)
+    {
+        if (UpgradesEnabled && _maxReported[color == PieceColor.white ? 0 : 1].TryGetValue(type, out int v)) return v;
+        return _adapter.GetMaxPieceCount(type);
+    }
     private void InitializeMatch()
     {
-        
-        
+        UpgradesEnabled = MatchOptions.AllowUpgrades;
+        _maxReported[0].Clear();
+        _maxReported[1].Clear();
+        WhiteNegoBonus = 0;
+        BlackNegoBonus = 0;
         _model.Clear();
         _movePending = false;
         ClearPromotion();
@@ -573,6 +613,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     internal bool AuthorityTryPlace(PlayerRef sender, pieceType type, int x, int y, out PieceColor color, out string reason)
     {
+
         reason = null;
         if (_adapter == null || State != GameState.GameStart || !TryGetColor(sender, out color))
         {
@@ -585,8 +626,10 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
             reason = "준비를 취소해야 기물을 바꿀 수 있어요.";
             return false;
         }
+       
+        PieceColor placeColor = color;
+        SetupBoardModel.PlaceResult result = _model.TryPlace(color, type, x, y, t => MaxCountFor(placeColor, t));
 
-        SetupBoardModel.PlaceResult result = _model.TryPlace(color, type, x, y, _adapter.GetMaxPieceCount);
         if (result != SetupBoardModel.PlaceResult.Ok)
         {
             reason = SetupBoardModel.Describe(result);
@@ -800,7 +843,10 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
             WhitePlayer = BlackPlayer;
             BlackPlayer = white;
         }
-
+        _maxReported[0].Clear();
+        _maxReported[1].Clear();
+        WhiteNegoBonus = 0;
+        BlackNegoBonus = 0;
         _model.Clear();
         _movePending = false;
         ClearPromotion();
@@ -842,6 +888,18 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
 
     public override void Render()
     {
+        MatchOptions.SetActive(UpgradesEnabled);
+
+        // 배치 단계에 들어오면(라운드마다 한 번) 내 최대 개수를 방장에게 신고
+        if (UpgradesEnabled && State == GameState.GameStart && _sentMaxRound != MatchRound && _adapter != null)
+        {
+            _sentMaxRound = MatchRound;
+            var counts = new byte[ReportTypes.Length];
+            for (int i = 0; i < ReportTypes.Length; i++)
+                counts[i] = (byte)Mathf.Clamp(_adapter.GetMaxPieceCount(ReportTypes[i]), 0, 255);
+            RPC_ReportMaxCounts(counts, Mathf.RoundToInt(singlePlayer.bonusNegoPower));
+        }
+
         RuleBans.CurrentTurn = TurnSerial;
 
         EnsureRound(MatchRound);
@@ -850,7 +908,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         bool whiteTurn = IsWhiteTurn;
         bool stateChanged = _shownState == null || _shownState.Value != State;
         bool turnChanged = _shownWhiteTurn == null || _shownWhiteTurn.Value != whiteTurn;
-
+        
         if (stateChanged) _shownState = State;
         if (turnChanged) _shownWhiteTurn = whiteTurn;
 

@@ -9,7 +9,7 @@ public static class singlePlayer
      public static int birthDay;
      public static bool isGirl = true;
      public static string gender = "여";
-    public static int maxCost = 48;
+    public static int maxCost = BaseMaxCost;
     public static float bonusNegoPower = 0;
     public static int selectedCharacterId;
     public static int seoWin =0;
@@ -24,6 +24,7 @@ public static class singlePlayer
     public static bool hpInitialized = false;
     public static int keepHp;
 
+    public const int BaseMaxCost = 48;
     public static event System.Action OnHpStatChanged;
 
     public static Sprite charIcon

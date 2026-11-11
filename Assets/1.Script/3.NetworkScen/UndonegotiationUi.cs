@@ -27,6 +27,9 @@ public class UndoNegotiationUI : MonoBehaviour
     [SerializeField] private TMP_Text oppPromotionText;         // (상대 쪽)
     [SerializeField] private TMP_Text oppEnPassantText;
     [SerializeField] private TMP_Text oppCastlingText;
+    [Tooltip("본 화면에 항상 보이는 협상력 (기물이 잡히거나 승급하면 바뀝니다)")]
+    [SerializeField] private TMP_Text hudMyPowerText;
+    [SerializeField] private TMP_Text hudOppPowerText;
 
     [Header("패널")]
     [SerializeField] private GameObject panel;                  // 판넬 루트 (꺼 두세요)
@@ -184,6 +187,13 @@ public class UndoNegotiationUI : MonoBehaviour
             SetBan(oppPromotionText, opp, DealRule.Promotion);
             SetBan(oppEnPassantText, opp, DealRule.EnPassant);
             SetBan(oppCastlingText, opp, DealRule.Castling);
+        }
+
+        if (undoM != null && (hudMyPowerText != null || hudOppPowerText != null)
+            && undoM.GetPowers(out float myP, out float oppP, out _))
+        {
+            if (hudMyPowerText != null) hudMyPowerText.text = myP.ToString("0");
+            if (hudOppPowerText != null) hudOppPowerText.text = oppP.ToString("0");
         }
 
         if (openButton != null)

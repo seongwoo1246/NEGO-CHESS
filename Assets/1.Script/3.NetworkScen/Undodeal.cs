@@ -15,7 +15,9 @@ using UnityEngine;
 //     → 무르기를 먼저 해도 같은 기물이 지워지고, 무른 뒤에 생긴 기물을 지우는 악용도 막힌다
 // ─────────────────────────────────────────────────────────────────────────────
 
+public enum DealRule { EnPassant = 0, Promotion = 1, Castling = 2 }
 
+public enum DealResponse { Accepted = 0, Rejected = 1, TimedOut = 2, Cancelled = 3 }   // Cancelled = 게임 종료/연결 끊김 등으로 협상이 취소됨
 
 [Serializable]
 public struct DealRuleChip
@@ -172,6 +174,9 @@ public interface IUndoBoard
 
     /// <summary>협상 적용이 모두 끝난 뒤 호출 (선택 해제 등 화면 정리)</summary>
     void AfterDealApplied();
+
+    /// <summary>강화로 얻은 협상력 보너스 (멀티: 방장이 동기화한 값, 강화 옵션이 꺼져 있으면 0)</summary>
+    float NegoBonus(PieceColor color);
 }
 
 /// <summary>무르기 협상의 규칙 계산 (판 상태를 읽기만 하는 함수와, 적용하는 함수)</summary>
@@ -359,7 +364,7 @@ public static class UndoDealLogic
 
     // ───────────── 협상력 / 성공 확률 (AI 대전과 같은 공식) ─────────────
 
-    /// <summary>판 위에 있는 내 기물의 코스트 합 (0~100)</summary>
+    /// <summary>협상력 = 판 위에 있는 내 기물의 코스트 합 + 강화 보너스 (0~100). 기물이 잡히거나 승급하면 판이 바뀌므로 자동으로 변합니다.</summary>
     public static float Power(IUndoBoard board, PieceColor color)
     {
         bool white = color == PieceColor.white;
@@ -372,6 +377,7 @@ public static class UndoDealLogic
                 if (p != null && p.isWhite == white) sum += p.data.cost;
             }
         }
+        sum += board.NegoBonus(color);
         return Mathf.Clamp(sum, 0f, 100f);
     }
 
