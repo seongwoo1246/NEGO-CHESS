@@ -73,7 +73,7 @@ public static class singlePlayer
         set { PlayerPrefs.SetInt("FirstPlayDone", value ? 0 : 1); PlayerPrefs.Save(); }
 
     }
-            private static int _Gold;
+            private static int _Gold =999999;
     public static int Gold
     {
         get => _Gold;

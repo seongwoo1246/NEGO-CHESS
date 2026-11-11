@@ -63,6 +63,10 @@ public class RoomPanelUI : MonoBehaviour
     [SerializeField] private RoomBrowser browser;
     [SerializeField] private GameObject lobbyPanel;
 
+    [Header("방 옵션")]
+    [SerializeField] private Toggle upgradeToggle;        // 방장에게만 보임
+    [SerializeField] private TMP_Text upgradeInfoText;    // 방장이 아닌 사람에게 "강화 적용: 켜짐/꺼짐" 표시 
+
     private readonly List<RoomPlayerView> _players = new List<RoomPlayerView>(8);
     private RoomState _state;
     private bool _isLeaving;
@@ -79,6 +83,7 @@ public class RoomPanelUI : MonoBehaviour
             int slotIndex = i;
             slots[i].teamDropdown.onValueChanged.AddListener(value => OnTeamDropdownChanged(slotIndex, value));
         }
+        if (upgradeToggle != null) upgradeToggle.onValueChanged.AddListener(OnUpgradeToggleChanged);
     }
 
     private void OnEnable()
@@ -112,6 +117,11 @@ public class RoomPanelUI : MonoBehaviour
         KeySettingM.OnGameStartTriggered -= OnClickReady;
     }
 
+    private void OnUpgradeToggleChanged(bool on)
+    {
+        if (_state == null || !_state.IsHost) return;
+        if (!_state.RequestSetUpgrades(on)) Refresh();   // 거절되면 화면을 실제 값으로 되돌림
+    }
     private void BindState(RoomState state)
     {
         UnbindState();
@@ -167,6 +177,18 @@ public class RoomPanelUI : MonoBehaviour
             : (meReady ? "준비 취소" : "준비하기");
 
         leaveButton.interactable = !locked && !_isLeaving;
+        bool isHost = _state.IsHost;
+        if (upgradeToggle != null)
+        {
+            upgradeToggle.gameObject.SetActive(isHost);
+            upgradeToggle.SetIsOnWithoutNotify(_state.UpgradesEnabled);   // 이벤트 없이 화면만 맞춤
+            upgradeToggle.interactable = !locked && phase != RoomPhase.Countdown;
+        }
+        if (upgradeInfoText != null)
+        {
+            upgradeInfoText.gameObject.SetActive(!isHost);
+            upgradeInfoText.text = $"강화 적용: {(_state.UpgradesEnabled ? "켜짐" : "꺼짐")}";
+        }
     }
 
     private string BuildStatusMessage(RoomPhase phase)
@@ -218,7 +240,6 @@ public class RoomPanelUI : MonoBehaviour
 
     private void OnClickLeave()
     {
-      
         LeaveAsync().Forget();
     }
 

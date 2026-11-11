@@ -66,6 +66,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
 
     // ───────────── 네트워크로 공유되는 값 ─────────────
     [Networked] public NetworkString<_32> RoomName { get; private set; }
+    [Networked] public NetworkBool UpgradesEnabled { get; private set; }
     [Networked] public int MaxPlayers { get; private set; }
     [Networked] private TickTimer Countdown { get; set; }
     [Networked] private NetworkBool GameStarted { get; set; }
@@ -80,7 +81,17 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
     private static readonly Comparison<RoomPlayerView> ByPlayerId =
         (a, b) => a.Player.PlayerId.CompareTo(b.Player.PlayerId);
 
+
     // ───────────── 만들어질 때 / 사라질 때 ─────────────
+
+    /// <summary>방장만: 강화 적용 켜기/끄기. 카운트다운/시작 중에는 못 바꿉니다.</summary>
+    public bool RequestSetUpgrades(bool on)
+    {
+        if (!Object.HasStateAuthority) return false;
+        if (Phase == RoomPhase.Countdown || Phase == RoomPhase.Starting) return false;
+        UpgradesEnabled = on;
+        return true;
+    }
 
     /// <summary>방을 만든 사람이 스폰 직전에 한 번 호출합니다.</summary>
     public void Initialize(string roomName, int maxPlayers)
@@ -303,6 +314,7 @@ public class RoomState : NetworkBehaviour, IPlayerLeft
             hash = hash * 31 + (int)Phase;
             hash = hash * 31 + CountdownSecondsLeft;
             hash = hash * 31 + MaxPlayers;
+            hash = hash * 31 + (UpgradesEnabled ? 1 : 0);
             return hash;
         }
     }

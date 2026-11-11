@@ -262,11 +262,6 @@ public class NetworkLauncher : MonoBehaviour
         }
         catch (Exception e)
         {
-            
-            
-            
-            
-           
             await ShutdownSessionAsync();
             return RoomResult.Fail("알 수 없는 문제가 생겼어요. 잠시 후 다시 해 주세요.");
         }
