@@ -381,6 +381,7 @@ MonoBehaviour:
     pieceName: "\uC5EC\uC655"
     icon: {fileID: 21300000, guid: 8dde74c05b5674a6b96e6c855da9dc82, type: 3}
   countText: {fileID: 1293544893}
+  multiplayerScene: 0
 --- !u!1 &47343729
 GameObject:
   m_ObjectHideFlags: 0
@@ -1378,6 +1379,7 @@ MonoBehaviour:
     pieceName: "\uC655"
     icon: {fileID: 21300000, guid: 29acc54505ef849ac925be76a10c6b3a, type: 3}
   countText: {fileID: 722440417}
+  multiplayerScene: 0
 --- !u!222 &171395582
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1753,6 +1755,7 @@ MonoBehaviour:
     pieceName: "\uBCD1"
     icon: {fileID: 21300000, guid: c0503727f302a44a3b74e1083b31c080, type: 3}
   countText: {fileID: 996763634}
+  multiplayerScene: 0
 --- !u!1 &296791517
 GameObject:
   m_ObjectHideFlags: 0
@@ -3352,6 +3355,7 @@ MonoBehaviour:
     pieceName: "\uC804\uCC28"
     icon: {fileID: 21300000, guid: 92aee0fb85e2f4c2f9f3a34e83522ec3, type: 3}
   countText: {fileID: 296791519}
+  multiplayerScene: 0
 --- !u!222 &581192500
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -3796,6 +3800,7 @@ MonoBehaviour:
     pieceName: "\uC655"
     icon: {fileID: 21300000, guid: 1ea21c492ec9b4f778f6f0a9dfa0c532, type: 3}
   countText: {fileID: 371634431}
+  multiplayerScene: 0
 --- !u!1 &706610491
 GameObject:
   m_ObjectHideFlags: 0
@@ -5069,6 +5074,7 @@ MonoBehaviour:
     pieceName: "\uC8FC\uAD50"
     icon: {fileID: 21300000, guid: ed72f49bf7af8450ea16c4af1a47f9fe, type: 3}
   countText: {fileID: 414140729}
+  multiplayerScene: 0
 --- !u!222 &936110517
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6088,6 +6094,7 @@ MonoBehaviour:
     pieceName: "\uBCD1"
     icon: {fileID: 21300000, guid: 382845e9ae7fd4bbcae87e795b1732d2, type: 3}
   countText: {fileID: 777995842}
+  multiplayerScene: 0
 --- !u!222 &1061490219
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -6849,6 +6856,7 @@ MonoBehaviour:
   ResetBtn_B: {fileID: 941739250}
   ReadyBtn_B: {fileID: 565557110}
   ReadyPanel: {fileID: 1884015597}
+  costText: {fileID: 0}
   pieceButtonUIs:
   - {fileID: 675717838}
   - {fileID: 45260811}
@@ -7178,6 +7186,7 @@ MonoBehaviour:
     pieceName: "\uC8FC\uAD50"
     icon: {fileID: 21300000, guid: 5c87fe55678ba447eb605e8ee793c858, type: 3}
   countText: {fileID: 1336056023}
+  multiplayerScene: 0
 --- !u!1 &1248716072
 GameObject:
   m_ObjectHideFlags: 0
@@ -7421,6 +7430,7 @@ MonoBehaviour:
     pieceName: "\uC804\uCC28"
     icon: {fileID: 21300000, guid: 49084320a93464c4aac4806e7b02323d, type: 3}
   countText: {fileID: 1441374576}
+  multiplayerScene: 0
 --- !u!1 &1268920314
 GameObject:
   m_ObjectHideFlags: 0
@@ -9874,6 +9884,7 @@ MonoBehaviour:
     pieceName: "\uC5EC\uC655"
     icon: {fileID: 21300000, guid: 5bf33171a7890405fadd9ba6c341d086, type: 3}
   countText: {fileID: 1225498170}
+  multiplayerScene: 0
 --- !u!222 &1658432128
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -10384,6 +10395,7 @@ MonoBehaviour:
     pieceName: "\uAE30\uC0AC"
     icon: {fileID: 21300000, guid: b6bd772b73a504ab5a27db2031715b95, type: 3}
   countText: {fileID: 1027562253}
+  multiplayerScene: 0
 --- !u!1 &1810788438
 GameObject:
   m_ObjectHideFlags: 0
@@ -11106,8 +11118,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -11584,6 +11596,7 @@ MonoBehaviour:
     pieceName: "\uAE30\uC0AC"
     icon: {fileID: 21300000, guid: 7ae06a498d47544d7a75ddfdf1ada9d4, type: 3}
   countText: {fileID: 498251402}
+  multiplayerScene: 0
 --- !u!222 &1970978513
 CanvasRenderer:
   m_ObjectHideFlags: 0

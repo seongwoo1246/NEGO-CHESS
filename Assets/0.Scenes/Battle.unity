@@ -381,6 +381,7 @@ MonoBehaviour:
     pieceName: "\uC5EC\uC655"
     icon: {fileID: 21300000, guid: 8dde74c05b5674a6b96e6c855da9dc82, type: 3}
   countText: {fileID: 1293544893}
+  multiplayerScene: 0
 --- !u!1 &45280398
 GameObject:
   m_ObjectHideFlags: 0
@@ -1736,6 +1737,7 @@ MonoBehaviour:
     pieceName: "\uBCD1"
     icon: {fileID: 21300000, guid: c0503727f302a44a3b74e1083b31c080, type: 3}
   countText: {fileID: 996763634}
+  multiplayerScene: 0
 --- !u!1 &286665219
 GameObject:
   m_ObjectHideFlags: 0
@@ -3786,6 +3788,7 @@ MonoBehaviour:
     pieceName: "\uC655"
     icon: {fileID: 21300000, guid: 1ea21c492ec9b4f778f6f0a9dfa0c532, type: 3}
   countText: {fileID: 371634431}
+  multiplayerScene: 0
 --- !u!1 &683180808
 GameObject:
   m_ObjectHideFlags: 0
@@ -7072,6 +7075,7 @@ MonoBehaviour:
     pieceName: "\uC8FC\uAD50"
     icon: {fileID: 21300000, guid: 5c87fe55678ba447eb605e8ee793c858, type: 3}
   countText: {fileID: 1336056023}
+  multiplayerScene: 0
 --- !u!1 &1258962148
 GameObject:
   m_ObjectHideFlags: 0
@@ -7213,6 +7217,7 @@ MonoBehaviour:
     pieceName: "\uC804\uCC28"
     icon: {fileID: 21300000, guid: 49084320a93464c4aac4806e7b02323d, type: 3}
   countText: {fileID: 1441374576}
+  multiplayerScene: 0
 --- !u!1 &1284206783
 GameObject:
   m_ObjectHideFlags: 0
@@ -10381,6 +10386,7 @@ MonoBehaviour:
     pieceName: "\uAE30\uC0AC"
     icon: {fileID: 21300000, guid: b6bd772b73a504ab5a27db2031715b95, type: 3}
   countText: {fileID: 1027562253}
+  multiplayerScene: 0
 --- !u!1 &1802071317
 GameObject:
   m_ObjectHideFlags: 0
@@ -11225,7 +11231,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4281479730
-  m_fontColor: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_fontColor: {r: 0.01886791, g: 0.01886791, b: 0.01886791, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -11928,7 +11934,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
   m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
@@ -11937,8 +11943,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4280893795
-  m_fontColor: {r: 0.38823533, g: 0.25490198, b: 0.16078432, a: 1}
+    rgba: 4278252799
+  m_fontColor: {r: 1, g: 0.957777, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -11955,7 +11961,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 150
+  m_fontSize: 36
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1

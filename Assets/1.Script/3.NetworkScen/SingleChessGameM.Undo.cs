@@ -33,17 +33,7 @@ public partial class SingleChessGameM : IUndoBoard
 
     void IUndoBoard.AfterDealApplied()
     {
-        if (ScriptM.TryGet<ChessBoardM>(out var bm))
-            for (int x = 0; x < 8; x++)
-                for (int y = 0; y < 8; y++)
-                {
-                    ChessPieceM p = pieceGrid[x, y];
-                    if (p == null) continue;
-                    Vector3 want = bm.GetWorldPosition(x, y);
-                    if ((p.transform.position - want).sqrMagnitude > 0.0004f || !p.gameObject.activeInHierarchy)
-                        Debug.LogWarning($"[무르기-불일치] ({x},{y}) {p.data.Type} {p.data.Color} 위치={p.transform.position} 기대={want} active={p.gameObject.activeInHierarchy}");
-                }
-
+      
         SnapAllPiecesToGrid();
         ReconcilePieces();
         DeselectPiece();
