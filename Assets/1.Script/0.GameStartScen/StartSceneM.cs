@@ -34,8 +34,7 @@ public class StartSceneM : MonoBehaviour
     private void Awake()
     {
         ScriptM.Register<StartSceneM>(this, UseSpace.Local);
-        PlayerPrefs.DeleteAll();
-        PlayerPrefs.Save();
+
     }
 
     private void Start()
