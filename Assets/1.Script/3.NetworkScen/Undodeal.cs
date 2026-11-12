@@ -334,32 +334,38 @@ public static class UndoDealLogic
     /// </summary>
     public static int Apply(IUndoBoard board, PieceColor mover, UndoDeal deal, UndoDealConfig cfg)
     {
-        int start = FindStartIndex(board, mover, deal.undoCount);
-        if (start < 0) return 0;
-
-        HashSet<Vector2Int> involved = CollectInvolvedSquares(board, start);   // 무르기 전에 계산
-
         int undonePlies = 0;
-        while (board.HistoryCount > start)
+        try
         {
-            int before = board.HistoryCount;
-            if (!board.HistoryAt(before - 1).IsPromotion) undonePlies++;
+            int start = FindStartIndex(board, mover, deal.undoCount);
+            if (start < 0) return 0;
 
-            board.UndoLastEntry();
-            if (board.HistoryCount >= before) break;   // 안전장치: 줄지 않으면 무한 반복 방지
+            HashSet<Vector2Int> involved = CollectInvolvedSquares(board, start);   // 무르기 전에 계산
+
+            while (board.HistoryCount > start)
+            {
+                int before = board.HistoryCount;
+                if (!board.HistoryAt(before - 1).IsPromotion) undonePlies++;
+
+                board.UndoLastEntry();
+                if (board.HistoryCount >= before) break;   // 안전장치: 줄지 않으면 무한 반복 방지
+            }
+
+            foreach (DealPieceChip chip in deal.pieceChips)
+            {
+                List<Vector2Int> targets = EligibleSquares(board, mover, chip.type, involved, cfg);
+                int n = Mathf.Min(chip.count, targets.Count);
+                for (int i = 0; i < n; i++) board.RemovePieceByDeal(targets[i].x, targets[i].y);
+            }
+
+            foreach (DealRuleChip chip in deal.rules) RuleBans.Ban(mover, chip.rule, chip.turns);
+
+            return undonePlies;
         }
-
-        foreach (DealPieceChip chip in deal.pieceChips)
+        finally
         {
-            List<Vector2Int> targets = EligibleSquares(board, mover, chip.type, involved, cfg);
-            int n = Mathf.Min(chip.count, targets.Count);
-            for (int i = 0; i < n; i++) board.RemovePieceByDeal(targets[i].x, targets[i].y);
+            board.AfterDealApplied();   // 성공하든 중간에 예외가 나든 항상 실행: 위치 맞춤, 선택/하이라이트 정리, 버튼 갱신
         }
-
-        foreach (DealRuleChip chip in deal.rules) RuleBans.Ban(mover, chip.rule, chip.turns);
-
-        board.AfterDealApplied();
-        return undonePlies;
     }
 
     // ───────────── 협상력 / 성공 확률 (AI 대전과 같은 공식) ─────────────

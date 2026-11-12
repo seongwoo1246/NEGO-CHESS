@@ -191,7 +191,7 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
             return;
         }
 
-        if (!isMovedone)
+        if (!isMovedone && !isSpawnMode)
             // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
             if (selectedPos == null)
             {
@@ -444,9 +444,9 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
     // 모든 버튼의 텍스트를 현재 남은 개수에 맞춰 갱신
     private void RefreshButtonUI()
     {
-        
         foreach (var btnUI in pieceButtonUIs)
         {
+            btnUI.SyncMaxFromPlayer();
             int max = btnUI.pieceData.maxPiece;
             int spawned = GetSpawnedCount(btnUI.pieceData.Type);
             int remaining = max - spawned;
@@ -670,9 +670,7 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
     private bool isWhiteTurn = true;
     private PieceColor currentTurn = PieceColor.white;
 
-    // 기물 움직이면 끝인 변수
-    private bool isMovedone_W = false;
-    private bool isMovedone_B = false;
+    private bool _undoInstant;
 
     // 기물 움직이면 끝인 변수
     private bool isMovedone = false;
@@ -1076,6 +1074,21 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
     #region 협상관련  함수들
 
+    private void SnapAllPiecesToGrid()
+    {
+        if (!ScriptM.TryGet<ChessBoardM>(out var boardM)) return;
+        for (int x = 0; x < 8; x++)
+            for (int y = 0; y < 8; y++)
+            {
+                ChessPieceM p = pieceGrid[x, y];
+                if (p == null) continue;
+                p.CurrentPos = new Vector2Int(x, y);
+                Vector3 wp = boardM.GetWorldPosition(x, y);
+                var a = p.GetComponent<PieceAnimator>();
+                if (a != null) a.SnapTo(wp); else p.transform.position = wp;
+            }
+    }
+
     // 💡 플레이어가 '무르기 협상' 버튼을 눌렀을 때 호출할 함수
     public void TryUndoWithNegotiation()
     {
@@ -1127,7 +1140,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
         {
             Vector3 fromWorld = boardM.GetWorldPosition(lastMove.From.x, lastMove.From.y);
             var anim = moved.GetComponent<PieceAnimator>();
-            if (anim != null) anim.SlideTo(fromWorld); else moved.transform.position = fromWorld;
+            if (anim != null) { if (_undoInstant) anim.SnapTo(fromWorld); else anim.SlideTo(fromWorld); }
+            else moved.transform.position = fromWorld;
         }
 
         // 이동 전 상태 복구 (캐슬링이든 일반 이동이든 항상 실행)
@@ -1156,7 +1170,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
                 Vector3 rookWorld = boardM.GetWorldPosition(rookHomeX, y);
                 var rookAnim = rook.GetComponent<PieceAnimator>();
-                if (rookAnim != null) rookAnim.SlideTo(rookWorld); else rook.transform.position = rookWorld;
+                if (rookAnim != null) { if (_undoInstant) rookAnim.SnapTo(rookWorld); else rookAnim.SlideTo(rookWorld); }
+                else rook.transform.position = rookWorld;
 
                 if (rook is Rook r) r.hasMoved = false;
             }
@@ -1171,6 +1186,8 @@ public partial class SingleChessGameM : MonoBehaviour, IPresetHost
 
             GameObject capPrefab = PieceDatabase.GetPrefab(lastMove.CapturedType, lastMove.CapturedColor);
             ChessPieceM restored = SpawnPiece(capPrefab, capPos.x, capPos.y, lastMove.CapturedColor);
+            if (restored != null && hasBoard)
+                restored.GetComponent<PieceAnimator>()?.SnapTo(boardM.GetWorldPosition(capPos.x, capPos.y));
 
             if (restored is Pawn cp)
             {

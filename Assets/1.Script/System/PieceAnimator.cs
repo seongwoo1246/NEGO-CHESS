@@ -91,4 +91,13 @@ public class PieceAnimator : MonoBehaviour
             remove.Join(transform.DOScale(baseScale * 0.2f, removeTime));         // 3D 불투명 재질: 작아지며 사라짐
         remove.OnComplete(() => { ResetVisual(); onDone?.Invoke(); });
     }
+
+    /// <summary>애니메이션 없이 즉시 이동. home도 같이 갱신해야 선택/해제 때 옛 자리로 돌아가지 않습니다.</summary>
+    public void SnapTo(Vector3 worldPos)
+    {
+        KillAll();
+        ResetVisual();
+        home = worldPos;
+        transform.position = worldPos;
+    }
 }

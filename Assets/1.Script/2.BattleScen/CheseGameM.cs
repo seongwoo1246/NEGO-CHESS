@@ -742,8 +742,8 @@ public class CheseGameM : MonoBehaviour, IPresetHost
     {
         TriggerCharacterInteraction(currentAI.characterType);
 
-
-         ChessPieceM pieceObj = pieceGrid[x, y];
+        SoundService.Current.playSFX("버튼");
+        ChessPieceM pieceObj = pieceGrid[x, y];
         if (pieceObj == null) return;
 
         // 전에 선택한게 있으면 타일을 되돌리기 위해서 필요

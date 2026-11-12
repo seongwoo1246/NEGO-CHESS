@@ -327,36 +327,41 @@ public class NetworkUndoM : NetworkBehaviour
     [Rpc(RpcSources.StateAuthority, RpcTargets.All)]
     private void RPC_Result(int round, int serial, bool moverIsWhite, int responseId, bool success, float chance, byte[] data)
     {
-        if (!TryGetGame(out NetworkGameM game, out IUndoBoard board)) return;
-
+        ScriptM.TryGet<NetworkGameM>(out NetworkGameM game);
         PieceColor mover = ToColor(moverIsWhite);
         int plies = 0;
 
-        if (success && UndoDeal.TryFromBytes(data, out UndoDeal deal))
+        try
         {
-            RuleBans.CurrentTurn = serial;   // 금지 기간 계산 기준을 방장과 똑같이 맞춤
-            plies = UndoDealLogic.Apply(board, mover, deal, config);
+            if (success && TryGetGame(out game, out IUndoBoard board) && UndoDeal.TryFromBytes(data, out UndoDeal deal))
+            {
+                RuleBans.CurrentTurn = serial;
+                plies = UndoDealLogic.Apply(board, mover, deal, config);
+            }
+            else success = false;
         }
-        else
+        catch (Exception e)
         {
+            Debug.LogException(e);   // ← 이 에러 내용을 알려 주세요
             success = false;
         }
-
-        _deal = null;
-
-        Resolved?.Invoke(new DealResult
+        finally
         {
-            mover = mover,
-            success = success,
-            response = (DealResponse)responseId,
-            chance = chance,
-            undonePlies = plies
-        });
+            _deal = null;
+            Resolved?.Invoke(new DealResult
+            {
+                mover = mover,
+                success = success,
+                response = (DealResponse)responseId,
+                chance = chance,
+                undonePlies = plies
+            });
 
-        if (Object.HasStateAuthority)
-        {
-            _resolving = false;
-            game.AuthorityOnNegotiationEnded(success ? plies : 0);
+            if (Object.HasStateAuthority)
+            {
+                _resolving = false;
+                if (game != null) game.AuthorityOnNegotiationEnded(success ? plies : 0);
+            }
         }
     }
 

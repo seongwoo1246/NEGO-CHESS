@@ -58,6 +58,9 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [SerializeField] private MonoBehaviour boardAdapter;
 
     public event Action HostClosedRoom;
+
+    public bool IsNetReady => Object != null && Object.IsValid;// 차례가 넘어갈 때마다 +1 (규칙 금지 기간 계산 기준)
+    public int TurnNumber => IsNetReady ? (TurnSerial + 1) / 2 : 0;       // UI의 "현재 턴": 흰색이 움직일 때마다 +1
     // ───────────── 네트워크로 공유되는 값 ─────────────
     [Networked] public NetworkBool UpgradesEnabled { get; private set; }   // 방장이 정한 "강화 적용" 옵션
     [Networked] public NetworkBool SwapSidesOnRematch { get; private set; }
@@ -88,8 +91,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     [Networked] public PostGameChoice WhiteChoice { get; private set; }
     [Networked] public PostGameChoice BlackChoice { get; private set; }
     [Networked] public NetworkBool NegotiationPending { get; private set; }   // 무르기 협상 중: 시계/이동 정지
-    [Networked] public int TurnSerial { get; private set; }                   // 차례가 넘어갈 때마다 +1 (규칙 금지 기간 계산 기준)
-    public int TurnNumber => (TurnSerial + 1) / 2;                            // UI의 "현재 턴": 흰색이 움직일 때마다 +1
+    [Networked] public int TurnSerial { get; private set; }
+
 
     // ───────────── 내 컴퓨터에서만 쓰는 값 ─────────────
     private const int PresenceCheckInterval = 30;   // 30틱마다 "둘 다 아직 있나?" 확인
@@ -395,7 +398,8 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
     }
     private void InitializeMatch()
     {
-        UpgradesEnabled = MatchOptions.AllowUpgrades;
+       
+        UpgradesEnabled = RoomState.Instance != null && RoomState.Instance.UpgradesEnabled;
         _maxReported[0].Clear();
         _maxReported[1].Clear();
         WhiteNegoBonus = 0;
@@ -893,13 +897,14 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         // 배치 단계에 들어오면(라운드마다 한 번) 내 최대 개수를 방장에게 신고
         if (UpgradesEnabled && State == GameState.GameStart && _sentMaxRound != MatchRound && _adapter != null)
         {
+            
             _sentMaxRound = MatchRound;
             var counts = new byte[ReportTypes.Length];
             for (int i = 0; i < ReportTypes.Length; i++)
                 counts[i] = (byte)Mathf.Clamp(_adapter.GetMaxPieceCount(ReportTypes[i]), 0, 255);
             RPC_ReportMaxCounts(counts, Mathf.RoundToInt(singlePlayer.bonusNegoPower));
         }
-
+        
         RuleBans.CurrentTurn = TurnSerial;
 
         EnsureRound(MatchRound);

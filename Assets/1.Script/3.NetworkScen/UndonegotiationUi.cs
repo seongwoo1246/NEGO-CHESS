@@ -87,6 +87,7 @@ public class UndoNegotiationUI : MonoBehaviour
 
     private bool _subscribed;
     private float _nextFind, _nextRefresh, _toastUntil;
+    private float _modeSince;
 
     // ───────────── 초기화 ─────────────
 
@@ -158,6 +159,9 @@ public class UndoNegotiationUI : MonoBehaviour
         }
         if (undoM != null) Subscribe();
 
+        // 네트워크 오브젝트가 아직 스폰 전이면(씬 로딩 직후) 네트워크 값을 읽지 않습니다.
+        if (!NetReady) return;
+
         if (toastText != null && toastText.gameObject.activeSelf && Time.unscaledTime >= _toastUntil)
             toastText.gameObject.SetActive(false);
 
@@ -166,7 +170,18 @@ public class UndoNegotiationUI : MonoBehaviour
 
         RefreshHud();
         if (_mode != Mode.Closed) RefreshPanel();
+        if ((_mode == Mode.Waiting || _mode == Mode.Respond) && !undoM.Pending && Time.unscaledTime - _modeSince > 1.5f)
+        {
+            ClearSlots();
+            SetMode(Mode.Closed);
+        }
+
     }
+
+    /// <summary>NetworkGameM / NetworkUndoM 이 둘 다 스폰을 마쳐서 [Networked] 값을 읽어도 되는 상태인가</summary>
+    private bool NetReady =>
+        undoM != null && undoM.Object != null && undoM.Object.IsValid &&
+        game != null && game.Object != null && game.Object.IsValid;
 
     private bool TryMe(out PieceColor me)
     {
@@ -273,7 +288,7 @@ public class UndoNegotiationUI : MonoBehaviour
 
     private void OpenCompose()
     {
-        if (undoM == null) return;
+        if (!NetReady) return;
         if (!undoM.CanPropose(out string reason)) { Toast(reason); return; }
 
         ClearSlots();
@@ -290,6 +305,7 @@ public class UndoNegotiationUI : MonoBehaviour
 
     private void SetMode(Mode mode)
     {
+        _modeSince = Time.unscaledTime;
         _mode = mode;
         if (panel != null) panel.SetActive(mode != Mode.Closed);
         ApplyModeObjects();

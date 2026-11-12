@@ -48,12 +48,12 @@ public class KeySettingM : MonoBehaviour
     private InputAction readyAction;
     private InputAction gameStartAction;
 
-    private void OnTurnover(InputAction.CallbackContext context) => OnTurnoverTriggered?.Invoke();
-    private void OnNegotiation(InputAction.CallbackContext context) => OnNegotiationTriggered?.Invoke();
-    private void OnGiveUp(InputAction.CallbackContext context) => OnGiveUpTriggered?.Invoke();
-    private void OnOpenMenu(InputAction.CallbackContext context) => OnOpenMenuTriggered?.Invoke();
-    private void OnReady(InputAction.CallbackContext context) => OnReadyTriggered?.Invoke();
-    private void OnGameStart(InputAction.CallbackContext context) => OnGameStartTriggered?.Invoke();
+    private void OnTurnover(InputAction.CallbackContext context) { if (KeyTypingGuard.IsTyping) return; OnTurnoverTriggered?.Invoke(); }
+    private void OnNegotiation(InputAction.CallbackContext context) { if (KeyTypingGuard.IsTyping) return; OnNegotiationTriggered?.Invoke(); }
+    private void OnGiveUp(InputAction.CallbackContext context) { if (KeyTypingGuard.IsTyping) return; OnGiveUpTriggered?.Invoke(); }
+    private void OnOpenMenu(InputAction.CallbackContext context) { if (KeyTypingGuard.IsTyping) return; OnOpenMenuTriggered?.Invoke(); }
+    private void OnReady(InputAction.CallbackContext context) { if (KeyTypingGuard.IsTyping) return; OnReadyTriggered?.Invoke(); }
+    private void OnGameStart(InputAction.CallbackContext context) { if (KeyTypingGuard.IsTyping) return; OnGameStartTriggered?.Invoke(); }
 
     private void Awake()
     {

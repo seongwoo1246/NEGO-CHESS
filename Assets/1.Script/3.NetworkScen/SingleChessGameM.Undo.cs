@@ -21,7 +21,9 @@ public partial class SingleChessGameM : IUndoBoard
     {
         int last = MoveHistory.Count - 1;
         if (last < 0) return;
-        ExecuteUndoLastMove(MoveHistory[last], last);   // 안에서 MoveHistory.RemoveAt 합니다
+        _undoInstant = true;
+        try { ExecuteUndoLastMove(MoveHistory[last], last); }
+        finally { _undoInstant = false; }
     }
 
     void IUndoBoard.RemovePieceByDeal(int x, int y)
@@ -31,6 +33,19 @@ public partial class SingleChessGameM : IUndoBoard
 
     void IUndoBoard.AfterDealApplied()
     {
+        if (ScriptM.TryGet<ChessBoardM>(out var bm))
+            for (int x = 0; x < 8; x++)
+                for (int y = 0; y < 8; y++)
+                {
+                    ChessPieceM p = pieceGrid[x, y];
+                    if (p == null) continue;
+                    Vector3 want = bm.GetWorldPosition(x, y);
+                    if ((p.transform.position - want).sqrMagnitude > 0.0004f || !p.gameObject.activeInHierarchy)
+                        Debug.LogWarning($"[무르기-불일치] ({x},{y}) {p.data.Type} {p.data.Color} 위치={p.transform.position} 기대={want} active={p.gameObject.activeInHierarchy}");
+                }
+
+        SnapAllPiecesToGrid();
+        ReconcilePieces();
         DeselectPiece();
         ClearTileHighlights();
         isMovedone = false;
@@ -40,5 +55,22 @@ public partial class SingleChessGameM : IUndoBoard
     float IUndoBoard.NegoBonus(PieceColor color)
     {
         return ScriptM.TryGet<NetworkGameM>(out NetworkGameM game) && game != null ? game.GetNegoBonus(color) : 0f;
+    }
+
+    private void ReconcilePieces()
+    {
+        var inGrid = new System.Collections.Generic.HashSet<ChessPieceM>();
+        for (int x = 0; x < 8; x++)
+            for (int y = 0; y < 8; y++)
+                if (pieceGrid[x, y] != null) inGrid.Add(pieceGrid[x, y]);
+
+        foreach (ChessPieceM p in FindObjectsByType<ChessPieceM>(FindObjectsSortMode.None))
+        {
+            if (p == null || !p.gameObject.activeInHierarchy || inGrid.Contains(p)) continue;
+
+            Debug.LogWarning($"[무르기] 고아 기물 정리: {p.data.Type} {p.data.Color} pos={p.CurrentPos}");
+            activePieces.Remove(p);
+            spawner.Despawn(p.gameObject);
+        }
     }
 }

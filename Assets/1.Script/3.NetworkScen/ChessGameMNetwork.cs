@@ -118,6 +118,7 @@ public partial class SingleChessGameM : IChessBoardAdapter
         // 기물 버튼에 적힌 maxPiece 가 곧 "최대 몇 개"입니다. (RefreshButtonUI 와 같은 출처)
         foreach (PieceButtonUI button in pieceButtonUIs)
         {
+            button.SyncMaxFromPlayer();
             if (button.pieceData.Type == type) return button.pieceData.maxPiece;
         }
         return 0;
