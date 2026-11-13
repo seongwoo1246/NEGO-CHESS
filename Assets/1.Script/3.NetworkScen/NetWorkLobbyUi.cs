@@ -6,10 +6,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 로비 화면 담당 ("홀 직원"): 닉네임 / 방 만들기 / 방 검색 / 방 목록 / 방 참가.
-/// 실제로 방을 여닫는 일은 NetworkLauncher(주방), 목록 받기는 RoomBrowser(게시판)가 합니다.
-///
-/// ※ 이 스크립트는 "로비 패널" 오브젝트에 붙이세요. (패널이 켜질 때 방 목록을 자동으로 불러옵니다)
+/// 로비 화면 담당 : 닉네임 / 방 만들기 / 방 검색 / 방 목록 / 방 참가.
+/// 실제로 방을 여닫는 일은 NetworkLauncher, 목록 받기는 RoomBrowser가 한다.
 /// </summary>
 public class NetWorkLobbyUi : MonoBehaviour
 {
@@ -93,7 +91,6 @@ public class NetWorkLobbyUi : MonoBehaviour
     {
        
         // NetworkLauncher가 ScriptM으로 이 화면을 찾아 쓰므로, 켜질 때마다 등록합니다.
-        // (방에 들어갔다 나오면 서비스가 정리되어도, 패널이 다시 켜질 때 다시 등록돼요)
         ScriptM.Register<NetWorkLobbyUi>(this, UseSpace.Network);
         _isBusy = false;
         _lastEmptyNotice = string.Empty;
@@ -243,7 +240,6 @@ public class NetWorkLobbyUi : MonoBehaviour
     /// <summary>
     /// 안내 글자를 화면에 반영합니다. ★ 핵심 규칙: 두 글자 중 "한 번에 하나만" 보입니다.
     ///  1순위: 동작 결과 안내(_message)  2순위: 방 목록 안내(_listStatus)
-    /// → 두 글자가 같은 자리에 있어도 겹치지 않아요.
     /// </summary>
     private void RenderStatus()
     {
@@ -287,11 +283,11 @@ public class NetWorkLobbyUi : MonoBehaviour
         string password = !string.IsNullOrEmpty(rowPassword) ? rowPassword : roomPasswordInput.text;
 
 
-        // 비밀번호가 안 맞는다고 나올 때 원인을 찾기 위한 임시 로그 (비밀번호 자체는 찍지 않아요)
+        
         if (room.HasPassword)
         {
             string fingerprint = RoomCreateRequest.HashPassword(room.SessionId, (password ?? string.Empty).Trim());
-            Debug.Log($"[Lobby] 입장 비밀번호 확인 | 입력 {(password ?? string.Empty).Trim().Length}글자 | 일치={fingerprint == room.PasswordHash} | 방 지문 '{room.PasswordHash}' / 내 지문 '{fingerprint}'");
+          
         }
 
 
@@ -317,7 +313,7 @@ public class NetWorkLobbyUi : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogException(e);   // 어떤 예외였는지 콘솔에 남김
+            
         }
         finally
         {

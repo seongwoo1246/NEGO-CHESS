@@ -284,7 +284,7 @@ public class NetworkGameM : NetworkBehaviour, IPlayerLeft
         if (!TryGetColor(info.Source, out PieceColor color)) return;
 
         bool whiteTurn = IsWhiteTurn;
-        if (whiteTurn != (color == PieceColor.white)) return;   // 내 차례가 아님
+        if (whiteTurn != (color == PieceColor.white)) return;   
         if (PromotionPending) { Announce(info.Source, "승급할 기물을 먼저 골라 주세요."); return; }
         if (!TurnMoved) { Announce(info.Source, "먼저 기물을 움직여 주세요."); return; }
 

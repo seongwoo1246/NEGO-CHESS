@@ -28,7 +28,7 @@ public class CharacterChatM : MonoBehaviour
 
     [Header("대사 타이밍")]
     [Tooltip("대사가 다 나타난 뒤 화면에 머무는 시간(초)")]
-    [SerializeField, Min(0.5f)] private float holdSeconds = 3f;
+    [SerializeField, Min(0.5f)] private float holdSeconds = 5f;
     [Tooltip("대사가 사라진 뒤 다음 대사까지 쉬는 시간(초). 이 범위 안에서 매번 랜덤입니다.")]
     [SerializeField] private Vector2 pauseRange = new Vector2(3f, 8f);
 

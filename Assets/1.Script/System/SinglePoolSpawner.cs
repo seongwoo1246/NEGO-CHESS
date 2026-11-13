@@ -33,7 +33,7 @@ public class SinglePoolSpawner : MonoBehaviour, IPieceSpawner
     {
         if (prefab == null)
         {
-            Debug.LogError("[SinglePoolSpawner] prefab이 비어 있습니다.");
+            
             return null;
         }
 

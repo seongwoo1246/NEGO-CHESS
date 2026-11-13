@@ -44,10 +44,10 @@ public class ReinforceM : MonoBehaviour
     private void Awake()
     {
         if(Instance == null) { Instance = this; }
-        // 리스트의 각 항목에 구매 버튼 연결 (한 번만)
+        // 리스트의 각 항목에 구매 버튼 연결 
         foreach (var u in upgradeList)
         {
-            Upgrade up = u;   // 람다용 복사
+            Upgrade up = u;  
             if (up.button != null) up.button.onClick.AddListener(() => TryUpgrade(up));
         }
     }
@@ -105,10 +105,12 @@ public class ReinforceM : MonoBehaviour
         
     }
 
+    /// <summary>
+    /// 한개의 함수를 enum을 이용해서 불러와 사용하는 식 enum과 swich를 이용한 함수.
+    /// </summary>
+    /// <param name="stat"></param>
     private void ApplyStatEffect(Upgrade stat)
     {
-      
-
         switch (stat.upgradeType)
         {
             case UpgradeType.MaxHp: singlePlayer.bonusMaxHp += stat.pulse;  break;

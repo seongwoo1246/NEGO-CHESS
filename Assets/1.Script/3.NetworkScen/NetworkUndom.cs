@@ -342,7 +342,7 @@ public class NetworkUndoM : NetworkBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogException(e);   // ← 이 에러 내용을 알려 주세요
+           
             success = false;
         }
         finally

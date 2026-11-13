@@ -46,17 +46,4 @@ public class ScreenController : MonoBehaviour
         AdjustCameraSize();
     }
 
-
-
-
-
-    // 에디터 환경에서 해상도 변경 시 실시간 반영
-#if UNITY_EDITOR
-    private void Update()
-    {
-        AdjustCameraSize();
-    }
-#endif
-
-
 }

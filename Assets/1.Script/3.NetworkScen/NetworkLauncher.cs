@@ -286,7 +286,7 @@ public class NetworkLauncher : MonoBehaviour
         var result = await _runner.StartGame(args);
         if (!result.Ok)
         {
-            Debug.LogWarning($"[NetworkLauncher] 접속 실패: {result.ShutdownReason}");
+           
             return false;
         }
 

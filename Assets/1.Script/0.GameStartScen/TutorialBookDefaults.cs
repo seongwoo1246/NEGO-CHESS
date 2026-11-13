@@ -213,14 +213,6 @@ public static class TutorialBookDefaults
 
     }
 
-    private static BookChapter Chapter(string title, params string[] pageBodies)
-    {
-        var chapter = new BookChapter { title = title, pages = new List<BookPage>() };
-        foreach (string body in pageBodies)
-            chapter.pages.Add(new BookPage { body = body });
-        return chapter;
-    }
-
     private static BookPage P(string body, string imageName = null)
     => new BookPage { body = body, imageName = imageName };
 

@@ -135,7 +135,7 @@ public class RoomBrowser : MonoBehaviour, INetworkRunnerCallbacks
     private void HandleLost(NetworkRunner runner, string why)
     {
         if (runner != _runner) return;   // 우리가 일부러 끈 경우(이미 _runner가 null)는 무시
-        Debug.LogWarning($"[RoomBrowser] 연결이 끊겼어요: {why}");
+       
         RecoverAsync().Forget();
     }
 

@@ -20,7 +20,7 @@ public class HP : MonoBehaviour
 
     private bool _regenRunning;
 
-    // 업그레이드로 인해 추가된 수치 (나중에 업그레이드 시스템에서 이 값만 조작하면 됩니다!)
+    // 업그레이드로 인해 추가된 수치 (나중에 업그레이드 시스템에서 이 값만 조작함)
     public int bonusMaxHp
     {
         get => singlePlayer.bonusMaxHp;
@@ -33,7 +33,7 @@ public class HP : MonoBehaviour
         set => singlePlayer.bonusUseHp = value;
     }
 
-    // 💡 프로퍼티를 사용하면 외부에서는 계산된 최종 수치를 안전하게 읽어갈 수 있습니다.
+    // 💡 프로퍼티를 사용하여 오염되는 경우를 막음
     public int maxHp => baseMaxHp + bonusMaxHp;
     public int useHp => baseUseHp - bonusUseHp;
 
@@ -42,7 +42,7 @@ public class HP : MonoBehaviour
     // 값이 바뀔 때 현재 체력(int)을 인자로 전달해 주는 이벤트 선언
     public event Action<int> OnHpChanged;
 
-    // 최대 체력 대비 비율(float)로 필요할 때를 위한 이벤트 (선택사항)
+    // 최대 체력 대비 비율(float)로 필요할 때를 위한 이벤트 
     public event Action<float> OnHpRatioChanged;
 
    
@@ -79,7 +79,7 @@ public class HP : MonoBehaviour
     {
         if (!singlePlayer.hpInitialized)
         {
-            singlePlayer.currentHp = maxHp;       // 처음에는 가득 채움
+            singlePlayer.currentHp = maxHp;      
             singlePlayer.hpInitialized = true;
         }
         else
@@ -109,7 +109,7 @@ public class HP : MonoBehaviour
         if (Hp < maxHp) EnsureRegen();              // 최대가 늘어 빈 칸이 생기면 회복 시작
     }
 
-    // 이미 돌고 있으면 아무 것도 하지 않습니다 (중복 방지)
+    // 이미 돌고 있으면 아무 것도 하지 않습니다
     private void EnsureRegen()
     {
         if (_regenRunning) return;
@@ -182,6 +182,11 @@ public class HP : MonoBehaviour
    
 
     #region 넘어갈 때 위치 변경
+    //HP가 계속 켜진채 들고 다녀야 해서 만듬 
+    // 의문점 :  hp스크립트를 UI에 직접 붙이지 않고 빈 오브젝트로 들고 다녔으면 필요 없는 부분이였나? 
+    // 해답 : UI랑 데이터랑 떨어지면 다시 로비로 돌아왔을때 연결이 끊어져서 안됌
+    // 의문점 : Find계열로 찾아오면 되는거 아닌가?
+    // 해답 : 연산을 많이 잡아 먹기 때문에 직접 들고 다니면서 위치만 이동 시키기로 함
 
     [SerializeField] private RectTransform hpPanelRect; // 숨길 패널의 RectTransform
 

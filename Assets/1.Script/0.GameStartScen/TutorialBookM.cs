@@ -186,7 +186,7 @@ public class TutorialBookM : MonoBehaviour
     }
     // ───────────── 에디터 도우미 ─────────────
 
-    /// <summary>비어 있을 때만 싱글 설명 초안을 채웁니다. (이미 입력한 내용은 절대 덮어쓰지 않습니다)</summary>
+    /// <summary>비어 있을 때만 싱글 설명 초안을 채웁니다.</summary>
     [ContextMenu("싱글 설명 초안 채우기")]
     private void FillSingleDefaults()
     {
@@ -196,11 +196,6 @@ public class TutorialBookM : MonoBehaviour
             return;
         }
 
-        TutorialBookDefaults.FillSingle(chapters);
-
-#if UNITY_EDITOR
-        UnityEditor.EditorUtility.SetDirty(this);
-#endif
-       
+        TutorialBookDefaults.FillSingle(chapters); 
     }
 }

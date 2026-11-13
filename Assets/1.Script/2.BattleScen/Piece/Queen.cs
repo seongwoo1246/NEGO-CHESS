@@ -38,8 +38,6 @@ public class Queen : ChessPieceM
             // 보드 경계를 벗어나지 않을 때까지 직선 및 대각선 탐색
             while (IsValidIndex(nextX, nextY))
             {
-                
-
                 // 1. 빈 칸인 경우 -> 이동 가능 추가 후 계속 진행
                 if (board[nextX, nextY] == null)
                 {

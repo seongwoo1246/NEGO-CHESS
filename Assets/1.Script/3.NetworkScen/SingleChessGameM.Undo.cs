@@ -58,7 +58,6 @@ public partial class SingleChessGameM : IUndoBoard
         {
             if (p == null || !p.gameObject.activeInHierarchy || inGrid.Contains(p)) continue;
 
-            Debug.LogWarning($"[무르기] 고아 기물 정리: {p.data.Type} {p.data.Color} pos={p.CurrentPos}");
             activePieces.Remove(p);
             spawner.Despawn(p.gameObject);
         }

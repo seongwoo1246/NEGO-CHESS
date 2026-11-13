@@ -56,9 +56,6 @@ public static class PiecePresetStore
         }
         catch (Exception e)
         {
-            
-            
-            
            
         }
 

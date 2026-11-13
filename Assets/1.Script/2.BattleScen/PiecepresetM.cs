@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 기물 배치 프리셋 (싱글 플레이 배치 단계용).
+/// 기물 배치 프리셋
 ///  - "프리셋 N" 버튼: 이름 입력 창이 열리고, 확인을 누르면 지금 배치가 저장됩니다.
 ///  - "변경" 버튼: 저장된 배치를 불러옵니다.
 /// 실제 판 조작은 CheseGameM(CollectMyPieces / ApplyPreset)이, 저장은 PiecePresetStore가 맡습니다.

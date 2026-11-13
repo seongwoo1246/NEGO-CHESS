@@ -58,7 +58,7 @@ public class Characters : MonoBehaviour
     public PieceDatabase pieceDatabase;
     public List<PieceSpawnInfo> defaultPieceLayout;
 
-    [Header("AI 생각 깊이 (숫자가 높을수록 똑똑하지만 오래 걸립니다. 0이면 4)")]
+    [Header("AI 생각 깊이 (숫자가 높을수록 똑똑하지만 오래 걸립니다.)")]
     public int searchDepth = 6;
 
     [Header("한 수를 생각하는 최대 시간(초). 깊이에 도달하기 전에 시간이 다 되면 그때까지의 최선수를 둡니다.")]
