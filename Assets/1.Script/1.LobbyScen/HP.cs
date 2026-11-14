@@ -1,0 +1,254 @@
+﻿using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+
+public class HP : MonoBehaviour
+{
+    [SerializeField] private TextMeshProUGUI HpText;
+    [SerializeField] public Slider hpBar;
+    [Header("기본 스탯")]
+    [SerializeField] private int baseMaxHp = 100;
+    [SerializeField] private int baseUseHp = 20;
+
+    [Header("체력 자동 회복")]
+    [SerializeField] private int regenAmount = 5;
+    [SerializeField] private float regenInterval = 120f;
+
+    private bool _regenRunning;
+
+    // 업그레이드로 인해 추가된 수치 (나중에 업그레이드 시스템에서 이 값만 조작함)
+    public int bonusMaxHp
+    {
+        get => singlePlayer.bonusMaxHp;
+        set => singlePlayer.bonusMaxHp = value;
+    }
+
+    public int bonusUseHp
+    {
+        get => singlePlayer.bonusUseHp;
+        set => singlePlayer.bonusUseHp = value;
+    }
+
+    // 💡 프로퍼티를 사용하여 오염되는 경우를 막음
+    public int maxHp => baseMaxHp + bonusMaxHp;
+    public int useHp => baseUseHp - bonusUseHp;
+
+
+
+    // 값이 바뀔 때 현재 체력(int)을 인자로 전달해 주는 이벤트 선언
+    public event Action<int> OnHpChanged;
+
+    // 최대 체력 대비 비율(float)로 필요할 때를 위한 이벤트 
+    public event Action<float> OnHpRatioChanged;
+
+   
+
+    // 프로퍼티를 통해 hp 값이 변경될 때 자동으로 이벤트가 발동되도록 설정
+    public int Hp
+    {
+        get => singlePlayer.currentHp;
+        set
+        {
+            int clampedValue = Mathf.Clamp(value, 0, maxHp);
+            if (singlePlayer.currentHp != clampedValue)
+            {
+                singlePlayer.currentHp = clampedValue;
+
+                // 값이 실제로 바뀔 때 이벤트 발행 (구독하고 있는 모든 곳에 알림)
+                OnHpChanged?.Invoke(singlePlayer.currentHp);
+                if (maxHp > 0)
+                {
+                    OnHpRatioChanged?.Invoke((float)singlePlayer.currentHp / maxHp);
+                    if (clampedValue < maxHp) EnsureRegen();
+                }
+            }
+        }
+    }
+
+    private void Awake()
+    {
+        CheckOfflineHpRegen(regenAmount, regenInterval);
+        ScriptM.Register<HP>(this, UseSpace.Global);
+    }
+
+    private void Start()
+    {
+        if (!singlePlayer.hpInitialized)
+        {
+            singlePlayer.currentHp = maxHp;      
+            singlePlayer.hpInitialized = true;
+        }
+        else
+        {
+            // 최대 체력이 줄었거나 보너스가 바뀐 경우를 대비해 넘치지 않게 정리
+            singlePlayer.currentHp = Mathf.Min(singlePlayer.currentHp, maxHp);
+        }
+        OnHpRatioChanged += UpdateHpBar;
+        OnHpChanged += UpdateHpText;
+        singlePlayer.OnHpStatChanged += OnMaxHpChanged;
+
+        InitHp();
+        EnsureRegen();
+    }
+
+    private void OnDisable()
+    {
+        OnHpChanged -= UpdateHpText;
+        OnHpRatioChanged -= UpdateHpBar;
+        singlePlayer.OnHpStatChanged -= OnMaxHpChanged;
+
+    }
+    private void OnMaxHpChanged()
+    {
+        if (singlePlayer.currentHp > maxHp) Hp = Mathf.Min(Hp, maxHp);  // 최대가 줄면 넘치지 않게
+        InitHp();                                   // 글자 "현재 / 최대"와 바 갱신
+        if (Hp < maxHp) EnsureRegen();              // 최대가 늘어 빈 칸이 생기면 회복 시작
+    }
+
+    // 이미 돌고 있으면 아무 것도 하지 않습니다
+    private void EnsureRegen()
+    {
+        if (_regenRunning) return;
+        RegenLoopAsync(destroyCancellationToken).Forget();
+    }
+
+    private async UniTaskVoid RegenLoopAsync(CancellationToken ct)
+    {
+        _regenRunning = true;
+        try
+        {
+            while (Hp < maxHp)   // 가득 차면 자연스럽게 끝남
+            {
+                bool canceled = await UniTask
+                    .Delay(TimeSpan.FromSeconds(regenInterval), ignoreTimeScale: true, cancellationToken: ct)
+                    .SuppressCancellationThrow();
+                if (canceled) return;
+
+                Hp += regenAmount;   // 프로퍼티: 최대치 제한 + UI 갱신
+            }
+        }
+        finally { _regenRunning = false; }
+    }
+
+    public void InitHp()
+    {
+        // 강제로 현재 체력 값을 다시 세팅하거나 이벤트에 현재 값을 직접 쏴줍니다.
+        int current = singlePlayer.currentHp;
+
+        OnHpChanged?.Invoke(current);
+        if (maxHp > 0)
+        {
+            OnHpRatioChanged?.Invoke((float)current / maxHp);
+        }
+    }
+
+    private void UpdateHpText(int currentHp)
+    {
+        if (HpText != null )
+        {
+            HpText.text = $"{currentHp} / {maxHp}";
+        }
+    }
+    private void UpdateHpBar(float ratio)
+    {
+        if (hpBar != null)
+        {
+            hpBar.value = ratio;
+        }
+    }
+
+    public bool TryStartGame()
+    {
+       
+        // 프로퍼티(Hp)를 통해 값을 변경하므로 자동으로 이벤트가 발생함
+        if (Hp>=useHp)
+        {
+            
+            Hp -= useHp;
+            singlePlayer.useHp += useHp;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+        
+    }
+
+   
+
+    #region 넘어갈 때 위치 변경
+    //HP가 계속 켜진채 들고 다녀야 해서 만듬 
+    // 의문점 :  hp스크립트를 UI에 직접 붙이지 않고 빈 오브젝트로 들고 다녔으면 필요 없는 부분이였나? 
+    // 해답 : UI랑 데이터랑 떨어지면 다시 로비로 돌아왔을때 연결이 끊어져서 안됌
+    // 의문점 : Find계열로 찾아오면 되는거 아닌가?
+    // 해답 : 연산을 많이 잡아 먹기 때문에 직접 들고 다니면서 위치만 이동 시키기로 함
+
+    [SerializeField] private RectTransform hpPanelRect; // 숨길 패널의 RectTransform
+
+    // 패널을 숨길 때 (화면 밖 10000픽셀 지점으로 이동)
+    public void HidePanel()
+    {
+        if (hpPanelRect != null)
+        {
+            hpPanelRect.anchoredPosition = new Vector2(10000f, 10000f);
+        }
+    }
+
+    // 패널을 다시 보여줄 때 (원래 위치인 (0, 0)으로 복원)
+    public void ShowPanel()
+    {
+        if (hpPanelRect != null)
+        {
+            hpPanelRect.anchoredPosition = new Vector2(-235, -53);
+        }
+    }
+
+    #endregion
+
+    #region 로그아웃 후에도 체력을 회복하기 위한 부분
+
+    private void OnApplicationQuit()
+    {
+        // 현재 시간을 이진수(Binary) 문자열로 변환하여 PlayerPrefs에 저장
+        string timeString = DateTime.Now.ToBinary().ToString();
+        PlayerPrefs.SetString("LastExitTime", timeString);
+        PlayerPrefs.Save();
+    }
+
+    private void CheckOfflineHpRegen(int healAmountPerTick, float intervalSeconds)
+    {
+        // 저장된 나간 시간이 있다면
+        if (PlayerPrefs.HasKey("LastExitTime"))
+        {
+            string timeString = PlayerPrefs.GetString("LastExitTime");
+            long binaryTime = Convert.ToInt64(timeString);
+            DateTime lastExitTime = DateTime.FromBinary(binaryTime);
+
+            // 현재 시간과 나간 시간의 차이 계산 (초 단위)
+            double elapsedSeconds = (DateTime.Now - lastExitTime).TotalSeconds;
+
+            // 경과 시간 동안 회복이 몇 번 일어났어야 하는지 계산
+            int healCount = Mathf.FloorToInt((float)(elapsedSeconds / intervalSeconds));
+            int totalHeal = healCount * healAmountPerTick;
+
+            if (totalHeal > 0)
+            {
+                singlePlayer.keepHp = totalHeal;
+            }
+        }
+    }
+
+    public void ApplyKeptHp()
+    {
+        if (singlePlayer.keepHp <= 0) return;
+        Hp += singlePlayer.keepHp;     // 프로퍼티라 최대치 제한 + UI 갱신이 같이 됩니다
+        singlePlayer.keepHp = 0;       // 한 번 쓰면 비움
+    }
+    #endregion
+
+}
