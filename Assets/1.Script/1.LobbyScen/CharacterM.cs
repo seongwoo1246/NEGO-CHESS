@@ -54,7 +54,8 @@ public class CharacterM : MonoBehaviour
         {
             case EditMode.Name:
                 characterName.text = inputStr;
-                
+                PlayerPrefs.SetString("PlayerName", characterName.text);
+                PlayerPrefs.Save();
                 break;
             case EditMode.Message:
                 message.text = inputStr;

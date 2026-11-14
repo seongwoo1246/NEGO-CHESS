@@ -1,9 +1,9 @@
 ﻿
 using Cysharp.Threading.Tasks;
-using System.Collections.Generic;
+
 using TMPro;
 using UnityEngine;
-using UnityEngine.Analytics;
+
 using UnityEngine.UI;
 
 public class StartSceneM : MonoBehaviour
@@ -34,7 +34,7 @@ public class StartSceneM : MonoBehaviour
     private void Awake()
     {
         ScriptM.Register<StartSceneM>(this, UseSpace.Local);
-
+        
     }
 
     private void Start()
@@ -175,6 +175,11 @@ public class StartSceneM : MonoBehaviour
         singlePlayer.birthMonth = month;
         singlePlayer.birthDay = day;
         singlePlayer.isFristPlay = false;
+
+        PlayerPrefs.SetString("PlayerName", singlePlayer.playerName);
+        PlayerPrefs.SetInt("PlayerMonth", singlePlayer.birthMonth);
+        PlayerPrefs.SetInt("PlayerDay", singlePlayer.birthDay);
+        PlayerPrefs.Save();
     }
 
     private void ChangeGender()
