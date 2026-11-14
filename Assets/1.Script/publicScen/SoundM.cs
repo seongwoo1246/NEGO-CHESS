@@ -1,0 +1,302 @@
+﻿using Cysharp.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.Audio;
+using UnityEngine.UI;
+
+
+
+    [Serializable]
+    public struct SoundData
+    {
+        public string soundName;
+        public AudioClip clip;
+    }
+
+
+
+    public class SoundM : MonoBehaviour ,ISoundService
+    {
+        [Header("오디오 소스")]
+        [SerializeField] public AudioSource FadeOutSource;
+        [SerializeField] public AudioSource FadeInSource;
+        [SerializeField] public AudioSource SfxSource;
+
+        [Header("오디오 소스 리스트")]
+        [SerializeField] private List<SoundData> bgmList;
+        [SerializeField] private List<SoundData> sfxList;
+
+        [Header("오디오 믹스")]
+        [SerializeField] AudioMixer audioMixer;
+
+        //빠른 검색을 위한 딕셔너리
+        private Dictionary<string, AudioClip> bgmDict = new Dictionary<string, AudioClip>();
+        private Dictionary<string, AudioClip> sfxDict = new Dictionary<string, AudioClip>();
+
+
+        private const string MASTER_KEY = "MasterVolume";
+        private const string BGMIn_KEY = "FadeIn";
+        private const string BGMOut_KEY = "FadeOut";
+        private const string SFX_KEY = "SFX";
+
+
+        private bool isMasterMuted = false;
+        private float lastMasterVolume = 1f;
+        private bool isBGMMuted = false;
+        private float lastBGMVolume = 1f;
+        private bool isSFXMuted = false;
+        private float lastSFXVolume = 1f;
+
+
+        private void Awake()
+        {
+            ScriptM.Register<ISoundService>(this);
+         
+        }
+
+
+
+  
+    private void Start()
+    {
+        InittializeDictionary();
+        playBGM("평소");
+        SetMasterVolume(PlayerPrefs.GetFloat("MasterSound", lastMasterVolume));
+        SetBGMVolume(PlayerPrefs.GetFloat("BGMSound", lastMasterVolume));
+        SetSFXVolume(PlayerPrefs.GetFloat("SFXSound", lastMasterVolume));
+    }
+
+   
+
+
+    public void ResetAllSoundSettings()
+    {
+        SoundService.Current.playSFX("버튼");
+        // 1. 각 볼륨의 기본값 정의
+        float defaultMaster = 1f;
+        float defaultBGM = 1f;
+        float defaultSFX = 1f;
+
+        // 2. PlayerPrefs에 기본값 저장
+        PlayerPrefs.SetFloat("MasterSound", defaultMaster);
+        PlayerPrefs.SetFloat("BGMSound", defaultBGM);
+        PlayerPrefs.SetFloat("SFXSound", defaultSFX);
+        PlayerPrefs.Save();
+
+        // 3. 사운드 매니저의 적용 함수 호출 (오디오 믹서 반영)
+        SetMasterVolume(defaultMaster);
+        SetBGMVolume(defaultBGM);
+        SetSFXVolume(defaultSFX);
+
+        // 4. 씬에 존재하는 모든 슬라이더 UI를 찾아 타입별로 값 갱신 (무한 루프 방지 함수 사용)
+        VolumeSlider[] sliders = FindObjectsByType<VolumeSlider>(FindObjectsSortMode.None);
+        foreach (var s in sliders)
+        {
+            if (s.type == VolumeType.Master)
+            {
+                s.SetSliderValueWithoutNotify(defaultMaster);
+            }
+            else if (s.type == VolumeType.BGM)
+            {
+                s.SetSliderValueWithoutNotify(defaultBGM);
+            }
+            else if (s.type == VolumeType.SFX)
+            {
+                s.SetSliderValueWithoutNotify(defaultSFX);
+            }
+        }
+    }
+
+    public void SoundMute(VolumeType type)
+    {
+        SoundService.Current.playSFX("버튼");
+        switch (type)
+        {
+            case VolumeType.Master:
+                isMasterMuted = !isMasterMuted; 
+                if(isMasterMuted)
+                {
+                    audioMixer.SetFloat(MASTER_KEY, -80f);
+                }
+                else
+                {
+                    SetMasterVolume(lastMasterVolume);
+                }
+
+                    break;
+            case VolumeType.BGM:
+                isBGMMuted = !isBGMMuted;
+                if(isBGMMuted)
+                {
+                    audioMixer.SetFloat(BGMIn_KEY, -80f);
+                    audioMixer.SetFloat(BGMOut_KEY, -80f);
+                }
+                else
+                {
+                    SetBGMVolume(lastBGMVolume);
+                }
+                    break;
+            case VolumeType.SFX:
+                isSFXMuted = !isSFXMuted;
+                if(isSFXMuted)
+                {
+                    audioMixer.SetFloat(SFX_KEY, -80f);
+                }
+                else
+                {
+                    SetSFXVolume(lastSFXVolume);
+                }
+                break;
+        }
+    }
+
+  
+
+        /// <summary>
+        /// 시작할 때 리스트를 딕셔너리로 바꿔주는 작업
+        /// </summary>
+        private void InittializeDictionary()
+        {
+            foreach (var data in bgmList)
+            {
+                if (!string.IsNullOrEmpty(data.soundName) && data.clip != null)
+                {
+                    bgmDict[data.soundName] = data.clip;
+                }
+            }
+            foreach (var data in sfxList)
+            {
+                if (!string.IsNullOrEmpty(data.soundName) && data.clip != null)
+                {
+                    sfxDict[data.soundName] = data.clip;
+                }
+            }
+        }
+
+    
+
+        /// <summary>
+        /// 이름으로 BGM 재생하기
+        /// </summary>
+        /// <param name="soundName">BGM이름 적는 곳 "이름"</param>
+        /// <param name="loop">반복할지 결정 기본 반복</param>
+        public void playBGM(string soundName, bool loop = true)
+        {
+            if (bgmDict.TryGetValue(soundName, out AudioClip bgm))
+            {
+                FadeOutSource.clip = bgm;
+                FadeOutSource.loop = loop;
+                FadeOutSource.Play();
+            }
+        }
+
+        /// <summary>
+        /// 효과음 출력하기
+        /// </summary>
+        /// <param name="soundName">효과음 이름 "이름"</param>
+        public void playSFX(string soundName)
+        {
+            if (sfxDict.TryGetValue(soundName, out AudioClip sfx))
+            {
+                SfxSource.PlayOneShot(sfx);
+
+            }
+        }
+
+        public void StopBGM()
+        {
+            FadeOutSource.Stop();
+        }
+
+    /// <summary>
+    /// Master 슬라이더 (0.0001 ~ 1.0) 조작 시 호출
+    /// </summary>
+    public void SetMasterVolume(float linearVolume)
+    {
+        linearVolume = Mathf.Clamp(linearVolume, 0.0001f, 1.0f);
+
+        // 0~1 선형 값을 데시벨(-80dB ~ 0dB)로 변환
+        float dB = Mathf.Log10(linearVolume) * 20f;
+
+        audioMixer.SetFloat(MASTER_KEY, dB);
+        lastMasterVolume = linearVolume;
+        PlayerPrefs.SetFloat("MasterSound", linearVolume);
+       
+    }
+
+    public void SetBGMVolume(float linearVolume)
+    {
+        linearVolume = Mathf.Clamp(linearVolume, 0.0001f, 1.0f);
+        float dB = Mathf.Log10(linearVolume) * 20f;
+
+        audioMixer.SetFloat(BGMIn_KEY, dB);
+        audioMixer.SetFloat(BGMOut_KEY, dB);
+        lastBGMVolume = linearVolume;
+        PlayerPrefs.SetFloat("BGMSound", linearVolume);
+       
+    }
+
+    public void SetSFXVolume(float linearVolume)
+    {
+        linearVolume = Mathf.Clamp(linearVolume, 0.0001f, 1.0f);
+        float dB = Mathf.Log10(linearVolume) * 20f;
+
+        audioMixer.SetFloat(SFX_KEY, dB);
+        lastSFXVolume = linearVolume;
+        PlayerPrefs.SetFloat("SFXSound", linearVolume);
+      
+    }
+
+    /// <summary>
+    /// 노래를 교환 할 때 일어나는 함수 다음 노래로 페이드 인아웃을 통한 노래 교체
+    /// </summary>
+    /// <param name="newSound">바꿔줄 노래</param>
+    /// <param name="fadeTime">페이드 하는 시간</param>
+    /// <returns></returns>
+    public async UniTask FadeSound(string newSound, float fadeTime)
+        {
+            if (FadeOutSource.clip.name == newSound)
+            {
+                return;
+            }
+            if (bgmDict.TryGetValue(newSound, out AudioClip bgm))
+            {
+
+                // 새로운 소스에 클립 할당 및 재생 시작 
+                FadeInSource.clip = bgm;
+                FadeInSource.volume = 0f;
+                FadeInSource.Play();
+            }
+            float time = 0f;
+            float startVloume = FadeOutSource.volume;
+
+            while (time < fadeTime)
+            {
+                time += Time.deltaTime;
+                float t = time / fadeTime;
+
+                //기존 BGM 페이드 아웃 새 BGM 페이드 인 
+                FadeOutSource.volume = Mathf.Lerp(startVloume, 0f, t);
+                FadeInSource.volume = Mathf.Lerp(0f, 1f, t);
+
+                await UniTask.Yield();
+
+            }
+
+            //기존 BGM 정지
+            FadeOutSource.Stop();
+            FadeOutSource.volume = 1f;
+
+            //노래 스왑
+            var temp = FadeOutSource;
+            FadeOutSource = FadeInSource;
+            FadeInSource = temp;
+
+
+        }
+
+
+    }
+
+

@@ -1,0 +1,1972 @@
+﻿using Cysharp.Threading.Tasks;
+using DG.Tweening;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using CancellationToken = System.Threading.CancellationToken;
+
+
+[System.Serializable]
+public class PlayerTimerData
+{
+    [SerializeField] private TextMeshProUGUI timerText;
+    private float timerTime = 300f; // 기본 5분(300초)
+
+    // 프로퍼티를 통해 값이 변경될 때 UI도 자동으로 갱신하도록 구성
+    public float TimerTime
+    {
+        get => timerTime;
+        set
+        {
+            timerTime = Mathf.Max(0, value); // 음수 방지
+            UpdateUI();
+        }
+    }
+
+    public void UpdateUI()
+    {
+        if (timerText != null)
+        {
+            // 분:초 (MM:SS) 포맷으로 변환해 표시
+            int minutes = Mathf.FloorToInt(timerTime / 60f);
+            int seconds = Mathf.FloorToInt(timerTime % 60f);
+            timerText.text = $"{minutes:D2}:{seconds:D2}";
+        }
+    }
+}
+
+[System.Serializable]
+public struct Cutin
+{
+    public int id;
+    public Image cutInIcon;
+    public TextMeshProUGUI bigText;
+    public TextMeshProUGUI smallText;
+    public bool isCheckmate;
+    public CanvasGroup canvasGroup;
+
+
+
+    [Header("체크일 때 / 체크메이트일 때 텍스트 설정")]
+    [SerializeField] private string checkBigText;     // 체크 상태일 때의 큰 글자
+    [SerializeField] private string checkmateBigText; // 체크메이트 상태일 때의 큰 글자
+
+    public string BigTextValue => isCheckmate ? checkmateBigText : checkBigText;
+
+    [SerializeField] private string checkSmallText;     // 체크 상태일 때의 작은 글자
+    [SerializeField] private string checkmateSmallText; // 체크메이트 상태일 때의 작은 글자
+
+    public string SmallTextValue => isCheckmate ? checkmateSmallText : checkSmallText;
+
+    public Cutin(int _id, Image _cutInIcon,TextMeshProUGUI _bigText, TextMeshProUGUI _smallText, bool _isCheckmate,CanvasGroup _canvasGroup, string _checkBigText , string _checkmateBigText,string _checkSmallText, string _checkmateSmallText)
+    {
+        id = _id;
+        cutInIcon = _cutInIcon;
+        bigText = _bigText;
+        smallText = _smallText;
+        isCheckmate = _isCheckmate;
+        canvasGroup = _canvasGroup;
+        checkBigText = _checkBigText;
+        checkmateBigText = _checkmateBigText;
+        checkSmallText = _checkSmallText;
+        checkmateSmallText = _checkmateSmallText;
+    }
+
+}
+
+
+public class CheseGameM : MonoBehaviour, IPresetHost
+{
+
+     
+    private void Awake()
+    {
+        ScriptM.Register<CheseGameM>(this, UseSpace.Local);  
+    }
+
+    private void Start()
+    {
+        positionHistory.Clear();
+
+        whiteTimer.TimerTime = 300;
+        blackTimer.TimerTime = 300;
+
+        if (ScriptM.TryGet<SinglePoolSpawner>(out SinglePoolSpawner service))
+        {
+            spawner = service;
+        }
+
+        int currentId = singlePlayer.selectedCharacterId;
+
+        Characters activeCharacter = SpawnOrGetCharacter(currentId);
+
+        if (activeCharacter != null)
+        {
+            currentAI = activeCharacter;
+            activeCharacter.SetupBoard(this); // 자식(Seo 등)이 각자 기물 배치 진행
+        }
+
+        currentCost = 0;
+        UpdateCostUI();
+
+        canUseEnPassant = true;
+        canUseCastling = true;
+        canUsePromotion = true;
+        King.CastlingBanned = false;
+        Pawn.EnPassantBanned = false;
+
+        if (ResetBtn != null) { ResetBtn.onClick.AddListener(ResetAllPieces); }
+        if (ReadyBtn != null) { ReadyBtn.onClick.AddListener(SetReady); }
+        if (NegoBtn != null) NegoBtn.onClick.AddListener(ActiveSelfNegoPanel);
+        if (enPassantBtn != null) enPassantBtn.onClick.AddListener(()=> TryNegotiateRule(0));
+        if (CastlingBtn != null) CastlingBtn.onClick.AddListener(()=> TryNegotiateRule(1));
+        if (PromotionBtn != null) PromotionBtn.onClick.AddListener(()=> TryNegotiateRule(2));
+        if (UndoBtn != null) UndoBtn.onClick.AddListener(() => TryNegotiateRule(3));
+        if (QueenBtn != null) QueenBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Queen));
+        if (KnightBtn != null) KnightBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Knight));
+        if (BishopBtn != null) BishopBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Bishop));
+        if (RookBtn != null) RookBtn.onClick.AddListener(() => OnPromotionPieceSelected(PieceDatabase,pieceType.Rook));
+        if (TimerBtn != null) TimerBtn.onClick.AddListener(TurnEnd);
+        if (ProvokeBtn != null) ProvokeBtn.onClick.AddListener(OnTauntSuccess);
+
+        RefreshButtonUI();
+    }
+
+    private void OnEnable()
+    {
+
+            // 확실하게 이벤트 연결
+        KeySettingM.OnTurnoverTriggered -= HandleTurnover; // 중복 방지
+        KeySettingM.OnTurnoverTriggered += HandleTurnover;
+
+        KeySettingM.OnNegotiationTriggered -= HandleNegotiation;
+        KeySettingM.OnNegotiationTriggered += HandleNegotiation;
+
+        KeySettingM.OnGiveUpTriggered -= HandleGiveUp;
+        KeySettingM.OnGiveUpTriggered += HandleGiveUp;
+
+        KeySettingM.OnReadyTriggered -= SetReady;
+        KeySettingM.OnReadyTriggered += SetReady;
+    }
+
+    private void OnDisable()
+    {
+
+        if (timerCts != null) { timerCts.Cancel(); timerCts.Dispose(); timerCts = null; }
+        
+        KeySettingM.OnTurnoverTriggered -= HandleTurnover;
+        KeySettingM.OnNegotiationTriggered -= HandleNegotiation;
+        KeySettingM.OnGiveUpTriggered -= HandleGiveUp;
+        KeySettingM.OnReadyTriggered -= SetReady;
+
+
+        ScriptM.Unregister<CheseGameM>();
+        
+    }
+   
+  
+   
+
+
+    #region 준비단계에 필요한 것들
+    [Header("준비단계에 필요한 것")]
+    [SerializeField] private PieceDatabase PieceDatabase;
+    public GameObject ReadyPanel;
+    public GameObject CharacterPanel;
+    public GameObject gamePanel;
+    public Button ResetBtn;
+    public Button ReadyBtn;
+    public TextMeshProUGUI costText;
+   
+
+    private int currentCost;
+
+    private PieceData? selectedPieceData = null;
+    private bool isSpawnMode = false;
+    private SinglePoolSpawner spawner;
+    public bool IsSetupPhase => ReadyPanel != null && ReadyPanel.activeInHierarchy;
+    public bool CanUsePreset => IsSetupPhase;
+
+    // 체스판 위에 존재하는 모든 기물 오브젝트를 논리 좌표(x, y)로 추적하기 위한 2차원 배열
+    // (x: 0~7, y: 0~7) 위치에 존재하는 기물 GameObject를 저장합니다.
+    public ChessPieceM[,] pieceGrid = new ChessPieceM[8, 8];
+
+    [SerializeField] private List<PieceButtonUI> pieceButtonUIs;
+    private Dictionary<pieceType, int> spawnedPieceCounts = new Dictionary<pieceType, int>(); // 기물을 종류별로 소환해서 실시간으로 개수제한 및 UI 변경용
+    #region 타일 관련 함수
+    /// <summary>
+    /// 선택한 (x, y) 좌표가 해당 팀의 소환 가능 영역(앞쪽 2줄)인지 판별
+    /// </summary>
+    private bool IsValidSpawnZone(int x, int y, PieceColor pieceColor)
+    {
+        if (pieceColor == PieceColor.white)
+        {
+            // 하얀색 팀은 아래쪽 2줄 (y 인덱스 0, 1)만 허용
+            return y >= 0 && y <= 1;
+        }
+        else
+        {
+            // 검은색 팀은 위쪽 2줄 (y 인덱스 6, 7)만 허용
+            return y >= 6 && y <= 7;
+        }
+    }
+
+    // 타일 색상을 전부 원래대로 돌리는 공통 함수
+    private void ClearTileHighlights()
+    {
+        if (ScriptM.TryGet<ChessBoardM>(out ChessBoardM chessBoardM))
+            for (int x = 0; x < chessBoardM.boardSize; x++)
+            {
+                for (int y = 0; y < chessBoardM.boardSize; y++)
+                {
+                    BoardTile tileComp = chessBoardM.spawnedTiles[x, y].GetComponent<BoardTile>();
+                    if (tileComp != null)
+                    {
+                        tileComp.ResetColor(); // 본래의 체스판 무늬 색상으로 복구
+                    }
+                }
+            }
+    }
+
+    // 타일 선택시 호출하는 함수
+    public void OnTileClicked(int x, int y)
+    {
+        SoundService.Current.playSFX("버튼");
+        // 💡 1. [소환 모드 우선 처리] 우측 UI에서 기물 소환 버튼을 눌러 소환 모드인 경우
+        if (isSpawnMode && selectedPieceData != null)
+        {
+            if (!IsValidSpawnZone(x, y, selectedPieceData.Value.Color)) return;
+            
+            // 소환 실행
+            GameObject prefabToSpawn = GetPrefabByData(selectedPieceData.Value);
+            SpawnPiece(prefabToSpawn, x, y);
+
+            // 카운트 증가 및 UI 갱신
+            AddSpawnedCount(selectedPieceData.Value.Type);
+            RefreshButtonUI();
+
+           
+            selectedPieceData = null;
+            ClearTileHighlights();
+            return;
+        }
+
+        if (!isMovedone&&!isSpawnMode)
+        {
+            
+            
+            // 💡 2. [기존 이동 모드] 소환 모드가 아닐 때의 체스 기물 선택 및 이동 로직
+            if (selectedPos == null)
+            {
+                // 아직 아무것도 선택하지 않은 상태에서 내 기물을 클릭한 경우 -> 선택
+                if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
+                {
+                    SelectPiece(x, y);
+                }
+            }
+            else
+            {
+                Vector2Int targetPos = new Vector2Int(x, y);
+
+                // 클릭한 칸이 이동 가능한 위치 중 하나라면 -> 네트워크 이동 또는 실제 이동 실행
+                if (currentPossibleMoves.Contains(targetPos))
+                {
+                    MovePiece(selectedPos.Value.x, selectedPos.Value.y, x, y);
+                    isMovedone = true;
+                    
+                    DeselectPiece();
+                }
+                // 다른 내 기물을 다시 클릭한 경우 -> 새로운 기물로 선택 교체
+                else if (GetPieceAt(x, y) != null && IsMyTurnAndPiece(x, y))
+                {
+                    SelectPiece(x, y);
+                }
+                // 그 외 빈 공간이나 잘못된 위치 클릭 시 -> 선택 취소
+                else
+                {
+                    DeselectPiece();
+                }
+
+               
+            }
+        }
+    }
+
+    /// <summary>
+    /// 보드의 모든 타일 색상을 원래 체스판 무늬(originalColor)로 되돌리는 공통 함수
+    /// </summary>
+    private void ClearAllTileColors()
+    {
+        if (ScriptM.TryGet<ChessBoardM>(out ChessBoardM service))
+            for (int x = 0; x < service.boardSize; x++)
+            {
+                for (int y = 0; y < service.boardSize; y++)
+                {
+                    BoardTile tileComp = service.spawnedTiles[x, y].GetComponent<BoardTile>();
+                    if (tileComp != null)
+                    {
+                        tileComp.ResetColor(); // 각 칸이 들고 있는 본래의 색상으로 복구
+                    }
+                }
+            }
+    }
+
+    #endregion
+
+    #region 프리셋 함수
+
+    private void UpdateCostUI()
+    {
+        if (costText != null) costText.text = $"현재 코스트 : {currentCost}/{singlePlayer.maxCost}";
+    }
+    public void CollectMyPieces(List<PresetPiece> output)
+    {
+        output.Clear();
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 3; y++)
+            {
+                ChessPieceM p = pieceGrid[x, y];
+                if (p == null || p.data.Color != PieceColor.white) continue;
+                output.Add(new PresetPiece { x = x, y = y, type = (int)p.data.Type });
+            }
+        }
+    }
+
+    public int ApplyPreset(IReadOnlyList<PresetPiece> pieces)
+    {
+        SoundService.Current.playSFX("버튼");
+        if (!IsSetupPhase || pieces == null || spawner == null) return 0;
+
+        isSpawnMode = true;        // 배치 단계 표시 (DestroyPiece가 킹 제거를 패배로 처리하지 않게)
+        selectedPieceData = null;
+        ResetAllPieces();          // 내 진영을 비우고 개수/코스트/UI를 복구
+        ClearTileHighlights();
+
+        int placed = 0;
+        var seen = new HashSet<Vector2Int>();
+        foreach (PresetPiece p in pieces)
+        {
+            if (p.x < 0 || p.x > 7 || p.y < 0 || p.y > 7) continue;
+            if (!IsValidSpawnZone(p.x, p.y, PieceColor.white)) continue;
+            if (!seen.Add(new Vector2Int(p.x, p.y))) continue;
+
+            pieceType type = (pieceType)p.type;
+            int max = GetMaxPieceOf(type);
+            if (max < 0 || GetSpawnedCount(type) >= max) continue;      // 개수 제한 준수
+
+            GameObject prefab = PieceDatabase != null ? PieceDatabase.GetPrefab(type, PieceColor.white) : null;
+            if (prefab == null) continue;
+
+            ChessPieceM prefabPiece = prefab.GetComponent<ChessPieceM>();
+            if (prefabPiece != null && currentCost + prefabPiece.data.cost > singlePlayer.maxCost) continue;
+
+            SpawnPiece(prefab, p.x, p.y, PieceColor.white);
+            AddSpawnedCount(type);                                      // 타일 클릭 배치와 같은 처리
+            placed++;
+        }
+
+        RefreshButtonUI();
+        return placed;
+    }
+
+    private int GetMaxPieceOf(pieceType type)
+    {
+        foreach (var btn in pieceButtonUIs)
+            if (btn.pieceData.Type == type) return btn.pieceData.maxPiece;
+        return -1;
+    }
+
+    #endregion
+
+
+    // 1. [UI 버튼에 연결] 기물 버튼을 누를 때 호출되는 함수
+    public void OnClickPieceButton(PieceData pieceData)
+    {
+        SoundService.Current.playSFX("버튼");
+        // 남은 개수 제한 체크 (예: maxPiece 이상 소환했다면 리턴)
+        int currentCount = GetSpawnedCount(pieceData.Type);
+        if (currentCount >= pieceData.maxPiece)
+        {
+            return;
+        }
+        if (currentCost + pieceData.cost > singlePlayer.maxCost)
+        {
+            return;
+        }
+
+        selectedPieceData = pieceData;
+        isSpawnMode = true;
+        if (ScriptM.TryGet<ChessBoardM>(out ChessBoardM chessBoardM))
+
+            // 💡 모든 타일을 돌며 내 진영 앞쪽 2줄만 초록색으로 변경!
+            for (int x = 0; x < chessBoardM.boardSize; x++)
+            {
+                for (int y = 0; y < chessBoardM.boardSize; y++)
+                {
+                    bool isValid = (pieceData.Color == PieceColor.white) ? (y <= 1) : (y >= 6);
+
+                    // spawnedTiles 배열에서 BoardTile 컴포넌트를 가져와 색상 변경
+                    BoardTile tileComp = chessBoardM.spawnedTiles[x, y].GetComponent<BoardTile>();
+                    if (tileComp != null)
+                    {
+                        if (isValid) tileComp.ChangeColor(Color.green); // 소환 가능 영역
+                        else tileComp.ChangeColor(new Color(0.5f, 0.5f, 0.5f, 0.5f)); // 그외 영역 어둡게 처리 등
+                    }
+                }
+            }
+        
+    }
+
+
+    // 모든 버튼의 텍스트를 현재 남은 개수에 맞춰 갱신
+    private void RefreshButtonUI()
+    {
+        foreach (var btnUI in pieceButtonUIs)
+        {
+            int max = btnUI.pieceData.maxPiece;
+            int spawned = GetSpawnedCount(btnUI.pieceData.Type);
+            int remaining = max - spawned;
+
+            btnUI.UpdateCountUI(remaining);
+        }
+    }
+
+    private int GetSpawnedCount(pieceType type)
+    {
+        if (!spawnedPieceCounts.ContainsKey(type)) return 0;
+        return spawnedPieceCounts[type];
+    }
+
+    private void AddSpawnedCount(pieceType type)
+    {
+        if (!spawnedPieceCounts.ContainsKey(type))
+            spawnedPieceCounts[type] = 0;
+
+        spawnedPieceCounts[type]++;
+
+    }
+
+    private GameObject GetPrefabByData(PieceData data)
+    {
+        // 1. SO의 메서드 결과를 받아온 뒤 바로 리턴합니다!
+        if (PieceDatabase != null)
+        {
+            return PieceDatabase.GetPrefab(data.Type, data.Color);
+        }
+
+        
+        return null;
+    }
+
+    /// <summary>
+    /// 원하는 위치(x, y)에 원하는 기물 프리팹을 생성합니다.
+    /// (변형 체스 특성에 맞춰 개수나 종류 제한 없이 호출 가능)
+    /// </summary>
+    /// <param name="piecePrefab">생성할 기물 프리팹</param>
+    /// <param name="x">Target Grid X (0~7)</param>
+    /// <param name="y">Target Grid Y (0~7)</param>
+    /// <returns>생성된 기물의 GameObject</returns>
+    public ChessPieceM SpawnPiece(GameObject piecePrefab, int x, int y,PieceColor color =PieceColor.white)
+    {
+
+        if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
+        {
+           
+            return null;
+        }
+        
+        // 1. 이미 해당 위치에 기물이 있다면 기존 기물 제거 (또는 예외 처리)
+        if (pieceGrid[x, y] != null)
+        {
+            DestroyPiece(x, y);
+        }
+
+
+        // 2. 입력받은 논리 좌표(x, y)를 기반으로 월드 좌표 산출
+        Vector3 spawnWorldPos = boardM.GetWorldPosition(x, y);
+
+        // 3. 기물 인스턴스화 (GameObject 생성)
+        GameObject newPieceObj = spawner.Spawn(piecePrefab, spawnWorldPos, Quaternion.identity);
+
+        // 4. 생성된 오브젝트에서 ChessPieceM 컴포넌트 추출
+        ChessPieceM newPiece = newPieceObj.GetComponent<ChessPieceM>();
+
+        // 새 코드: 배치 단계의 내(백) 기물만 센다 (AI 기물, 게임 중 프로모션은 제외)
+        if (newPiece != null && color == PieceColor.white && IsSetupPhase)
+        {
+            currentCost += newPiece.data.cost;
+            UpdateCostUI();
+        }
+
+
+        if (newPiece != null)
+        {
+            newPiece.data.Color = color;
+            newPiece.isWhite = (color == PieceColor.white);
+            newPiece.GetComponent<PieceAnimator>()?.PlaySpawn(spawnWorldPos);
+            newPiece.CurrentPos = new Vector2Int(x, y);
+            if (newPiece is King)
+            {
+                OnSpawnKing(newPiece, newPiece.isWhite);
+            }
+        }
+        activePieces.Add(newPiece);
+        
+        // 5. 2차원 배열에 기물 등록 및 반환
+        pieceGrid[x, y] = newPiece;
+
+        return newPiece;
+    }
+
+    // 킹 스폰 시점에 미리 할당해둠
+    public void OnSpawnKing(ChessPieceM king, bool isWhite)
+    {
+        if (isWhite) whiteKing = king;
+        else blackKing = king;
+    }
+
+    private void ReturnSpawnedCount(pieceType type)
+    {
+        // 딕셔너리에 해당 기물이 없거나 이미 0개 이면 무시
+        if (!spawnedPieceCounts.ContainsKey(type)) return;
+
+        spawnedPieceCounts[type]--;
+
+        // 음수가 되지 않도록 방어 코드 추가
+        if (spawnedPieceCounts[type] < 0)
+        {
+            spawnedPieceCounts[type] = 0;
+        }
+    }
+
+    public void ResetAllPieces()
+    {
+        SoundService.Current.playSFX("버튼");
+        // 1. 8x8 보드를 전부 돌면서 기물이 있으면 파괴 함수 호출
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 2; y++)
+            {
+                // 내부에서 이미 null 체크와 카운트 복구, despan이 다 처리됨
+                DestroyPiece(x, y);
+            }
+        }
+
+        // 2. UI 갱신은 모든 기물이 다 지워진 후 맨 마지막에 딱 한 번만 호출!
+        RefreshButtonUI();
+
+        // 3. 선택 상태 초기화
+        DeselectPiece();
+
+        currentCost = 0;
+        UpdateCostUI();
+    }
+
+    private void SetReady()
+    {
+        SoundService.Current.playSFX("버튼");
+        if (whiteKing == null)
+        {
+            ShowMyCheckMessage("왕을 설치해야 합니다.");
+            return;
+        }
+        TriggerCharacterInteraction(currentAI.characterType);
+        // 소환 모드 해제
+        isSpawnMode = false;
+        ReadyPanel.SetActive(false);
+        CharacterPanel.SetActive(true);
+        gamePanel.SetActive(true);
+        UpdateNegotiationPowers();
+        StartTurnTimer(PieceColor.white);
+        ShowMyCheckMessage(" 안녕하세요. 한 수 부탁드립니다.");
+    }
+    #endregion
+
+    #region 게임중 필요한 것들
+
+    #region 선언부
+    [Header("게임 중 필요한 것")]
+    //버튼들
+    public Button ProvokeBtn;
+    public Button NegoBtn;
+    public Button TimerBtn;
+    //협상 버튼들
+    public Button enPassantBtn;
+    public Button CastlingBtn;
+    public Button PromotionBtn;
+    public Button UndoBtn;
+    //프로모션 버튼들
+    public Button QueenBtn;
+    public Button KnightBtn;
+    public Button BishopBtn;
+    public Button RookBtn;
+    // 협상 글자들
+    public TextMeshProUGUI enPassantText;
+    public TextMeshProUGUI CastlingText;
+    public TextMeshProUGUI PromotionText;
+    public TextMeshProUGUI UndoText;
+
+    // 필요 패널
+    public GameObject SettingPanel;
+    public GameObject NegoPanel;
+    public GameObject PromotionPanel;
+
+    [Header("협상으로 금지된 특수 룰 상태")]
+    public bool canUseEnPassant = true;   // 앙파상 가능 여부 (협상 성공 시 false로 변경)
+    public bool canUseCastling = true;    // 캐슬링 가능 여부 (협상 성공 시 false로 변경)
+    public bool canUsePromotion = true;   // 프로모션 가능 여부 (협상 성공 시 false로 변경)
+
+    [Header("타이머들")]
+    [SerializeField] public PlayerTimerData whiteTimer;
+    [SerializeField] public PlayerTimerData blackTimer;
+    private CancellationTokenSource timerCts;
+    private bool isTimerRunning = false;
+
+    [Header("대사를 위한 텍스트")]
+    public GameObject CharacterTextSlot;
+    public TextMeshProUGUI CharacterText;
+    public TextMeshProUGUI MyText;
+    //투명값 조절용
+    [SerializeField] private CanvasGroup myTextCanvasGroup;
+    [SerializeField] private CanvasGroup characterTextCanvasGroup;
+    // DoTween용
+    private Sequence myTextSequence;
+    private Sequence characterTextSequence;
+
+    [Header("프로모션 관련 대기 상태")]
+    private Vector2Int pendingPromotionPos;
+    private ChessPieceM pendingPromotionPawn;
+    private bool isWaitingForPromotion = false;
+
+    public characterData Data { get; private set; }
+    private Characters currentAI;
+
+    // 협상과 도발 관련 변수
+    public float characterNegoPower;
+    public float myNegoPower;
+
+    // 왕의 위치를 찾기 위해 미리 변수 캐싱하기
+    private ChessPieceM whiteKing;
+    private ChessPieceM blackKing;
+
+    //턴 관련 변수
+    private bool isWhiteTurn = true;
+    private PieceColor currentTurn = PieceColor.white;
+
+    // 기물 움직이면 끝인 변수
+    private bool isMovedone = false;
+    private bool isGameEnded;
+
+    private Vector2Int? selectedPos = null; // 현재 선택된 기물의 좌표
+
+    private List<Vector2Int> currentPossibleMoves = new List<Vector2Int>(); // 현재 이동 가능한 칸 표시
+    private List<Vector2Int> attackMoves = new List<Vector2Int>(); // 공격이 가능한 부분 표시
+    private List<MoveData> MoveHistory = new List<MoveData>(); //기보를 저장하기 위해서 있는 리스트
+    public List<ChessPieceM> activePieces = new List<ChessPieceM>(); // 살아있는 말을 저장해서 찾는 연산량을 줄이기 위한 리스트
+    public List<Characters> characterList = new List<Characters>();// 배틀씬 이동시 할 행동
+    public List<Cutin> cutins = new List<Cutin>(); // 체크 및 체크메이트시 활용
+
+    private PieceAnimator hopping;
+    private float undoLockUntil;
+
+    private static bool HasPieceMoved(ChessPieceM p)
+    {
+        if (p is Pawn pawn) return !pawn.isFirstMove;
+        if (p is King king) return king.hasMoved;
+        if (p is Rook rook) return rook.hasMoved;
+        return false;
+    }
+    #endregion
+
+    public void HandleTurnover()
+    {
+        TurnEnd();
+    }
+    public void HandleNegotiation()
+    {
+        ActiveSelfNegoPanel();
+    }
+
+    public void ActiveSelfNegoPanel()
+    {
+        SoundService.Current.playSFX("버튼");
+        float successChance = NegoSuccessChance();
+
+        NegoPanel.SetActive(!NegoPanel.activeSelf);
+        enPassantText.text = $"앙파상 제한 = {successChance:F0}%";
+        CastlingText.text = $"캐슬링 제한 = {successChance:F0}%";
+        PromotionText.text = $"프로모션 제한 = {successChance:F0}%";
+        UndoText.text = $"한 수 무르기 = {successChance:F0}%";
+    }
+    
+    private Characters SpawnOrGetCharacter(int id)
+    {
+        // 1. 💡 가장 먼저! 리스트에 있는 모든 캐릭터들을 한 바퀴 돌며 전부 꺼줍니다(False).
+        foreach (var character in characterList)
+        {
+            if (character != null)
+            {
+                character.gameObject.SetActive(false);
+            }
+        }
+
+        // 2. 그중에서 이번 판에 플레이할 선택된 캐릭터만 딱 골라서 켭니다(True).
+        characterList[id].gameObject.SetActive(true);
+
+        // 3. 선택된 캐릭터를 반환합니다.
+        return characterList[id];
+    }
+
+    private bool IsMyTurnAndPiece(int x, int y)
+    {
+        // 1. 매니저가 관리하는 2차원 배열(pieceGrid)에서 해당 위치의 기물 오브젝트를 가져옵니다.
+        GameObject pieceObj = GetPieceAt(x, y);
+        if (pieceObj == null) return false;
+
+        // 2. 기물 오브젝트에서 ChessPieceM 컴포넌트를 가져옵니다.
+        ChessPieceM piece = pieceObj.GetComponent<ChessPieceM>();
+        if (piece == null) return false;
+
+        // 3. 기물의 팀(색상)과 현재 진행 중인 턴(currentTurn)을 비교합니다.
+        // (만약 기물이 isWhite 불리언을 쓴다면 아래와 같이 비교 가능)
+        PieceColor pieceColor = piece.isWhite ? PieceColor.white : PieceColor.black;
+
+        return pieceColor == currentTurn;
+    }
+
+    private void SelectPiece(int x, int y)
+    {
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        SoundService.Current.playSFX("버튼");
+        ChessPieceM pieceObj = pieceGrid[x, y];
+        if (pieceObj == null) return;
+
+        // 전에 선택한게 있으면 타일을 되돌리기 위해서 필요
+        selectedPos = new Vector2Int(x, y);
+
+        // 1. 이전 기물이 남겨둔 하이라이트/이동 경로 좌표를 깨끗이 비움
+        DeselectPiece();
+
+        hopping = pieceObj.GetComponent<PieceAnimator>();
+        hopping?.SetSelected(true);
+
+        // 이동을 위한 좌표 입력
+        selectedPos = new Vector2Int(x, y);
+
+        // 2. 현재 새로 선택한 pieceObj의 이동 가능 경로만 리스트에 쏙 채워 넣음
+        pieceObj.GetPossibleMoves(pieceGrid, currentPossibleMoves);
+
+        // 3. 새로 채워진 currentPossibleMoves 좌표에 하이라이트 켜기
+        if (ScriptM.TryGet<ChessBoardM>(out ChessBoardM service))
+        {
+            // 💡 4. [선택된 기물 타일 하이라이트] 선택된 기물이 있는 칸은 파란색 등으로 표시
+            BoardTile selectedTile = service.spawnedTiles[x, y].GetComponent<BoardTile>();
+            if (selectedTile != null)
+            {
+                selectedTile.ChangeColor(Color.blue); // 선택된 자리는 파란색
+            }
+            foreach (Vector2Int targetPos in currentPossibleMoves)
+            {
+                BoardTile moveTile = service.spawnedTiles[targetPos.x, targetPos.y].GetComponent<BoardTile>();
+                if (moveTile != null)
+                {
+                    moveTile.ChangeColor(Color.yellow); // 이동 가능 칸은 노란색
+                }
+            }
+        }
+    }
+
+    private void DeselectPiece()
+    {
+        if (hopping != null) { hopping.SetSelected(false); hopping = null; }
+
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        // 만약 선택된 기물이 있었다면, 그 주변에 칠했던 색상들을 원복
+        if (selectedPos != null)
+        {
+            // 💡 1. 이동 가능했던 칸들과 선택된 칸을 포함하여 모든 보드 타일의 색상을 원래대로 원복
+            ClearAllTileColors();
+        }
+
+        // 선택 상태 초기화
+        selectedPos = null;
+        currentPossibleMoves.Clear();
+    }
+
+    /// <summary>
+    /// 지정한 출발 위치(fromX, fromY)의 기물을 목적지(toX, toY)로 이동시킵니다.
+    /// </summary>
+    /// <param name="fromX">출발 X (0~7)</param>
+    /// <param name="fromY">출발 Y (0~7)</param>
+    /// <param name="toX">도착 X (0~7)</param>
+    /// <param name="toY">도착 Y (0~7)</param>
+    public void MovePiece(int fromX, int fromY, int toX, int toY)
+    {
+        SoundService.Current.playSFX("말이동");
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        if (!ScriptM.TryGet<ChessBoardM>(out var boardM))
+        {
+            return;
+        }
+        // 1. 출발지에 기물이 존재하는지 검증
+        ChessPieceM pieceToMove = pieceGrid[fromX, fromY];
+        if (pieceToMove == null)
+        {
+          return;
+        }
+
+        ChessPieceM capturedPiece = pieceGrid[toX, toY];
+        Vector2Int capturedPos = new Vector2Int(toX, toY);
+        bool isEnPassant = false;
+
+        // 앙파상: 폰이 대각선으로 빈 칸에 들어가면, 옆 칸의 상대 폰이 잡히는 것
+        if (capturedPiece == null && pieceToMove is Pawn && fromX != toX)
+        {
+            ChessPieceM passed = pieceGrid[toX, fromY];
+            if (passed is Pawn && passed.isWhite != pieceToMove.isWhite)
+            {
+                capturedPiece = passed;
+                capturedPos = new Vector2Int(toX, fromY);
+                isEnPassant = true;
+            }
+        }
+
+        bool movedHadMoved = HasPieceMoved(pieceToMove);
+        pieceType capType = default;
+        PieceColor capColor = default;
+        bool capHadMoved = false;
+        int capCost = 0;
+
+        if (capturedPiece != null)
+        {
+            capType = capturedPiece.data.Type;
+            capColor = capturedPiece.data.Color;
+            capHadMoved = HasPieceMoved(capturedPiece);
+            capCost = capturedPiece.data.cost;
+            DestroyPiece(capturedPos.x, capturedPos.y);      // toX, toY 대신 capturedPos
+        }
+
+        // 3. 목적지의 월드 좌표 계산
+        Vector3 targetWorldPos = boardM.GetWorldPosition(toX, toY);
+
+        // 4. 실제로 기물의 Transform 위치 이동 (직부여 또는 연출용 트윈 적용)
+        var anim = pieceToMove.GetComponent<PieceAnimator>();
+        if (anim != null) anim.SlideTo(targetWorldPos); else pieceToMove.transform.position = targetWorldPos;
+
+        // 5. 논리 배열 데이터 업데이트 (출발지는 비우고, 목적지로 등록)
+        pieceGrid[toX, toY] = pieceToMove;
+        pieceGrid[fromX, fromY] = null;
+
+        MoveData move = new MoveData(
+           new Vector2Int(fromX, fromY),
+           new Vector2Int(toX, toY),
+           pieceToMove,
+           1,
+           1,
+           capturedPiece
+       );
+        move.MovedHadMoved = movedHadMoved;
+        move.CapturedType = capType;
+        move.CapturedColor = capColor;
+        move.CapturedHadMoved = capHadMoved;
+        move.CapturedCost = capCost;
+        move.IsEnPassant = isEnPassant;
+        move.MoverColor = pieceToMove.data.Color;
+
+        // movedata가 생성 후  기물의 currentpos 갱신
+        pieceToMove.CurrentPos = move.To;
+
+
+
+        // 폰이 실제로 이동을 마쳤을 때 실행되는 곳
+        foreach (var ap in activePieces)
+            if (ap is Pawn otherPawn) otherPawn.movedTwoSquaresLastTurn = false;
+
+        if (pieceToMove is Pawn pawn)
+        {
+            pawn.movedTwoSquaresLastTurn = Mathf.Abs(fromY - toY) == 2;
+            pawn.isFirstMove = false;
+        }
+
+        // 킹이 실제로 이동을 마쳤을 때 (캐슬링 처리 포함)
+        if (pieceToMove is King king)
+        {
+            king.hasMoved = true;
+
+            // 2칸 이동했다면 캐슬링 실행
+            if (Mathf.Abs(fromX - toX) == 2)
+            {
+                int y = fromY;
+                bool isRight = toX > fromX; // 우측 캐슬링 여부
+
+                // 🌟 1. 킹의 출발 위치(fromX) 기준으로 방향에 있는 안 움직인 룩을 동적으로 탐색
+                int rookOriginalX = -1;
+                if (isRight)
+                {
+                    for (int x = fromX + 1; x < 8; x++)
+                    {
+                        if (pieceGrid[x, y] is Rook r && !r.hasMoved)
+                        {
+                            rookOriginalX = x;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    for (int x = fromX - 1; x >= 0; x--)
+                    {
+                        if (pieceGrid[x, y] is Rook r && !r.hasMoved)
+                        {
+                            rookOriginalX = x;
+                            break;
+                        }
+                    }
+                }
+
+                // 룩을 찾았다면 동적 캐슬링 수행
+                if (rookOriginalX != -1)
+                {
+                    ChessPieceM rook = pieceGrid[rookOriginalX, y];
+
+                    // 룩의 새로운 목표 위치: 킹이 뛰어넘은 바로 그 칸 (오른쪽이면 fromX + 1, 왼쪽이면 fromX - 1)
+                    int rookTargetX = isRight ? fromX + 1 : fromX - 1;
+
+                    pieceGrid[rookOriginalX, y] = null;
+                    pieceGrid[rookTargetX, y] = rook;
+                    rook.CurrentPos = new Vector2Int(rookTargetX, y);
+
+                    Vector3 rookPos = boardM.GetWorldPosition(rookTargetX, y);
+                    var rookAnim = rook.GetComponent<PieceAnimator>();
+                    if (rookAnim != null) rookAnim.SlideTo(rookPos); else rook.transform.position = rookPos;
+
+                    if (rook is Rook r) r.hasMoved = true;
+
+                    move.RookFrom = new Vector2Int(rookOriginalX, y);
+                }
+            }
+        }
+        else if (pieceToMove is Rook rookPiece)
+        {
+            rookPiece.hasMoved = true;
+        }
+
+        MoveHistory.Add(move);
+
+        bool isMyTurn = pieceToMove.isWhite;
+        if (pieceToMove is Pawn && pieceToMove.CurrentPos.y == (isMyTurn ? 7 : 0))
+        {
+            RequestPromotion(pieceToMove, pieceToMove.CurrentPos.x, pieceToMove.CurrentPos.y, !isMyTurn);   // 마지막 인자 = AI(흑) 여부
+        }
+
+        
+
+        if (isMyTurn && IsKingInCheck(false, pieceGrid)) // 검은색(상대) 킹이 체크당했는지 검사
+        {
+            // 내가 체크했을 때 -> MyText 연출
+            SoundService.Current.playSFX("체크");
+           
+            ShowMyCheckMessage("체크입니다. 자 어떤 식으로 대응 하실건가요^^");
+        }
+        else if (!isMyTurn && IsKingInCheck(true, pieceGrid)) // 흰색(내) 킹이 체크당했는지 검사
+        {
+            // 상대가 나를 체크했을 때 -> 상대 캐릭터 Cutin 연출
+            SoundService.Current.playSFX("체크");
+            int enemyCharacterId = singlePlayer.selectedCharacterId;
+            TriggerCheckCutin(enemyCharacterId, false);
+        }
+
+    }
+
+    /// <summary>
+    /// 특정 위치의 기물을 제거(파괴/포획)합니다.
+    /// </summary>
+    public void DestroyPiece(int x, int y)
+    {
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        // 💡 해당 좌표에 기물이 실제로 존재할 때만 제거 실행
+        if (pieceGrid[x, y] != null)
+        {
+            ChessPieceM pieceToDestroy = pieceGrid[x, y];
+
+            if (pieceToDestroy.data.Color == PieceColor.white && IsSetupPhase)
+            {
+                currentCost = Mathf.Max(0, currentCost - pieceToDestroy.data.cost);
+                UpdateCostUI();
+            }
+
+            ReturnSpawnedCount(pieceToDestroy.data.Type);
+
+            activePieces.Remove(pieceGrid[x, y]);
+
+            bool isMyPiece = (pieceToDestroy.data.Color == PieceColor.white); // 플레이어 색상 기준
+            OnPieceDestroyed(isMyPiece, pieceToDestroy.data.cost);
+
+            // spawner로 반환
+            GameObject go = pieceToDestroy.gameObject;
+            var anim = go.GetComponent<PieceAnimator>();
+            if (anim != null && !isSpawnMode) anim.PlayRemove(() => spawner.Despawn(go));   // 배치 단계(리셋/프리셋)는 즉시 반환
+            else spawner.Despawn(go);
+
+            // 배열 비워주기
+            pieceGrid[x, y] = null;
+
+            RefreshButtonUI();
+
+
+
+            if (pieceToDestroy.data.Type == pieceType.King)
+            {
+                bool isWhiteKing = pieceToDestroy.data.Color == PieceColor.white;
+
+                // 킹 참조는 배치 단계에서도 항상 정리 (죽은 킹이 남아 준비 검사를 통과하는 것을 막음)
+                if (isWhiteKing) whiteKing = null;
+                else blackKing = null;
+
+                // 결과 처리는 게임 중일 때만
+                if (isSpawnMode == false)
+                {
+                    GameResultType result = isWhiteKing ? GameResultType.Lose : GameResultType.Win;
+                    ShowGameResultAsync(result, myNegoPower, whiteTimer.TimerTime).Forget();
+                }
+            }
+
+        }
+    }
+
+
+    /// <summary>
+    /// 특정 위치에 어떤 기물이 있는지 조회합니다.
+    /// </summary>
+    public GameObject GetPieceAt(int x, int y)
+    {
+        if (pieceGrid[x, y] == null)
+        {
+            return null;
+        }
+        return pieceGrid[x, y].gameObject;
+    }
+
+    // 특정 팀(isWhiteTarget)의 킹이 현재 체크 상태인지 확인하는 함수
+    public bool IsKingInCheck(bool isWhiteTarget, ChessPieceM[,] grid)
+    {
+        // 1. target 팀의 킹 위치 찾기
+        Vector2Int kingPos = FindKingPosition(isWhiteTarget);
+
+        // 2. 상대방(적)의 모든 기물이 이동/공격할 수 있는 좌표들을 모음
+        List<Vector2Int> enemyAttackMoves = GetAllEnemyAttackMoves(!isWhiteTarget, grid);
+
+        // 3. 적의 공격 가능 범위에 킹의 위치가 포함되어 있다면 체크!
+        return enemyAttackMoves.Contains(kingPos);
+    }
+
+    public void TriggerCheckCutin(int targetCharacterId, bool isCheckmateState)
+    {
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        // 1. 현재 대전 중인 캐릭터 ID와 체크 상태에 맞는 데이터를 찾습니다.
+        Cutin target = cutins.Find(c => c.id == targetCharacterId && c.isCheckmate == isCheckmateState);
+
+        // 2. 데이터가 존재한다면
+        if (target.cutInIcon != null)
+        {
+            // 텍스트 적용
+            target.bigText.text = target.BigTextValue;
+            target.smallText.text = target.SmallTextValue;
+
+            // 3. 💡 코드로 해당 캐릭터의 컷인 오브젝트만 켜고 DOTween 연출 실행!
+            PlayCutinSequence(target.canvasGroup, target.cutInIcon.gameObject);
+        }
+    }
+
+    public void PlayCutinSequence(CanvasGroup group, GameObject obj, float displayDuration = 1.5f)
+    {
+        group.alpha = 0f;
+        obj.transform.localScale = Vector3.one * 0.8f;
+        obj.SetActive(true); // 알맞은 캐릭터 컷인만 켬!
+
+        Sequence seq = DOTween.Sequence();
+        seq.Append(group.DOFade(1f, 0.3f))
+           .Join(obj.transform.DOScale(Vector3.one, 0.3f).SetEase(Ease.OutBack));
+        seq.AppendInterval(displayDuration);
+        seq.Append(group.DOFade(0f, 0.2f))
+           .Join(obj.transform.DOScale(Vector3.one * 0.8f, 0.2f).SetEase(Ease.InBack));
+        seq.OnComplete(() => {
+            obj.SetActive(false);
+        });
+    }
+
+    // 1. target 팀의 킹 위치 찾기
+    private Vector2Int FindKingPosition(bool isWhiteTarget)
+    {
+        ChessPieceM targetKing = isWhiteTarget ? whiteKing : blackKing;
+
+        if (targetKing != null)
+        {
+            return targetKing.CurrentPos; // 즉시 위치 반환
+        }
+
+        return new Vector2Int(-1, -1);
+    }
+
+    // 2. 적 팀의 모든 기물이 이동/공격할 수 있는 좌표들을 모음
+    private List<Vector2Int> GetAllEnemyAttackMoves(bool isWhiteEnemy, ChessPieceM[,] grid)
+    {
+        attackMoves.Clear(); // 매번 new 하지 않고 기존 리스트 재활용
+
+        for (int i = 0; i < activePieces.Count; i++)
+        {
+            var piece = activePieces[i];
+            if (piece != null && piece.isWhite == isWhiteEnemy)
+            {
+                // 리스트 생성 없이, attackMoves에 직접 경로를 추가하도록 인자로 전달
+                piece.GetPossibleMoves(grid, attackMoves);
+            }
+        }
+
+        return attackMoves;
+    }
+
+    public void TurnEnd()
+    {
+        SoundService.Current.playSFX("턴이동");
+        if (isGameEnded) return;
+        isWhiteTurn = !isWhiteTurn;
+        currentTurn = isWhiteTurn ? PieceColor.white : PieceColor.black;
+
+        // 이제 움직여야 하는 쪽에 둘 곳이 있는지 먼저 확인 (AI 실행보다 앞)
+        if (CheckStalemate(isWhiteTurn, pieceGrid))
+        {
+            ShowGameResultAsync(GameResultType.Draw, myNegoPower, whiteTimer.TimerTime).Forget();
+            return;
+        }
+
+        if (isWhiteTurn)
+        {
+            StartTurnTimer(PieceColor.white);
+        }
+        else
+        {
+            StartTurnTimer(PieceColor.black);
+            isMovedone = false;
+            currentAI.OnAITurnAsync().Forget();
+        }
+    }
+
+    #region 협상관련  함수들
+    // UI 버튼에 각각 연결할 함수
+    public void TryNegotiateRule(int ruleTypeInt)
+    {
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        NegotiationType ruleType = (NegotiationType)ruleTypeInt;
+
+        bool isNegotiationSuccess = TryNegotiate();
+
+        if (isNegotiationSuccess)
+        {
+            SoundService.Current.playSFX("협상성공");
+            ShowMyCheckMessage($"협상 성공! [{ruleType}] 규칙이 금지(봉쇄)됩니다.");
+
+            // 2. 성공 시 해당 룰을 비활성화(막아버림)
+            ApplyRuleBan(ruleType);
+
+           
+        }
+        else
+        {
+            SoundService.Current.playSFX("협상실패");
+            // 3. 실패 시 페널티 (예: 협상력 10% 감소)
+            myNegoPower -= 10f;
+            ClampNegoPower();
+            ShowMyCheckMessage($"협상 실패... 페널티로 협상력이 10% 감소했습니다. (현재: {myNegoPower}%)");
+        }
+    }
+    // 규칙을 실제로 차단하는 함수
+    private void ApplyRuleBan(NegotiationType ruleType)
+    {
+        switch (ruleType)
+        {
+            case NegotiationType.EnPassant:
+                canUseEnPassant = false;
+                Pawn.EnPassantBanned = true;
+                break;
+            case NegotiationType.Castling:
+                canUseCastling = false;
+                King.CastlingBanned = true;
+                break;
+            case NegotiationType.Promotion:
+                canUsePromotion = false;
+                break;
+            case NegotiationType.Undo:
+                TryUndoWithNegotiation();
+                break;
+        }
+    }
+
+    // 💡 플레이어가 '무르기 협상' 버튼을 눌렀을 때 호출할 함수
+    public void TryUndoWithNegotiation()
+    {
+        if (Time.unscaledTime < undoLockUntil) return;
+        undoLockUntil = Time.unscaledTime + 0.4f;
+
+        SoundService.Current.playSFX("버튼");
+        TriggerCharacterInteraction(currentAI.characterType);
+        
+
+        // 1. 무를 기보가 아예 없다면 중단
+        if (MoveHistory.Count == 0)
+        {
+            ShowMyCheckMessage("무를 수 있는 기보가 없습니다.");
+            return;
+        }
+
+        // 2. 협상 성공 확률 계산 (예시: 내 협상력 vs 상대 협상력)
+        bool isNegotiationSuccess = TryNegotiate();
+
+        if (isNegotiationSuccess)
+        {
+            ShowMyCheckMessage("무르기 협상 성공! 기물을 되돌리고 협상력을 원상복귀합니다.");
+
+            // 3. 가장 마지막 기보 가져오기 (실제 되돌리기 전 데이터 확인용)
+            int lastIndex = MoveHistory.Count - 1;
+            MoveData lastMove = MoveHistory[lastIndex];
+
+            // 4. 협상력 원상복귀 처리 (잡힌 기물이나 프로모션으로 변동된 수치 되돌리기)
+            RevertNegotiationPowerForMove(lastMove, isMyMove: true); // 내 턴의 무르기라 가정
+
+            // 5. 기존에 만들어두신 완벽한 무르기 실행
+            ExecuteUndoLastMove(lastMove, lastIndex);
+        }
+      
+    }
+    /// <summary>
+    /// 보드판 위에 살아있는 기물들의 코스트를 합산하여 나와 상대방의 협상력을 갱신하는 함수
+    /// </summary>
+    public void UpdateNegotiationPowers()
+    {
+        float whiteCostSum = 0f;
+        float blackCostSum = 0f;
+
+        // 보드판 전체를 순회하며 살아있는 기물의 코스트 합산
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                ChessPieceM piece = pieceGrid[x, y];
+                if (piece != null)
+                {
+                    // 백 팀 기물인지 흑 팀 기물인지 판별 (프로젝트 내 기물 색상 변수에 맞게 수정하세요)
+                    if (piece.isWhite)
+                    {
+                        whiteCostSum += piece.data.cost;
+                    }
+                    else
+                    {
+                        blackCostSum += piece.data.cost;
+                    }
+                }
+            }
+        }
+
+
+        myNegoPower = whiteCostSum + singlePlayer.bonusNegoPower;
+        characterNegoPower = blackCostSum;
+
+       
+    }
+
+    // 💡 해당 수가 진행될 때 변동되었던 협상력을 '원상복귀' 시키는 함수
+    private void RevertNegotiationPowerForMove(MoveData move, bool isMyMove)
+    {
+        // A. 만약 이 수에서 적의 기물이 잡혔었다면? 
+        // (당시에 상대 협상력이 잡힌 기물 코스트만큼 깎였었으므로 다시 돌려줌)
+        if (move.CapturedPiece != null)
+        {
+            int capturedCost = move.CapturedCost;
+            if (isMyMove)
+            {
+                // 내가 상대 말을 잡았어서 상대 협상력이 깎였던 걸 복구 (상대 협상력 증가)
+                characterNegoPower += capturedCost;
+            }
+            else
+            {
+                myNegoPower += capturedCost;
+            }
+        }
+
+        // B. 만약 이 수에서 프로모션(승진)이 일어났었다면?
+        // (만약 MoveData에 프로모션 전후 코스트나 플래그가 기록되어 있다면 차이만큼 되돌림)
+        
+        if (move.IsPromotion)
+        {
+            int costDiff = move.newCost - move.oldCost;
+            if (isMyMove) myNegoPower -= costDiff; // 승진으로 올랐던 협상력을 다시 깎음
+            else characterNegoPower -= costDiff;
+        }
+
+
+        // 범위 제한 (0 ~ 100)
+        ClampNegoPower();
+    }
+
+    // 기존에 올리셨던 무르기 코드의 실제 실행부 분리
+    private void ExecuteUndoLastMove(MoveData lastMove, int lastIndex)
+    {
+        SoundService.Current.playSFX("되감기");
+        MoveHistory.RemoveAt(lastIndex);
+
+        // ── 프로모션 되감기: From == To 이므로 따로 처리하고 끝냅니다 ──
+        if (lastMove.IsPromotion)
+        {
+            int px = lastMove.To.x, py = lastMove.To.y;
+            ChessPieceM promoted = pieceGrid[px, py];
+            if (promoted == null) return;
+            PieceColor color = promoted.data.Color;
+
+            DestroyPiece(px, py);
+            GameObject pawnPrefab = PieceDatabase.GetPrefab(pieceType.Pawn, color);
+            ChessPieceM pawn = SpawnPiece(pawnPrefab, px, py, color);
+            if (pawn is Pawn p) p.isFirstMove = false;
+            RefreshEnPassantFlags();
+            return;
+
+        }
+
+        ChessPieceM moved = pieceGrid[lastMove.To.x, lastMove.To.y];
+        if (moved == null) return;
+
+        // 1. 이동한 기물 제자리로 원복 (논리 + 위치 + 기물이 가진 좌표)
+        pieceGrid[lastMove.To.x, lastMove.To.y] = null;
+        pieceGrid[lastMove.From.x, lastMove.From.y] = moved;
+        moved.CurrentPos = lastMove.From;
+
+        bool hasBoard = ScriptM.TryGet<ChessBoardM>(out var boardM);
+        if (hasBoard)
+        {
+            Vector3 fromWorld = boardM.GetWorldPosition(lastMove.From.x, lastMove.From.y);
+            var anim = moved.GetComponent<PieceAnimator>();
+            if (anim != null) anim.SlideTo(fromWorld); else moved.transform.position = fromWorld;
+        }
+
+        // 이동 전 상태 복구 (캐슬링이든 일반 이동이든 항상 실행)
+        if (moved is Pawn pw)
+        {
+            pw.isFirstMove = !lastMove.MovedHadMoved;
+            pw.movedTwoSquaresLastTurn = false;
+        }
+        else if (moved is King mk) mk.hasMoved = lastMove.MovedHadMoved;
+        else if (moved is Rook mr) mr.hasMoved = lastMove.MovedHadMoved;
+
+        // 캐슬링이었다면 룩도 원위치
+        if (moved is King && Mathf.Abs(lastMove.From.x - lastMove.To.x) == 2 && hasBoard)
+        {
+            int y = lastMove.From.y;
+            bool right = lastMove.To.x > lastMove.From.x;
+            int rookCurrentX = right ? lastMove.From.x + 1 : lastMove.From.x - 1;
+            int rookHomeX = lastMove.RookFrom.x;
+
+            ChessPieceM rook = pieceGrid[rookCurrentX, y];
+            if (rook != null)
+            {
+                pieceGrid[rookCurrentX, y] = null;
+                pieceGrid[rookHomeX, y] = rook;
+                rook.CurrentPos = new Vector2Int(rookHomeX, y);
+
+                Vector3 rookWorld = boardM.GetWorldPosition(rookHomeX, y);
+                var rookAnim = rook.GetComponent<PieceAnimator>();
+                if (rookAnim != null) rookAnim.SlideTo(rookWorld); else rook.transform.position = rookWorld;
+
+                if (rook is Rook r) r.hasMoved = false;
+            }
+        }
+
+        // 2. 잡혔던 기물이 있다면 다시 복원 (앙파상이면 도착 칸이 아니라 옆 칸에)
+        if (lastMove.CapturedPiece != null)
+        {
+            Vector2Int capPos = lastMove.IsEnPassant
+                ? new Vector2Int(lastMove.To.x, lastMove.From.y)
+                : lastMove.To;
+
+            GameObject capPrefab = PieceDatabase.GetPrefab(lastMove.CapturedType, lastMove.CapturedColor);
+            ChessPieceM restored = SpawnPiece(capPrefab, capPos.x, capPos.y, lastMove.CapturedColor);
+
+            if (restored is Pawn cp)
+            {
+                cp.isFirstMove = !lastMove.CapturedHadMoved;
+              
+            }
+            else if (restored is Rook cr) cr.hasMoved = lastMove.CapturedHadMoved;
+            else if (restored is King ck) ck.hasMoved = lastMove.CapturedHadMoved;
+        }
+        RefreshEnPassantFlags();
+    }
+
+    // 1. 도발 성공 시 호출 
+    public void OnTauntSuccess()
+    {
+        SoundService.Current.playSFX("버튼");
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        if (myNegoPower>=0)
+        {
+            myNegoPower -= 5f;
+
+            if (TryNegotiate())
+            {
+                characterNegoPower -= 10f;
+                ShowMyCheckMessage("(상대의 빈틈을 만들었다. 상대의 협상력이 저하)");
+            }
+            ClampNegoPower();
+            ShowMyCheckMessage("(효과가 없었나 안 통하는 듯 하다. 나의 협상력이 5% 감소했다.)");
+        }
+        ShowMyCheckMessage("(협상력이 0%라서 뭐라고 하든 의미가 없을 듯 하다.)");
+    }
+
+    // 2. 말이 잡혔을 때 호출 (잡힌 말의 코스트만큼 협상력 감소)
+    public void OnPieceDestroyed(bool isMyPiece, int pieceCost)
+    {
+        if (isMyPiece)
+        {
+            myNegoPower -= pieceCost; // 내 말이 잡히면 내 협상력 감소
+        }
+        else
+        {
+            characterNegoPower -= pieceCost; // 상대 말이 잡히면 상대 협상력 감소
+        }
+
+        ClampNegoPower();
+    }
+
+    // 3. 프로모션(승진) 시 호출 (기존 코스트와 새 코스트의 차이만큼 증가)
+    public void OnPiecePromoted(bool isMyPiece, int oldCost, int newCost)
+    {
+        TriggerCharacterInteraction(currentAI.characterType);
+
+        int costDifference = newCost - oldCost; // 예: 10 - 1 = 9
+
+        if (isMyPiece)
+        {
+            myNegoPower += costDifference; // 승진하면 협상력 회복/증가 (+9%)
+        }
+        else
+        {
+            characterNegoPower += costDifference;
+        }
+
+        ClampNegoPower();
+    }
+    public void RequestPromotion(ChessPieceM pawn, int x, int y ,bool isAi)
+    {
+        TriggerCharacterInteraction(currentAI.characterType);
+        if (isAi)
+        {
+            if(canUsePromotion)
+            {
+                ExecuteAIPromotion(pawn, x, y);
+            }
+           
+        }
+        else
+        {
+            pendingPromotionPawn = pawn;
+            pendingPromotionPos = new Vector2Int(x, y);
+            isWaitingForPromotion = true;
+
+            // 승진 기물(여왕, 룩, 비숍, 나이트 등)을 고를 수 있는 UI 팝업 오픈
+            if (PromotionPanel != null)
+            {
+                PromotionPanel.SetActive(true);
+            }
+        }   
+    }
+    public void OnPromotionPieceSelected(PieceDatabase piecedatabase, pieceType selectedType)
+    {
+        SoundService.Current.playSFX("버튼");
+        if (!isWaitingForPromotion || pendingPromotionPawn == null) return;
+
+        int x = pendingPromotionPos.x;
+        int y = pendingPromotionPos.y;
+
+        // 기존 폰의 코스트와 팀 정보 백업
+        int oldCost = pendingPromotionPawn.data.cost; // 폰의 기존 코스트
+        PieceColor pieceColor = pendingPromotionPawn.data.Color; // 백인지 흑인지 팀 컬러 확인
+        bool isMyPiece = (pieceColor == PieceColor.white);
+
+        int pawnX = pendingPromotionPawn.CurrentPos.x;
+        int pawnY = pendingPromotionPawn.CurrentPos.y;
+
+        // 기존 폰 제거 (만들어두신 DestroyPiece 재활용)
+        DestroyPiece(pawnX, pawnY);
+
+        //PieceDatabase를 이용해 선택한 기물(Queen, Knight 등)의 프리팹 가져오기
+        GameObject selectedPrefab = piecedatabase.GetPrefab(selectedType, pieceColor);
+
+        //새 기물 스폰 (이미 만들어두신 SpawnPiece 활용)
+        ChessPieceM newPiece = SpawnPiece(selectedPrefab, x, y, pieceColor);
+        int newCost = newPiece.data.cost; // 새로 바뀐 기물의 코스트
+
+        // 협상력 변동 처리 (코스트 차이만큼 반영)
+        OnPiecePromoted(isMyPiece, oldCost, newCost);
+
+        //  기보(MoveData)에 프로모션 기록 추가
+        MoveData move = new MoveData(
+            new Vector2Int(pendingPromotionPawn.CurrentPos.x, pendingPromotionPawn.CurrentPos.y),
+            new Vector2Int(x, y),
+            pendingPromotionPawn, // 무르기 때 원래 폰을 복원하기 위해 기존 폰 저장
+            oldCost,
+            newCost,
+            null
+        );
+        move.IsPromotion = true; // 프로모션 플래그 설정
+        MoveHistory.Add(move);
+
+        //  UI 닫기 및 상태 초기화
+        if (PromotionPanel != null)
+        {
+            PromotionPanel.SetActive(false);
+        }
+        isWaitingForPromotion = false;
+        pendingPromotionPawn = null;
+
+       
+    }
+
+    // 적 프로모션
+    private void ExecuteAIPromotion(ChessPieceM pawn, int x, int y)
+    {
+        if (pawn == null) return;
+
+        int oldCost = pawn.data.cost;
+        PieceColor aiColor = PieceColor.black;
+
+        int pawnX = pawn.CurrentPos.x;
+        int pawnY = pawn.CurrentPos.y;
+
+        // 💡 1. 먼저 그리드 배열에서 해당 위치를 확실하게 비워줍니다!
+        if (pieceGrid[pawnX, pawnY] == pawn)
+        {
+          pieceGrid[pawnX, pawnY] = null;
+        }
+
+        // 2. 기존 폰 오브젝트 제거 (즉시 파괴하거나 숨기기)
+        if (pawn.gameObject != null)
+        {
+            Destroy(pawn.gameObject); // 혹은 DestroyImmediate(pawn.gameObject);
+        }
+       
+        // 3. 그 자리에 안전하게 새 여왕 스폰
+        GameObject queenPrefab = PieceDatabase.GetPrefab(pieceType.Queen, aiColor);
+        ChessPieceM newPiece = SpawnPiece(queenPrefab, x, y, aiColor);
+
+        if (newPiece != null)
+        {
+            newPiece.isWhite = (aiColor == PieceColor.white);
+            newPiece.data.Color = aiColor;
+            // 그리드에 새 기물 등록
+            pieceGrid[x, y] = newPiece;
+            newPiece.CurrentPos = new Vector2Int(x, y);
+        }
+
+        int newCost = (newPiece != null) ? newPiece.data.cost : 900;
+        OnPiecePromoted(true, oldCost, newCost);
+
+        MoveData move = new MoveData(
+            new Vector2Int(pawnX, pawnY),
+            new Vector2Int(x, y),
+            pawn,
+            oldCost,
+            newCost,
+            null
+        );
+        move.IsPromotion = true;
+        MoveHistory.Add(move);
+
+       
+    }
+
+    // 4. 협상력 범위를 0 ~ 100 사이로 제한하는 방어 코드
+    private void ClampNegoPower()
+    {
+        myNegoPower = Mathf.Clamp(myNegoPower, 0f, 100f);
+        characterNegoPower = Mathf.Clamp(characterNegoPower, 0f, 100f);
+    }
+
+    // 5. 협상 시도 시 성공 확률 계산 
+    public bool TryNegotiate()
+    {
+        // 예: 내 협상력과 상대 협상력의 차이를 기반으로 성공 확률 계산
+        // 내 협상력이 높을수록 확률이 높아지도록 설정 가능
+        float successChance = NegoSuccessChance();
+
+        float randomValue = UnityEngine.Random.Range(0f, 100f);
+
+        if (randomValue <= successChance)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    private float NegoSuccessChance()
+    {
+        float successChance = 10f + (myNegoPower - characterNegoPower);
+        return Mathf.Clamp(successChance, 10f, 90f); // 최소 10%, 최대 90% 보장
+    }
+
+    private void RefreshEnPassantFlags()
+    {
+        foreach (var ap in activePieces)
+            if (ap is Pawn pn) pn.movedTwoSquaresLastTurn = false;
+
+        if (MoveHistory.Count == 0) return;
+        MoveData last = MoveHistory[MoveHistory.Count - 1];
+        if (last.IsPromotion) return;
+
+        ChessPieceM lastPiece = pieceGrid[last.To.x, last.To.y];
+        if (lastPiece is Pawn lp && Mathf.Abs(last.From.y - last.To.y) == 2)
+            lp.movedTwoSquaresLastTurn = true;
+    }
+
+    #endregion
+
+    #region 타이머 관련 함수들
+    // 💡 내 턴이 시작될 때 호출 (이어서 시작)
+    public void StartTurnTimer(PieceColor activeTurn)
+    {
+        if (isGameEnded) return;
+        currentTurn = activeTurn;
+
+        // 기존에 작동 중인 타이머 정지
+        PauseTurnTimer();
+
+        timerCts = new CancellationTokenSource();
+        RunTimerAsync(timerCts.Token).Forget();
+    }
+
+    // 💡 턴이 끝나거나 일시정지할 때 호출
+    public void PauseTurnTimer()
+    {
+        if (!isTimerRunning) return;
+
+        if (timerCts != null)
+        {
+            timerCts.Cancel();
+            timerCts.Dispose();
+            timerCts = null;
+        }
+        isTimerRunning = false;
+    }
+
+    // 비동기 타이머 루프
+    private async UniTaskVoid RunTimerAsync(CancellationToken cancellationToken)
+    {
+        isTimerRunning = true;
+
+        // 현재 턴에 해당하는 타이머 데이터 가져오기
+        PlayerTimerData activeTimerData = (currentTurn == PieceColor.white) ? whiteTimer : blackTimer;
+
+        if(activeTimerData.TimerTime <= 5)
+        {
+            activeTimerData.TimerTime = 5f;
+        }
+
+        try
+        {
+            while (activeTimerData.TimerTime > 0)
+            {
+                // 1초 대기
+                await UniTask.Delay(TimeSpan.FromSeconds(1f), cancellationToken: cancellationToken);
+
+                // 프로퍼티 세터를 통해 시간이 감가되고 UI가 즉시 자동 업데이트됨!
+                activeTimerData.TimerTime -= 1f;
+            }
+
+            if (cancellationToken.IsCancellationRequested || isGameEnded) return;
+            OnTimeOut();
+        }
+        catch (OperationCanceledException)
+        {
+            // Pause 시 취소 예외 발생하므로 정상 무시
+        }
+    }
+
+    private void OnTimeOut()
+    {
+        isTimerRunning = false;
+        TurnEnd();
+
+    }
+    #endregion
+
+    #region 대사 관련 함수
+    public void TriggerCharacterInteraction(CharacterType characterType, bool isBattle = true)
+    {
+        if (ScriptM.TryGet<DialogueController>(out DialogueController service))
+        {
+            // 1. 매니저에게 현재 플레이어 정보와 캐릭터에 맞는 대사를 달라고 요청
+            string dialogue = service.GetMatchingDialogue(characterType, isBattle);
+
+            // 2. DOTween을 이용해 화면에 부드럽게 출력
+            service.ShowDialogue(dialogue);
+        }
+    }
+
+    public void ShowMyCheckMessage(string message, float displayDuration = 1.5f)
+    {
+        if (MyText == null) return;
+
+        // 기존 진행 중인 애니메이션이 있다면 중단
+        myTextSequence?.Kill();
+
+        // 1. 텍스트 내용 세팅
+        MyText.text = message;
+
+        // 2. 초기 상태 설정 (크기를 0으로 축소, 알파값 0)
+        Transform textTransform = MyText.transform;
+        textTransform.localScale = Vector3.zero;
+
+        if (myTextCanvasGroup != null)
+        {
+            myTextCanvasGroup.alpha = 0f;
+        }
+
+        MyText.gameObject.SetActive(true);
+
+        // 3. DOTween Sequence 생성
+        myTextSequence = DOTween.Sequence();
+
+        // [등장 연출] 0.35초 동안 스케일이 1.2배로 커졌다가 1.0으로 튕기듯 정착 (OutBack 이징)
+        myTextSequence.Append(textTransform.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack));
+
+        if (myTextCanvasGroup != null)
+        {
+            myTextSequence.Join(myTextCanvasGroup.DOFade(1f, 0.2f));
+        }
+
+        // [대기] 지정한 시간만큼 화면에 멈춤
+        myTextSequence.AppendInterval(displayDuration);
+
+        // [퇴장 연출] 0.8초 동안 아주 천천히 서서히 투명해지면서 disappear (Linear 또는 InQuad)
+        if (myTextCanvasGroup != null)
+        {
+            myTextSequence.Append(myTextCanvasGroup.DOFade(0f, 0.8f).SetEase(Ease.InOutQuad));
+        }
+        else
+        {
+            // CanvasGroup이 없을 경우 TMP 자체 알파값 조절
+            myTextSequence.Append(MyText.DOFade(0f, 0.8f).SetEase(Ease.InOutQuad));
+        }
+
+        // [완료 처리] 사라진 뒤 오브젝트 비활성화
+        myTextSequence.OnComplete(() =>
+        {
+            MyText.gameObject.SetActive(false);
+        });
+    }
+
+
+    #endregion
+
+    #endregion
+
+    #region 게임 끝날 때 필요한 것들
+    [Header("게임 끝날 때 필요한 것들")]
+    public GameObject ResultPanel;
+    public TextMeshProUGUI ResultText;
+    public TextMeshProUGUI NegoText;
+    public TextMeshProUGUI TimeText;
+    public TextMeshProUGUI ResultMoneyText;
+
+    // 보드 상태별 반복 횟수를 저장하는 딕셔너리
+    private Dictionary<string, int> positionHistory = new Dictionary<string, int>();
+
+    public void HandleGiveUp()
+    {
+        SoundService.Current.playSFX("패배");
+        ShowGameResultAsync(GameResultType.Giveup, 0, 0).Forget();
+    }
+    /// <summary>
+    /// 게임 종료 결과 패널 출력 및 씬 이동 처리 (UniTask 비동기)
+    /// </summary>
+    public async UniTaskVoid ShowGameResultAsync(GameResultType resultType, float currentNegotiationPower, float remainingSeconds)
+    {
+        if (isGameEnded) return;
+        isGameEnded = true;
+        PauseTurnTimer();
+
+        if (ResultPanel != null)
+        {
+            ResultPanel.SetActive(true);
+        }
+
+        float totalMoney = 0;
+        string resultTextStr = "";
+
+        // 결과 유형에 따른 분기 처리
+        switch (resultType)
+        {
+            case GameResultType.Win:
+                SoundService.Current.playSFX("승리");
+                int winMultiplier = 10;
+                float negoMoneyWin = currentNegotiationPower * winMultiplier;
+                int timeMoneyWin = Mathf.FloorToInt(remainingSeconds) * winMultiplier;
+                totalMoney = negoMoneyWin + timeMoneyWin;
+                resultTextStr = "승리";
+
+                if (NegoText != null) NegoText.text = $"현재 협상력 : {negoMoneyWin} (x{winMultiplier})";
+                if (TimeText != null) TimeText.text = $"현재 남은 시간 : {timeMoneyWin} (x{winMultiplier})";
+
+                // 승리 시 다음 캐릭터 잠금 해제 실행
+                UnlockNextCharacter(currentAI.characterId);
+               
+                
+                    switch(currentAI.characterId)
+                    {
+                        case 0: singlePlayer.seoWin++; break;
+                        case 1: singlePlayer.reonWin++; break;
+                        case 2: singlePlayer.cloeWin++; break;
+                    }
+
+                break;
+                
+                
+
+            case GameResultType.Lose:
+                SoundService.Current.playSFX("패배");
+                int loseMultiplier = 5;
+                float negoMoneyLose = currentNegotiationPower * loseMultiplier;
+                int timeMoneyLose = Mathf.FloorToInt(remainingSeconds) * loseMultiplier;
+                totalMoney = negoMoneyLose + timeMoneyLose;
+                resultTextStr = "패배";
+
+                if (NegoText != null) NegoText.text = $"현재 협상력 : {negoMoneyLose} (x{loseMultiplier})";
+                if (TimeText != null) TimeText.text = $"현재 남은 시간 : {timeMoneyLose} (x{loseMultiplier})";
+                break;
+
+            case GameResultType.Draw:
+                SoundService.Current.playSFX("패배");
+                // 무승부 시 고정 1000원 지급
+                totalMoney = 1000;
+                resultTextStr = "무승부";
+
+                if (NegoText != null) NegoText.text = "무승부 보너스 적용";
+                if (TimeText != null) TimeText.text = "무승부 보너스 적용";
+
+                break;
+            case GameResultType.Giveup:
+                SoundService.Current.playSFX("패배");
+                resultTextStr = "항복";
+                totalMoney = 0;
+                if (NegoText != null) NegoText.text = "대국을 포기했습니다.";
+                if (TimeText != null) TimeText.text = "곧 있다가 로비로 이동합니다.";
+                break;
+                
+        }
+
+        // UI 텍스트 적용
+        if (ResultText != null) ResultText.text = resultTextStr;
+        if (ResultMoneyText != null) ResultMoneyText.text = $"획득한 돈 : {totalMoney} 원";
+
+        
+        singlePlayer.Gold += Mathf.FloorToInt(totalMoney);
+
+        // 5초 대기 후 로비 씬으로 이동
+        await UniTask.Delay(System.TimeSpan.FromSeconds(5f), ignoreTimeScale: true);
+        if(ScriptM.TryGet<HP>(out HP service1))
+        {
+            service1.ShowPanel();
+        }
+
+        SoundService.Current.FadeSound("평소", 3f).Forget();
+        if (ScriptM.TryGet<ScenesM>(out ScenesM service))
+        {
+           ScriptM.ClearSceneLocalServices();
+            service.LoadScene(SceneNumber.Lobby);
+        }
+    }
+   
+    
+     
+
+/// <summary>
+/// 다음 캐릭터 잠금 해제 로직 (PlayerPrefs 또는 데이터 매니저 연동)
+/// </summary>
+private void UnlockNextCharacter(int currentDefeatedCharacterId)
+    {
+        // 현재 깨부단 캐릭터 ID에 1을 더해 다음 캐릭터 ID를 구합니다. (예: 서오(0) 클리어 -> 레온(1) 해제)
+        int nextCharacterId = currentDefeatedCharacterId + 1;
+
+
+
+        // PlayerPrefs를 이용해 저장 (예: "Character_Unlock_1" = 1)
+        string key = $"Character_Unlock_{nextCharacterId}";
+        PlayerPrefs.SetInt(key, 1);
+        PlayerPrefs.Save();
+
+        if(nextCharacterId==1)
+        {
+            if(ScriptM.TryGet<Reon>(out Reon reon))
+            reon.isUnlocked = true;
+        }
+        else if(nextCharacterId==2)
+        {
+            if (ScriptM.TryGet<Cloe>(out Cloe cloe))
+                cloe.isUnlocked = true;
+        }
+    }
+
+    /// <summary>
+    /// 특정 플레이어의 상태가 스테일메이트(체크가 아니면서 움직일 수 없는 상태)인지 판별하는 함수
+    /// </summary>
+    public bool CheckStalemate(bool isWhiteTurn, ChessPieceM[,] grid)
+    {
+        // 1. 현재 왕이 체크 상태라면 스테일메이트가 아님 (체크메이트 패배 국면)
+        if (IsKingInCheck(isWhiteTurn, grid))
+        {
+            return false;
+        }
+
+        // 2. 현재 턴인 플레이어의 모든 기물을 순회하며 합법적인 이동 경로가 단 하나라도 있는지 확인
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                ChessPieceM piece = grid[x, y];
+
+                // 내 팀 기물인 경우
+                if (piece != null && piece.isWhite == isWhiteTurn)
+                {
+                    List<Vector2Int> possibleMoves = new List<Vector2Int>();
+                    piece.GetPossibleMoves(grid, possibleMoves);
+
+                    // 만약 움직일 수 있는 경로가 단 하나라도 존재한다면 스테일메이트 아님
+                    if (possibleMoves.Count > 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+      
+        // 체크도 아닌데 움직일 수 있는 기물이 하나도 없다면 완벽한 스테일메이트(무승부) 성립!
+        return true;
+    }
+    
+    #endregion
+
+
+}
+
+
