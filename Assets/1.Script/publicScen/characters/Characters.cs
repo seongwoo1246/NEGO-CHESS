@@ -196,7 +196,7 @@ public class Characters : MonoBehaviour
                         epX = x; epY = y - dir;
                     }
                 }
-
+                
                 engine.SetPiece(x, y, type, color, hasMoved);   
             }
         }
