@@ -64,7 +64,7 @@ public static class singlePlayer
         {
             if (_currentHp != value)
               
-            _currentHp = value;
+            _currentHp = value+ _bonusMaxHp;
         }
     }
    
@@ -180,7 +180,9 @@ public static class singlePlayer
         data.reonStep = reonTier;
         data.cloeStep = cloeTier;
         data.hpStep = hpTier;
-      
+        data.bonusUseHp = bonusUseHp;
+        data.bonusMaxHp = bonusMaxHp;
+
 
         ExportUpgrades(data.upgradeSaveList);   // 강화 레벨 (ReinforceM 없이 저장)
 

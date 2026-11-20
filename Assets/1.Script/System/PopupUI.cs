@@ -2,7 +2,7 @@
 
 public class PopupUI : MonoBehaviour
 {
-    public bool isOpen = false;
+    
 
     private void OnEnable()
     {
@@ -22,16 +22,7 @@ public class PopupUI : MonoBehaviour
     public void OnOpenMenuPerformed()
     {
         SoundService.Current.playSFX("버튼");
-        isOpen = !isOpen;
-
-        if (isOpen)
-        {
-            gameObject.SetActive(true);
-        }
-        else
-        {
-            gameObject.SetActive(false);
-        }
+        gameObject.SetActive(false);
     }
    
 }
