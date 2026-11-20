@@ -4530,15 +4530,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
-  m_sharedMaterial: {fileID: -2140055957698627388, guid: 36552576958910d4e9f3579dcf87fc7a, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 434d9877b3516224b9df28bd662e14f4, type: 2}
+  m_sharedMaterial: {fileID: -6148391287538823217, guid: 434d9877b3516224b9df28bd662e14f4, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColor: {r: 0, g: 0.8903012, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4560,9 +4560,9 @@ MonoBehaviour:
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 50
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -5199,7 +5199,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  isOpen: 0
 --- !u!224 &673974964
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11943,7 +11942,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  isOpen: 0
 --- !u!224 &1643193992
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13186,7 +13184,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  isOpen: 0
 --- !u!114 &1762465783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17094,7 +17091,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51ecd0f992d1daa42a5b7900b82f5623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupUI
-  isOpen: 0
 --- !u!114 &3709050621877343444
 MonoBehaviour:
   m_ObjectHideFlags: 0
